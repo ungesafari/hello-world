@@ -383,7 +383,7 @@
     }
     if (item.t === 'bank') {
       const tokens = shuffle([...item.ans, ...item.dis]).map((text, id) => ({ id, text }));
-      return { t: 'bank', q: item.q, tpl: item.tpl, ans: item.ans, any: item.any, code: item.code, tokens, slots: item.ans.map(() => null), e: item.e };
+      return { t: 'bank', q: item.q, tpl: item.tpl, ans: item.ans, any: item.any, code: item.code, order: item.order, tokens, slots: item.ans.map(() => null), e: item.e };
     }
     if (item.t === 'match') {
       const left = shuffle(item.pairs.map((p, i) => ({ i, text: p[0] })));
@@ -426,6 +426,7 @@
   function correctText(x) {
     if (x.t === 'mc') return x.opts[x.correct];
     if (x.t === 'num') return `${fmt(x.a)} ${x.u}`;
+    if (x.t === 'bank' && x.order) return x.ans.map((a, i) => `${i + 1}. ${a}`).join('\n');
     if (x.t === 'bank') { let k = 0; return x.tpl.replace(/▢/g, () => x.ans[k++]); }
     return '';
   }
@@ -546,12 +547,37 @@
   // ------------------------------------------------------------------
   // Leksjoner
   // ------------------------------------------------------------------
+  // Første leksjon i hver ferdighet starter med nye begreper, symboler og formler,
+  // slik Duolingo introduserer nye ord. Etterpå kommer en koble-oppgave på dem.
+  function introItems(skill) {
+    const intro = skill.intro || [];
+    const cards = intro.map(([term, name, d, kind]) => ({ t: 'card', term, name, d, kind: kind === 'f' ? 'Ny formel' : kind === 's' ? 'Nytt symbol' : 'Nytt begrep', skill: skill.id }));
+    if (intro.length >= 3) {
+      const pairs = shuffle(intro).slice(0, 4).map(([term, name]) => [term, name]);
+      if (new Set(pairs.map((p) => p[1])).size === pairs.length) {
+        const m = instantiate({ t: 'match', pairs, q: 'Koble sammen det du nettopp lærte' });
+        cards.push(m);
+      }
+    }
+    return cards;
+  }
+
   function buildItems(pool, n) {
     let list = shuffle(pool);
     // maks én koble-oppgave per leksjon
     let seenMatch = false;
     list = list.filter((it) => (it.t === 'match' ? (seenMatch ? false : (seenMatch = true)) : true));
     list = list.slice(0, n);
+    // utledninger (sett stegene i rekkefølge) er kjernen der de finnes: minst tre per leksjon
+    const orders = pool.filter((it) => it.order);
+    const want = Math.min(3, orders.length);
+    for (const it of shuffle(orders)) {
+      if (list.filter((x) => x.order).length >= want) break;
+      if (list.includes(it)) continue;
+      const k = list.findIndex((x) => !x.order);
+      if (k >= 0) list[k] = it; else list.push(it);
+    }
+    list = shuffle(list);
     const gens = pool.filter((it) => it.t === 'num');
     while (list.length < n && gens.length) list.push(pickR(gens));
     return list.map(instantiate);
@@ -573,7 +599,11 @@
 
   function startLesson(kind, node, opts = {}) {
     let items, title;
-    if (kind === 'skill' || kind === 'redo') { items = buildItems(node.skill.items, LESSON_LEN); title = node.skill.title; }
+    if (kind === 'skill' && !(S.prog[node.id] || 0) && node.skill.intro) {
+      const intro = introItems(node.skill);
+      items = intro.concat(buildItems(node.skill.items, Math.max(4, LESSON_LEN - 2)));
+      title = node.skill.title;
+    } else if (kind === 'skill' || kind === 'redo') { items = buildItems(node.skill.items, LESSON_LEN); title = node.skill.title; }
     else if (kind === 'review') { items = buildItems(allItems(node.unit.skills), REVIEW_LEN); title = 'Enhetsrepetisjon'; }
     else if (kind === 'jump') {
       const skills = COURSE.units.slice(0, opts.unit.index).reduce((a, u) => a.concat(u.skills), []);
@@ -697,7 +727,7 @@
   // ------------------------------------------------------------------
   // Visning: leksjon
   // ------------------------------------------------------------------
-  const TYPE_LABEL = { mc: 'Velg riktig svar', num: 'Regn ut', bank: 'Fyll inn', match: 'Koble sammen parene' };
+  const TYPE_LABEL = { mc: 'Velg riktig svar', num: 'Regn ut', bank: 'Fyll inn', match: 'Koble sammen parene', order: 'Sett stegene i riktig rekkefølge' };
 
   function renderLesson() {
     const L = LESSON;
@@ -723,6 +753,14 @@
         <div class="num-tools"><p class="hint">Bruk komma eller punktum. Store og små tall kan skrives som 6,2e18 eller 6,2·10^18.</p>
         ${L.state === 'idle' ? `<button class="calc-btn ${L.calc.open ? 'on' : ''}" data-a="calc" aria-label="Kalkulator">${I.calc()}<span>${L.calc.open ? 'Skjul' : 'Kalkulator'}</span></button>` : ''}</div>
         ${L.state === 'idle' && L.calc.open ? calcPanel(L) : ''}`;
+    } else if (x.t === 'bank' && x.order) {
+      body = `<ol class="order-list">${x.slots.map((id, i) => `<li><span class="ord-n">${i + 1}</span>${id === null ? '<span class="slot empty wide"></span>' : `<button class="tile in step" data-a="unslot" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}>${esc(x.tokens[id].text)}</button>`}</li>`).join('')}</ol>
+        <div class="bank steps">${x.tokens.map((tk) => {
+          const used = x.slots.includes(tk.id);
+          return `<button class="tile step ${used ? 'used' : ''}" data-a="tile" data-i="${tk.id}" ${used || L.state !== 'idle' ? 'disabled' : ''}>${esc(tk.text)}</button>`;
+        }).join('')}</div>`;
+    } else if (x.t === 'card') {
+      body = '';
     } else if (x.t === 'bank') {
       let k = 0;
       const line = esc(x.tpl).replace(/▢/g, () => {
@@ -746,7 +784,9 @@
     }
 
     let foot;
-    if (L.state === 'idle') {
+    if (x.t === 'card') {
+      foot = `<div class="l-foot"><div class="foot-in end"><button class="btn green" data-a="cardOk" id="contBtn">Fortsett</button></div></div>`;
+    } else if (L.state === 'idle') {
       foot = `<div class="l-foot"><div class="foot-in">
         <button class="btn ghost" data-a="skip">Hopp over</button>
         ${x.t === 'match' ? '' : `<button class="btn green" id="checkBtn" data-a="check" ${canCheck(x) ? '' : 'disabled'}>Sjekk</button>`}
@@ -756,7 +796,7 @@
       foot = `<div class="l-foot ${ok ? 'ok' : 'no'}"><div class="foot-in">
         <div class="fb">
           <div class="fb-title">${ok ? esc(L.praise || 'Riktig!') : 'Riktig svar:'}</div>
-          ${ok ? '' : `<div class="fb-ans">${esc(correctText(x))}</div>`}
+          ${ok ? '' : `<div class="fb-ans">${nl(correctText(x))}</div>`}
           ${x.e ? `<div class="fb-exp">${gloss(x.e)}</div>` : ''}
         </div>
         <button class="btn ${ok ? 'green' : 'red'}" data-a="cont" id="contBtn">Fortsett</button>
@@ -767,9 +807,13 @@
       <div class="l-top"><button class="icon-btn" data-a="quit" aria-label="Avslutt">${I.x()}</button>
         <div class="bar"><div class="fill" style="width:${pct}%"></div>${L.flash ? `<span class="combo">${esc(L.flash)}</span>` : ''}</div>${top}</div>
       <div class="l-body"><div class="l-inner">
-        <div class="l-type">${TYPE_LABEL[x.t]}</div>
+        ${x.t === 'card' ? `<div class="intro-card"><div class="ic-badge">${esc(x.kind)}</div>
+          <div class="ic-term ${x.term.length > 18 ? 'long' : ''}">${esc(x.term)}</div>
+          <div class="ic-name">${esc(x.name)}</div>
+          <p class="ic-d">${gloss(x.d)}</p></div>` : `
+        <div class="l-type">${x.t === 'bank' && x.order ? TYPE_LABEL.order : TYPE_LABEL[x.t]}</div>
         <h2 class="l-q">${gloss(x.q)}</h2>
-        ${body}
+        ${body}`}
       </div></div>
       ${foot}
       ${UI.modal === 'quit' ? quitModal() : ''}
@@ -887,7 +931,7 @@
       const lv = S.prog[n.id] || 0;
       if (state === 'done' && isWeak(n.id)) inner = `<h4>${esc(n.title)}</h4><p>Det er en stund siden du øvde på dette. Styrk kunnskapen før den blekner!</p><button class="btn white" data-a="go" data-n="${n.i}">Styrk +5 XP</button>`;
       else if (state === 'done') inner = `<h4>${esc(n.title)}</h4><p>Fullført! Styrke: ${Math.round(100 * strength(n.id))} %. Repeter for å holde kunnskapen ved like.</p><button class="btn white" data-a="go" data-n="${n.i}">Øv +5 XP</button>`;
-      else if (state === 'cur') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>`;
+      else if (state === 'cur') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}${lv === 0 && n.skill.intro ? ' · Nye begreper' : ''}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>`;
       else inner = `<h4>${esc(n.title)}</h4><p>Fullfør alle nivåene over for å låse opp denne.</p><button class="btn locked-b" disabled>Låst</button>`;
     } else if (n.type === 'review') {
       if (state === 'locked') inner = `<h4>Enhetsrepetisjon</h4><p>Fullfør alle nivåene over for å låse opp denne.</p><button class="btn locked-b" disabled>Låst</button>`;
@@ -1240,6 +1284,7 @@
       case 'unslot': if (L && L.state === 'idle') { L.cur.slots[+el.dataset.i] = null; render(); } break;
       case 'mL': case 'mR': if (L && L.state === 'idle') matchTap(a === 'mL' ? 'L' : 'R', +el.dataset.i); break;
       case 'check': check(); break;
+      case 'cardOk': cardOk(); break;
       case 'calc': if (L && L.state === 'idle') { L.calc.open = !L.calc.open; render(); } break;
       case 'ck': if (L && L.state === 'idle') calcKey(el.dataset.k); break;
       case 'calcUse': if (L && L.state === 'idle' && L.calc.last !== undefined) {
@@ -1257,6 +1302,14 @@
       default: break;
     }
   });
+
+  function cardOk() {
+    const L = LESSON;
+    if (!L || L.cur.t !== 'card' || L.state !== 'idle') return;
+    L.correct++; L.ok = true; L.state = 'right';
+    sfx.tap();
+    cont();
+  }
 
   function forceWrong() {
     const L = LESSON;
@@ -1313,6 +1366,7 @@
     if (ev.key === 'Enter') {
       ev.preventDefault();
       if (L.screen) { const b = document.getElementById('contBtn'); if (b) b.click(); return; }
+      if (L.cur.t === 'card') { cardOk(); return; }
       if (L.state === 'idle') check(); else cont();
       return;
     }

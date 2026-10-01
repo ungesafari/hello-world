@@ -24,7 +24,7 @@ Progress is saved locally on each device. Go to Profil, then "Kopier kode" on on
 
 ### Study features
 
-Number exercises have a calculator button (angles in degrees, EXP for powers of ten). Underlined words and symbols can be tapped for a short definition. Each skill has a strength that fades over time; faded skills show as cracked on the path, and "Styrk svake emner" builds a review lesson from your weakest skills, favouring questions you have answered wrong before.
+The first lesson of every skill opens with cards that introduce its new terms, symbols and formulas, followed by a matching exercise on them. Derivations (for example of the seven motion formulas from the teacher's slides) are practised as "put the steps in order" exercises. The basketball course follows a practical order: basic play first, court measurements last, with NBBF's U13–U15 adaptations as their own unit. Number exercises have a calculator button (angles in degrees, EXP for powers of ten). Underlined words and symbols can be tapped for a short definition. Each skill has a strength that fades over time; faded skills show as cracked on the path, and "Styrk svake emner" builds a review lesson from your weakest skills, favouring questions you have answered wrong before.
 
 ### Structure
 

@@ -49,6 +49,8 @@
   const num = (gen) => ({ t: 'num', gen });
   const bank = (q, tpl, ans, dis, e, extra = {}) => ({ t: 'bank', q, tpl, ans, dis, e, ...extra });
   const match = (pairs, q = 'Koble sammen parene') => ({ t: 'match', pairs, q });
+  // order: sett stegene i riktig rekkefølge (stegene oppgis i riktig rekkefølge her)
+  const order = (q, steps, dis, e) => ({ t: 'bank', order: true, q, tpl: steps.map(() => '▢').join('\n'), ans: steps, dis, e });
 
   // ================================================================
   // ENHET 1 – RETTLINJET BEVEGELSE
@@ -60,7 +62,8 @@
     goal: 'Eleven skal kunne utforske, analysere og forstå rettlinjet bevegelse, og bruke numeriske metoder og programmering til å modellere og utforske bevegelse i situasjoner der akselerasjonen ikke er konstant.',
     guide: [
       ['Grunnbegreper', 'Posisjon s (m), hastighet v (m/s) og akselerasjon a (m/s²).\nFart er størrelsen av hastigheten. Hastighet har både størrelse og retning.\nGjennomsnittsfart: v = Δs / Δt\nAkselerasjon: a = Δv / Δt\n1 m/s = 3,6 km/h'],
-      ['Bevegelseslikningene (konstant a)', 'v = v₀ + a·t\ns = v₀·t + ½·a·t²\nv² − v₀² = 2·a·s\ns = ½·(v₀ + v)·t'],
+      ['De sju bevegelsesformlene', 'Formler ved konstant akselerasjon:\n1. a = (v − v₀)/t\n2. v = v₀ + at\n3. v̄ = (v₀ + v)/2\n4. s = v̄·t\n5. s = (v₀ + v)/2 · t\n6. s = v₀t + ½at²\n7. 2as = v² − v₀²'],
+      ['Slik utleder du dem', 'Formel 1: definisjonen av akselerasjon når a er konstant.\nFormel 2: gang formel 1 med t og løs for v.\nFormel 3: farten øker lineært, så gjennomsnittet ligger midt mellom v₀ og v.\nFormel 4: definisjonen av gjennomsnittsfart, v̄ = s/t.\nFormel 5: sett formel 3 inn i formel 4. (Grafisk: trapesarealet under v-t-grafen.)\nFormel 6: sett formel 2 inn i formel 5.\nFormel 7: løs formel 1 for t, sett inn i formel 5 og bruk konjugatsetningen.\nVelg formelen som mangler den størrelsen du verken kjenner eller spør etter.'],
       ['Grafer', 's-t-graf: stigningstallet er hastigheten.\nv-t-graf: stigningstallet er akselerasjonen, og arealet under grafen er forflytningen.\na-t-graf: arealet under grafen er endringen i hastighet.'],
       ['Fritt fall', 'Uten luftmotstand faller alle legemer med a = g = 9,81 m/s² nedover, uansett masse.'],
       ['Numeriske metoder (Euler)', 'Når a ikke er konstant, deler vi tiden i små steg dt:\na = (formel for akselerasjonen)\nv = v + a·dt\ns = s + v·dt\nt = t + dt\nMindre dt gir mer nøyaktig resultat, men flere regnesteg.'],
@@ -68,6 +71,7 @@
     skills: [
       {
         id: 'u1s1', title: 'Fart og akselerasjon',
+        intro: [["s", "Posisjon / strekning", "Hvor langt legemet er fra et valgt nullpunkt, eller hvor langt det har beveget seg. Enhet: meter (m).", "s"], ["v", "Fart / hastighet", "Hvor fort (og i hvilken retning) legemet beveger seg. Enhet: m/s.", "s"], ["Δ", "Delta: «endring i»", "Δv = v − v₀ betyr endringen i fart. Δt betyr et tidsrom.", "s"], ["v̄ = Δs/Δt", "Gjennomsnittsfart", "Strekning delt på tid. Momentanfarten er stigningstallet til tangenten i s-t-grafen.", "f"], ["a = (v − v₀)/t", "Formel 1: akselerasjon", "Endring i fart per tid. Enhet: m/s².", "f"]],
         items: [
           mc('Hva er SI-enheten for akselerasjon?', ['m/s²', 'm/s', 'N', 'km/h'], 'Akselerasjon er endring i hastighet per tid: (m/s)/s = m/s².'),
           mc('Hva er forskjellen på fart og hastighet?', ['Hastighet har retning, fart har bare størrelse', 'Fart har retning, hastighet har bare størrelse', 'Det er ingen forskjell i fysikk', 'Fart måles i m/s², hastighet i m/s'], 'Hastighet er en vektor (størrelse og retning). Fart er bare størrelsen.'),
@@ -82,20 +86,25 @@
       },
       {
         id: 'u1s2', title: 'Bevegelseslikningene',
+        intro: [["v = v₀ + at", "Formel 2: fart", "Farten etter tiden t når akselerasjonen er konstant.", "f"], ["v̄ = (v₀ + v)/2", "Formel 3: gjennomsnittsfart", "Gjennomsnittsfarten ved konstant akselerasjon.", "f"], ["s = v̄·t", "Formel 4: strekning", "Strekning er gjennomsnittsfart ganger tid.", "f"], ["s = (v₀ + v)/2 · t", "Formel 5: strekning uten a", "Formel 3 satt inn i formel 4.", "f"], ["s = v₀t + ½at²", "Formel 6: strekning uten v", "Når du kjenner startfart, akselerasjon og tid.", "f"], ["2as = v² − v₀²", "Formel 7: den tidløse", "Kobler fart og strekning uten tiden t.", "f"]],
         items: [
           mc('Når gjelder bevegelseslikningene (som s = v₀t + ½at²)?', ['Bare når akselerasjonen er konstant', 'Bare når farten er konstant', 'Bare når legemet starter fra ro', 'Alltid'], 'Alle de fire bevegelseslikningene forutsetter konstant akselerasjon.'),
-          mc('Du kjenner v₀, v og a, men ikke tiden. Hvilken likning bruker du for å finne strekningen?', ['v² − v₀² = 2as', 'v = v₀ + at', 's = v₀t + ½at²', 's = ½(v₀ + v)t'], 'v² − v₀² = 2as er den eneste av likningene som ikke inneholder t.'),
+          mc('Du kjenner v₀, v og a, men ikke tiden. Hvilken likning bruker du for å finne strekningen?', ['2as = v² − v₀²', 'v = v₀ + at', 's = v₀t + ½at²', 's = ½(v₀ + v)t'], '2as = v² − v₀² er den eneste av likningene som ikke inneholder t.'),
           bank('Fullfør bevegelseslikningen', 'v = v₀ + ▢ · ▢', ['a', 't'], ['s', 'v', 'm'], 'v = v₀ + a·t: hastigheten øker med a for hvert sekund.', { any: true }),
-          bank('Fullfør den tidløse likningen', 'v² − v₀² = 2 · ▢ · ▢', ['a', 's'], ['t', 'v', 'g'], 'v² − v₀² = 2as', { any: true }),
+          bank('Fullfør den tidløse likningen', '2 · ▢ · ▢ = v² − v₀²', ['a', 's'], ['t', 'v', 'g'], '2as = v² − v₀²', { any: true }),
           num(() => { const v0 = ri(0, 15), a = rs(0.5, 4, 0.5), t = ri(2, 10); return { q: `En bil har startfart ${v0} m/s og akselererer med ${f(a)} m/s² i ${t} s. Hva er farten etterpå?`, a: v0 + a * t, u: 'm/s', e: `v = v₀ + at = ${v0} + ${f(a)} · ${t} = ${f(v0 + a * t)} m/s` }; }),
           num(() => { const v0 = ri(0, 10), a = rs(1, 4, 0.5), t = ri(2, 8); const s = v0 * t + 0.5 * a * t * t; return { q: `Et tog har startfart ${v0} m/s og akselerasjon ${f(a)} m/s². Hvor langt kommer det på ${t} s?`, a: s, u: 'm', e: `s = v₀t + ½at² = ${v0}·${t} + ½·${f(a)}·${t}² = ${f(s)} m` }; }),
-          num(() => { const v0 = ri(10, 30), a = rs(4, 8, 0.5); const s = (v0 * v0) / (2 * a); return { q: `En bil i ${v0} m/s bremser med akselerasjon −${f(a)} m/s² til den står stille. Hva er bremselengden?`, a: s, u: 'm', e: `v² − v₀² = 2as ⇒ s = (0 − ${v0}²) / (2 · (−${f(a)})) = ${f(s)} m` }; }),
+          num(() => { const v0 = ri(10, 30), a = rs(4, 8, 0.5); const s = (v0 * v0) / (2 * a); return { q: `En bil i ${v0} m/s bremser med akselerasjon −${f(a)} m/s² til den står stille. Hva er bremselengden?`, a: s, u: 'm', e: `2as = v² − v₀² ⇒ s = (0 − ${v0}²) / (2 · (−${f(a)})) = ${f(s)} m` }; }),
           num(() => { const v0 = ri(2, 10), v = v0 + ri(4, 15), t = ri(3, 10); const s = 0.5 * (v0 + v) * t; return { q: `Farten øker jevnt fra ${v0} m/s til ${v} m/s i løpet av ${t} s. Hvor langt beveger legemet seg?`, a: s, u: 'm', e: `s = ½(v₀ + v)t = ½(${v0} + ${v})·${t} = ${f(s)} m` }; }),
           num(() => { const v0 = ri(10, 30), a = rs(2, 6, 0.5); return { q: `En syklist i ${v0} m/s bremser med akselerasjonen −${f(a)} m/s². Hvor lang tid tar det før syklisten står stille?`, a: v0 / a, u: 's', e: `v = v₀ + at ⇒ t = (0 − ${v0}) / (−${f(a)}) = ${f(v0 / a)} s` }; }),
+          mc('Du kjenner v₀, v og t, men ikke akselerasjonen. Hvilken formel gir strekningen direkte?', ['s = (v₀ + v)/2 · t', 's = v₀t + ½at²', '2as = v² − v₀²', 'v = v₀ + at'], 'Formel 5 er den eneste strekningsformelen uten a.'),
+          num(() => { const v0 = ri(0, 10), v = v0 + ri(4, 16); return { q: `Farten øker jevnt fra ${v0} m/s til ${v} m/s. Hva er gjennomsnittsfarten?`, a: (v0 + v) / 2, u: 'm/s', e: `v̄ = (v₀ + v)/2 = (${v0} + ${v})/2 = ${f((v0 + v) / 2)} m/s` }; }),
+          num(() => { const v0 = ri(2, 6), v = v0 * pick([2, 3, 4]), sx = ri(2, 6) * 10; const a = (v * v - v0 * v0) / (2 * sx); return { q: `En kloss øker farten fra ${v0} m/s til ${v} m/s over en strekning på ${sx} m. Hva er akselerasjonen?`, a, u: 'm/s²', e: `2as = v² − v₀² ⇒ a = (${v}² − ${v0}²)/(2·${sx}) = ${f(a)} m/s²` }; }),
         ],
       },
       {
         id: 'u1s3', title: 'Bevegelsesgrafer',
+        intro: [["s-t-graf", "Posisjon mot tid", "Stigningstallet er hastigheten.", "b"], ["v-t-graf", "Hastighet mot tid", "Stigningstallet er akselerasjonen. Arealet under grafen er forflytningen.", "b"], ["Stigningstall", "Hvor bratt grafen er", "Δy/Δx. For en v-t-graf: Δv/Δt = a.", "b"], ["Areal under grafen", "Høyde ganger bredde", "Under en v-t-graf har arealet enheten (m/s)·s = m, altså strekning.", "b"]],
         items: [
           mc('Hva forteller arealet under en v-t-graf?', ['Forflytningen', 'Akselerasjonen', 'Farten', 'Kraften'], 'Areal = v · t, som har enheten m. Det er forflytningen.'),
           mc('Hva er stigningstallet til en v-t-graf?', ['Akselerasjonen', 'Forflytningen', 'Posisjonen', 'Massen'], 'Stigningstall = Δv / Δt = a.'),
@@ -108,7 +117,45 @@
         ],
       },
       {
+        id: 'u1s5', title: 'Utled bevegelsesformlene',
+        intro: [["a = (v − v₀)/t", "Formel 1: akselerasjon", "Definisjonen av akselerasjon når a er konstant. Utgangspunktet for alle utledningene.", "f"], ["v̄ = s/t", "Definisjonen av gjennomsnittsfart", "Gjennomsnittsfarten er strekning delt på tid. Gir formel 4: s = v̄t.", "f"], ["Lineær fart", "Farten øker jevnt", "Ved konstant a er v-t-grafen en rett linje. Da er gjennomsnittsfarten midt mellom v₀ og v.", "b"], ["Innsetting", "Sett en formel inn i en annen", "Slik får vi formel 5, 6 og 7.", "b"]],
+        items: [
+          order('Utled formel 2: v = v₀ + at', ['Start med formel 1: a = (v − v₀)/t', 'Gang begge sider med t: at = v − v₀', 'Legg v₀ til på begge sider: v = v₀ + at'], ['v = at − v₀'], 'Formel 2 er bare formel 1 løst for v.'),
+          order('Utled formel 3: v̄ = (v₀ + v)/2', ['Med konstant akselerasjon øker farten lineært med tiden', 'v-t-grafen er en rett linje fra v₀ til v', 'Gjennomsnittet av en lineær størrelse er gjennomsnittet av start- og sluttverdien', 'v̄ = (v₀ + v)/2'], ['v̄ = v − v₀'], 'Formel 3 gjelder bare når akselerasjonen er konstant.'),
+          order('Utled formel 5: s = (v₀ + v)/2 · t', ['Start med formel 4: s = v̄·t', 'Sett inn formel 3: v̄ = (v₀ + v)/2', 's = (v₀ + v)/2 · t'], ['s = (v₀ − v)/2 · t'], 'Grafisk er dette arealet av trapeset under v-t-grafen.'),
+          order('Utled formel 6: s = v₀t + ½at²', ['Start med formel 5: s = (v₀ + v)/2 · t', 'Sett inn formel 2: v = v₀ + at', 's = (v₀ + v₀ + at)/2 · t', 's = (2v₀ + at)/2 · t', 's = v₀t + ½at²'], ['s = v₀t + at²'], 'Vi erstatter v med v₀ + at og ganger ut.'),
+          order('Utled formel 7: 2as = v² − v₀²', ['Løs formel 1 for t: t = (v − v₀)/a', 'Sett inn i formel 5: s = (v₀ + v)/2 · (v − v₀)/a', 'Gang begge sider med 2a: 2as = (v + v₀)(v − v₀)', 'Bruk konjugatsetningen: 2as = v² − v₀²'], ['2as = (v − v₀)²'], 'Ved å fjerne t får vi den tidløse formelen. (a + b)(a − b) = a² − b².'),
+          bank('Fullfør steget i utledningen av formel 6', 's = (v₀ + ▢)/2 · t', ['v₀ + at'], ['v − at', 'at', 'v'], 'Vi setter inn v = v₀ + at i formel 5.'),
+          bank('Løs formel 1 for tiden', 't = (▢ − ▢)/a', ['v', 'v₀'], ['s', 'a', 't'], 'Fra a = (v − v₀)/t: t = (v − v₀)/a.'),
+          bank('Fullfør det siste steget mot formel 7', '2as = (v + v₀)(▢)', ['v − v₀'], ['v + v₀', 'v₀ − v', 'at'], 'Konjugatsetningen gir (v + v₀)(v − v₀) = v² − v₀².'),
+          bank('Fullfør formel 4 og 3', 's = ▢ · t,   v̄ = (v₀ + ▢)/2', ['v̄', 'v'], ['a', 's', 'v₀'], 's = v̄t, og ved konstant a er v̄ = (v₀ + v)/2.'),
+          mc('Hvilken formel får du når du setter v = v₀ + at inn i s = (v₀ + v)/2 · t?', ['s = v₀t + ½at²', '2as = v² − v₀²', 's = v̄t', 'v̄ = (v₀ + v)/2'], 'Dette er formel 6.'),
+          mc('Hva gjør du for å utlede den tidløse formelen 2as = v² − v₀²?', ['Løser formel 1 for t og setter inn i formel 5', 'Deriverer formel 6', 'Setter v₀ = 0', 'Ganger formel 2 med seg selv'], 'Da forsvinner t fra formelen.'),
+          mc('Hvorfor gjelder v̄ = (v₀ + v)/2 bare når akselerasjonen er konstant?', ['Bare da øker farten lineært, så gjennomsnittet ligger midt mellom start og slutt', 'Fordi v₀ alltid er null', 'Fordi strekningen da er null', 'Den gjelder alltid'], 'Øker farten ujevnt, kan gjennomsnittsfarten ligge hvor som helst mellom v₀ og v.'),
+          mc('Hvilken geometrisk figur er arealet under v-t-grafen når farten øker jevnt fra v₀ til v?', ['Et trapes', 'En sirkel', 'Et kvadrat', 'En parabel'], 'Trapesarealet (v₀ + v)/2 · t er formel 5.'),
+          match([['v = v₀ + at', 'Mangler s'], ['s = (v₀ + v)/2 · t', 'Mangler a'], ['s = v₀t + ½at²', 'Mangler v'], ['2as = v² − v₀²', 'Mangler t']], 'Koble formelen med størrelsen den ikke inneholder'),
+          tf('Formel 6 og 7 er utledet ved å sette formel 1 eller 2 inn i formel 5.', true, 'Formel 6: sett inn v = v₀ + at. Formel 7: sett inn t = (v − v₀)/a.'),
+        ],
+      },
+      {
+        id: 'u1s6', title: 'Parameterfremstilling',
+        intro: [["s(t)", "Posisjon som funksjon av tid", "En formel som gir posisjonen for hvert tidspunkt t.", "f"], ["v(t) = s′(t)", "Fart er den deriverte av posisjonen", "Stigningstallet til s(t) i hvert punkt.", "f"], ["a(t) = v′(t)", "Akselerasjon er den deriverte av farten", "Stigningstallet til v(t) i hvert punkt.", "f"], ["v(t) = 0", "Snupunktet", "Legemet snur når farten skifter fortegn.", "f"]],
+        items: [
+          mc('Hvordan finner du v(t) når posisjonen s(t) er gitt?', ['Deriverer s(t)', 'Integrerer s(t)', 'Deler s(t) på t', 'Setter t = 0'], 'v(t) = s′(t).'),
+          mc('Hvordan finner du tidspunktet der legemet snur?', ['Løser v(t) = 0', 'Løser s(t) = 0', 'Løser a(t) = 0', 'Setter t = 0'], 'I snupunktet er farten null.'),
+          mc('Posisjonen er s(t) = 3t − 0,5t². Hva er akselerasjonen?', ['−1 m/s², konstant', '3 m/s²', '−0,5 m/s²', 'Den endrer seg med tiden'], 'v(t) = 3 − t og a(t) = −1.'),
+          bank('Deriver posisjonen', 's(t) = 3t − 0,5t²   ⇒   v(t) = ▢ − ▢', ['3', 't'], ['0,5t', '1,5', 't²'], 'Den deriverte av 3t er 3, og av 0,5t² er t.'),
+          tf('Er s(t) et andregradspolynom i t, er akselerasjonen konstant.', true, 'Den andrederiverte av et andregradspolynom er en konstant.'),
+          mc('Tea løper etter en buss som akselererer fra ro. Hvordan finner du ut om hun tar den igjen?', ['Setter s_T(t) = s_B(t) og sjekker om likningen har løsning', 'Sammenlikner startfartene', 'Setter v_B(t) = 0', 'Regner ut bussens akselerasjon'], 'Hun tar bussen igjen hvis posisjonene blir like for en verdi av t.'),
+          num(() => { const b = ri(2, 8), c = pick([0.5, 1, 2]); return { q: `Posisjonen er s(t) = ${f(b)}t − ${f(c)}t² (s i m, t i s). Når snur legemet?`, a: b / (2 * c), u: 's', e: `v(t) = ${f(b)} − ${f(2 * c)}t = 0 ⇒ t = ${f(b / (2 * c))} s` }; }),
+          num(() => { const b = ri(2, 8), c = pick([0.5, 1, 2]); const t = b / (2 * c); return { q: `Posisjonen er s(t) = ${f(b)}t − ${f(c)}t². Hvor langt fra start er legemet når det snur?`, a: b * t - c * t * t, u: 'm', e: `Snur ved t = ${f(t)} s. s = ${f(b)}·${f(t)} − ${f(c)}·${f(t)}² = ${f(b * t - c * t * t)} m` }; }),
+          num(() => { const b = ri(2, 8), c = pick([0.5, 1, 2]); return { q: `Posisjonen er s(t) = ${f(b)}t − ${f(c)}t². Når er legemet tilbake ved utgangspunktet?`, a: b / c, u: 's', e: `s(t) = t(${f(b)} − ${f(c)}t) = 0 ⇒ t = ${f(b / c)} s` }; }),
+          num(() => { const k = pick([2, 4.9, 8, 13]); return { q: `En stein faller på en annen planet. Høyden er H(t) = 100 − ${f(k)}t². Hva er tyngdeakselerasjonen der?`, a: 2 * k, u: 'm/s²', e: `H(t) = H₀ − ½gt², så ½g = ${f(k)} og g = ${f(2 * k)} m/s²` }; }),
+        ],
+      },
+      {
         id: 'u1s4', title: 'Fritt fall og numeriske metoder',
+        intro: [["g", "Tyngdeakselerasjonen", "9,81 m/s² nedover nær jordoverflaten.", "s"], ["Fritt fall", "Bare tyngden virker", "Uten luftmotstand faller alle legemer med samme akselerasjon g.", "b"], ["dt", "Tidssteg", "Et lite tidsrom i en numerisk beregning.", "s"], ["v = v + a·dt", "Eulers metode for fart", "I hvert lite tidssteg øker farten med a·dt.", "f"], ["s = s + v·dt", "Eulers metode for posisjon", "I hvert tidssteg flytter legemet seg v·dt.", "f"]],
         items: [
           mc('Vi ser bort fra luftmotstand. En hammer og en fjær slippes samtidig fra samme høyde. Hva skjer?', ['De treffer bakken samtidig', 'Hammeren lander først', 'Fjæra lander først', 'Det avhenger av høyden'], 'I fritt fall har alle legemer samme akselerasjon g, uansett masse.'),
           mc('Hvorfor trenger vi numeriske metoder for å beregne bevegelse med luftmotstand?', ['Akselerasjonen er ikke konstant, så bevegelseslikningene gjelder ikke', 'Luftmotstand kan ikke måles', 'Datamaskiner regner alltid mer nøyaktig enn formler', 'Tyngdekraften blir borte'], 'Luftmotstanden avhenger av farten, så a endrer seg hele tiden.'),
@@ -145,6 +192,7 @@
     skills: [
       {
         id: 'u2s1', title: 'Newtons tre lover',
+        intro: [["F", "Kraft", "En påvirkning som kan endre bevegelsen. Enhet: newton (N).", "s"], ["ΣF", "Kraftsum", "Summen av alle kreftene som virker på legemet.", "s"], ["N1", "Newtons 1. lov", "ΣF = 0 betyr i ro eller konstant hastighet.", "b"], ["N3", "Newtons 3. lov", "Kraft og motkraft er like store, motsatt rettet og virker på hvert sitt legeme.", "b"]],
         items: [
           mc('Hva sier Newtons 1. lov?', ['Er summen av kreftene null, er legemet i ro eller har konstant hastighet', 'Kraft er lik masse ganger akselerasjon', 'Enhver kraft har en motkraft', 'Alle legemer faller like fort'], 'Dette kalles også treghetsloven.'),
           mc('Hva sier Newtons 3. lov?', ['Når A virker på B med en kraft, virker B på A med en like stor, motsatt rettet kraft', 'ΣF = ma', 'Et legeme i ro forblir i ro', 'Kraften er proporsjonal med farten'], 'Kraft og motkraft er like store, motsatt rettet og virker på hvert sitt legeme.'),
@@ -158,6 +206,7 @@
       },
       {
         id: 'u2s2', title: 'Newtons 2. lov',
+        intro: [["ΣF = m·a", "Newtons 2. lov", "Kraftsummen er masse ganger akselerasjon.", "f"], ["m", "Masse", "Hvor mye stoff legemet har. Enhet: kg.", "s"], ["G = m·g", "Tyngde", "Kraften fra jorda på et legeme.", "f"], ["1 N", "Én newton", "1 kg·m/s²: kraften som gir 1 kg akselerasjonen 1 m/s².", "b"]],
         items: [
           mc('1 N er det samme som …', ['1 kg·m/s²', '1 kg·m/s', '1 kg·m²/s²', '1 J/s'], 'F = ma gir enheten kg · m/s².'),
           bank('Fullfør Newtons 2. lov', 'ΣF = ▢ · ▢', ['m', 'a'], ['v', 'g', 's'], 'Kraftsummen er masse ganger akselerasjon.', { any: true }),
@@ -172,6 +221,7 @@
       },
       {
         id: 'u2s3', title: 'Friksjon og luftmotstand',
+        intro: [["N", "Normalkraft", "Kraft fra underlaget, vinkelrett ut fra det.", "s"], ["R = μN", "Friksjon", "Friksjonskraften er friksjonstallet ganger normalkraften.", "f"], ["μ", "Friksjonstall", "Tall uten enhet som sier hvor «ru» flatene er.", "s"], ["L = kv²", "Luftmotstand", "Luftmotstanden øker med kvadratet av farten.", "f"]],
         items: [
           mc('Hva er terminalfarten til en fallskjermhopper?', ['Farten der luftmotstanden er like stor som tyngden, så farten blir konstant', 'Farten hopperen har idet hen lander', 'Den største farten et legeme kan ha', 'Farten når skjermen åpnes'], 'Da er ΣF = 0 og a = 0.'),
           mc('Hva skjer med akselerasjonen til en fallskjermhopper før skjermen utløses?', ['Den avtar fra g mot null', 'Den er konstant lik g', 'Den øker', 'Den er null hele tiden'], 'Luftmotstanden øker med farten, så kraftsummen og dermed a avtar.'),
@@ -185,6 +235,7 @@
       },
       {
         id: 'u2s4', title: 'Skråplan og snordrag',
+        intro: [["α", "Helningsvinkel", "Vinkelen mellom skråplanet og vannrett.", "s"], ["G∥ = mg·sin α", "Tyngden langs planet", "Komponenten som drar legemet nedover skråplanet.", "f"], ["G⊥ = mg·cos α", "Tyngden inn mot planet", "Komponenten som presser mot underlaget. N = G⊥.", "f"], ["S", "Snordrag", "Kraften fra en snor, rettet langs snora.", "s"]],
         items: [
           mc('En kloss glir på et friksjonsfritt skråplan. Hva er akselerasjonen uavhengig av?', ['Massen til klossen', 'Helningsvinkelen', 'Tyngdeakselerasjonen g', 'Ingen av delene'], 'a = g·sin α. Massen forkortes bort.'),
           mc('Hva skjer med normalkraften på en kloss når helningsvinkelen til skråplanet øker?', ['Den avtar', 'Den øker', 'Den er uendret', 'Den blir lik tyngden'], 'N = mg·cos α, og cos α avtar når α øker.'),
@@ -216,6 +267,7 @@
     skills: [
       {
         id: 'u3s1', title: 'Arbeid og effekt',
+        intro: [["W = F·s·cos α", "Arbeid", "Energien en kraft overfører. Enhet: joule (J).", "f"], ["P = W/t", "Effekt", "Arbeid per tid. Enhet: watt (W).", "f"], ["J", "Joule", "Enheten for energi og arbeid. 1 J = 1 N·m.", "s"], ["kWh", "Kilowattime", "1 kWh = 3,6 MJ. Brukes på strømregningen.", "s"]],
         items: [
           match([['Arbeid', 'J'], ['Effekt', 'W'], ['Kraft', 'N'], ['1 kWh', '3,6 MJ']]),
           tf('1 W er det samme som 1 J/s.', true, 'Effekt er energi per tid.'),
@@ -229,11 +281,14 @@
       },
       {
         id: 'u3s2', title: 'Kinetisk og potensiell energi',
+        intro: [["E_k = ½mv²", "Kinetisk energi", "Bevegelsesenergi.", "f"], ["E_p = mgh", "Potensiell energi", "Stillingsenergi i tyngdefeltet.", "f"], ["h", "Høyde", "Høyden over et nullnivå du velger selv.", "s"], ["Nullnivå", "Der h = 0", "Kan velges fritt. Bare endringer i E_p betyr noe.", "b"]],
         items: [
           mc('Farten til en bil dobles. Hva skjer med den kinetiske energien?', ['Den blir fire ganger så stor', 'Den dobles', 'Den halveres', 'Den er uendret'], 'E_k = ½mv². v → 2v gir v² → 4v².'),
           mc('Hvor må nullnivået for potensiell energi ligge?', ['Det kan velges fritt', 'Alltid ved havnivå', 'Alltid på bakken', 'Alltid i jordas sentrum'], 'Det er bare endringer i E_p som betyr noe fysisk.'),
           bank('Fullfør formelen for potensiell energi', 'E_p = ▢ · ▢ · ▢', ['m', 'g', 'h'], ['v', 't', 'a'], 'E_p = mgh', { any: true }),
           bank('Fullfør formelen for kinetisk energi', 'E_k = ½ · ▢ · ▢', ['m', 'v²'], ['v', 'g', 'h'], 'E_k = ½mv²', { any: true }),
+          order('Utled uttrykket for kinetisk energi (arbeid-energi-setningen)', ['Arbeidet fra kraftsummen er W = F·s', 'Newtons 2. lov: F = m·a', 'W = m·a·s', 'Formel 7 gir a·s = (v² − v₀²)/2', 'W = ½mv² − ½mv₀² = ΔE_k'], ['W = m·v·s'], 'Arbeidet fra kraftsummen er lik endringen i kinetisk energi.'),
+          num(() => { const m = ri(5, 20), F = ri(10, 40), sx = ri(5, 15); const v = Math.sqrt((2 * F * sx * Math.cos(Math.PI / 6)) / m); return { q: `En kloss på ${m} kg starter i ro og dras ${sx} m bortover et friksjonsfritt gulv med en kraft på ${F} N som danner 30° med bevegelsen. Hva blir farten?`, a: v, u: 'm/s', e: `W = F·s·cos 30° = ${f(F * sx * Math.cos(Math.PI / 6))} J = ½mv² ⇒ v = ${f(v)} m/s` }; }),
           num(() => { const m = ri(1, 80), v = ri(2, 20); return { q: `Hva er den kinetiske energien til et legeme på ${m} kg med fart ${v} m/s?`, a: 0.5 * m * v * v, u: 'J', e: `E_k = ½mv² = ½·${m}·${v}² = ${f(0.5 * m * v * v)} J` }; }),
           num(() => { const m = ri(1, 80), hh = ri(1, 30); return { q: `Hvor stor potensiell energi får et legeme på ${m} kg som løftes ${hh} m?`, a: m * g * hh, u: 'J', e: `E_p = mgh = ${m}·9,81·${hh} = ${f(m * g * hh)} J` }; }),
           num(() => { const m = pick([2, 4, 8, 10]), v = ri(2, 12); const Ek = 0.5 * m * v * v; return { q: `En kule på ${m} kg har kinetisk energi ${f(Ek)} J. Hvor stor er farten?`, a: v, u: 'm/s', e: `v = √(2E_k/m) = √(2·${f(Ek)}/${m}) = ${v} m/s` }; }),
@@ -241,9 +296,14 @@
       },
       {
         id: 'u3s3', title: 'Bevaring av energi',
+        intro: [["E = E_k + E_p", "Mekanisk energi", "Summen av kinetisk og potensiell energi.", "f"], ["Energibevaring", "E før = E etter", "Når bare tyngden gjør arbeid, er mekanisk energi konstant.", "b"], ["v = √(2gh)", "Fart etter fall", "Følger av mgh = ½mv².", "f"]],
         items: [
           mc('Når er den mekaniske energien til et legeme bevart?', ['Når tyngdekraften er den eneste kraften som gjør arbeid', 'Alltid', 'Bare når legemet står i ro', 'Når friksjonen er stor'], 'Andre krefter som friksjon og luftmotstand endrer den mekaniske energien.'),
           tf('To kuler ruller ned hver sin friksjonsfrie bakke med samme høydeforskjell. Den ene bakken er brattere. Farten i bunnen blir lik.', true, 'mgh = ½mv² ⇒ v = √(2gh). Bare høydeforskjellen teller.'),
+          order('Utled farten etter et fall: v = √(2gh)', ['Mekanisk energi er bevart: E_p øverst = E_k nederst', 'mgh = ½mv²', 'Del på m og gang med 2: v² = 2gh', 'v = √(2gh)'], ['v = 2gh'], 'Massen forkortes bort, så farten avhenger ikke av massen.'),
+          mc('Hvor stort er arbeidet friksjonen gjør på et legeme?', ['Like stort som tapet i mekanisk energi (negativt arbeid)', 'Alltid null', 'Like stort som den kinetiske energien', 'Like stort som tyngden'], 'W_R = −R·s = ΔE (endringen i mekanisk energi).'),
+          num(() => { const v0 = ri(6, 12); const ht = (v0 * v0) / (2 * g); const share = pick([0.7, 0.8, 0.9]); const hm = Math.round(ht * share * 100) / 100; const loss = (1 - hm / ht) * 100; return { q: `En snøball kastes rett opp med ${v0} m/s, men kommer bare ${f(hm)} m opp. Hvor mange prosent av den mekaniske energien gikk tapt?`, a: loss, u: '%', e: `Uten tap: h = v₀²/(2g) = ${f(ht)} m. Tap = (1 − ${f(hm)}/${f(ht)})·100 % = ${f(loss)} %` }; }),
+          num(() => { const m = ri(10, 25), sx = ri(15, 40), v0 = ri(4, 10); const R = (m * v0 * v0) / (2 * sx); return { q: `En curlingstein på ${m} kg sklir ${sx} m før den stopper. Startfarten var ${v0} m/s. Hvor stor er friksjonskraften?`, a: R, u: 'N', e: `R·s = ½mv₀² ⇒ R = ${m}·${v0}²/(2·${sx}) = ${f(R)} N` }; }),
           mc('En ball kastes rett opp. Hva skjer med den mekaniske energien på vei opp (uten luftmotstand)?', ['Den er konstant: E_k går over til E_p', 'Den øker', 'Den avtar', 'Den blir null i toppen'], 'Summen er bevart. I toppen er all E_k blitt E_p.'),
           num(() => { const hh = ri(2, 40); const v = Math.sqrt(2 * g * hh); return { q: `En stein slippes fra ${hh} m høyde. Hvilken fart har den rett før den treffer bakken? (Se bort fra luftmotstand)`, a: v, u: 'm/s', e: `mgh = ½mv² ⇒ v = √(2gh) = √(2·9,81·${hh}) = ${f(v)} m/s` }; }),
           num(() => { const h1 = ri(30, 60), h2 = ri(5, h1 - 10); const v = Math.sqrt(2 * g * (h1 - h2)); return { q: `En berg-og-dal-banevogn starter i ro ${h1} m over bakken. Hvilken fart har den ${h2} m over bakken? (Ingen friksjon)`, a: v, u: 'm/s', e: `v = √(2g(h₁ − h₂)) = √(2·9,81·${h1 - h2}) = ${f(v)} m/s` }; }),
@@ -253,6 +313,7 @@
       },
       {
         id: 'u3s4', title: 'Virkningsgrad og energikvalitet',
+        intro: [["η", "Virkningsgrad", "Nyttig energi delt på tilført energi.", "s"], ["η = E_nyttig / E_tilført", "Formel for virkningsgrad", "Alltid mellom 0 og 1 (0–100 %).", "f"], ["Energikvalitet", "Hvor nyttig energien er", "Elektrisk energi har høy kvalitet. Lunken varme har lav.", "b"]],
         items: [
           mc('Hvilken energiform har høyest energikvalitet?', ['Elektrisk energi', 'Varmt vann på 40 °C', 'Luft i romtemperatur', 'Spillvarme fra en bilmotor'], 'Elektrisk energi kan omformes til nesten alle andre former med høy virkningsgrad.'),
           mc('Hvorfor kan ikke virkningsgraden til en maskin være over 100 %?', ['Energi er bevart, så du kan ikke få ut mer enn du tilfører', 'Maskiner blir varme', 'Det er forbudt ved lov', 'Fordi friksjon alltid er null'], 'η = nyttig / tilført ≤ 1 fordi energi ikke kan skapes.'),
@@ -282,11 +343,13 @@
     skills: [
       {
         id: 'u4s1', title: 'Bevegelsesmengde og impuls',
+        intro: [["p = m·v", "Bevegelsesmengde", "En vektor. Enhet: kg·m/s.", "f"], ["I = F·Δt", "Impuls", "Kraft ganger tiden den virker.", "f"], ["I = Δp", "Impulsloven", "Impulsen er lik endringen i bevegelsesmengde.", "f"]],
         items: [
           tf('Bevegelsesmengde er en vektor.', true, 'p = mv har samme retning som hastigheten.'),
           mc('Hvilken enhet er lik kg·m/s?', ['N·s', 'J', 'W', 'N/s'], 'Impuls F·Δt har enheten N·s = kg·m/s² · s = kg·m/s.'),
           mc('Hvorfor reduserer en kollisjonspute skadene i en kollisjon?', ['Den forlenger tiden det tar å stoppe, så kraften blir mindre', 'Den reduserer endringen i bevegelsesmengde', 'Den øker farten', 'Den gjør støtet elastisk'], 'Δp er det samme, men F = Δp/Δt blir mindre når Δt øker.'),
           bank('Fullfør impulsloven', 'F · ▢ = ▢', ['Δt', 'Δp'], ['Δs', 'p', 'm'], 'Impulsen er lik endringen i bevegelsesmengde.'),
+          order('Utled impulsloven', ['Newtons 2. lov: F = m·a', 'Formel 1: a = (v − v₀)/t', 'F = m(v − v₀)/t', 'F·t = mv − mv₀', 'Impulsen er lik endringen i bevegelsesmengde: F·t = Δp'], ['F·t = m·v·t'], 'Impulsloven er Newtons 2. lov skrevet med bevegelsesmengde.'),
           num(() => { const m = ri(1, 80), v = ri(2, 30); return { q: `Hva er bevegelsesmengden til et legeme på ${m} kg med fart ${v} m/s?`, a: m * v, u: 'kg·m/s', e: `p = mv = ${m}·${v} = ${m * v} kg·m/s` }; }),
           num(() => { const F = ri(10, 200) * 10, dt = pick([0.01, 0.02, 0.05, 0.1]); return { q: `En kraft på ${F} N virker i ${f(dt)} s. Hvor stor er impulsen?`, a: F * dt, u: 'N·s', e: `I = FΔt = ${F}·${f(dt)} = ${f(F * dt)} N·s` }; }),
           num(() => { const m = pick([0.06, 0.16, 0.43]), v = ri(10, 40), dt = pick([0.005, 0.01, 0.02]); return { q: `En ball på ${f(m)} kg ligger i ro og blir sparket til ${v} m/s. Kontakttiden er ${f(dt)} s. Hvor stor er den gjennomsnittlige kraften?`, a: (m * v) / dt, u: 'N', e: `F = Δp/Δt = ${f(m)}·${v}/${f(dt)} = ${f((m * v) / dt)} N` }; }),
@@ -295,6 +358,7 @@
       },
       {
         id: 'u4s2', title: 'Bevaring av bevegelsesmengde',
+        intro: [["Σp før = Σp etter", "Bevaring av bevegelsesmengde", "Gjelder når summen av ytre krefter er null.", "f"], ["Isolert system", "Ingen ytre kraftsum", "Bare indre krefter mellom legemene virker.", "b"], ["Rekyl", "Bevegelse bakover", "Når noe skytes ut forover, får resten fart bakover.", "b"]],
         items: [
           mc('Når er den totale bevegelsesmengden til et system bevart?', ['Når summen av ytre krefter på systemet er null', 'Bare i elastiske støt', 'Bare når legemene har lik masse', 'Når friksjonen mellom legemene er null'], 'Indre krefter (som kreftene i et støt) endrer ikke den totale bevegelsesmengden.'),
           tf('I et isolert system er bevegelsesmengden bevart i alle typer støt.', true, 'Det gjelder både elastiske og uelastiske støt.'),
@@ -307,12 +371,15 @@
       },
       {
         id: 'u4s3', title: 'Elastiske og uelastiske støt',
+        intro: [["Elastisk støt", "p og E_k bevart", "Ingen kinetisk energi går tapt.", "b"], ["Uelastisk støt", "Bare p bevart", "Noe E_k blir til varme, lyd og deformasjon.", "b"], ["Fullstendig uelastisk", "Legemene henger sammen", "m₁v₁ + m₂v₂ = (m₁ + m₂)v′", "b"]],
         items: [
           mc('Hva kjennetegner et elastisk støt?', ['Både bevegelsesmengde og kinetisk energi er bevart', 'Bare kinetisk energi er bevart', 'Legemene henger sammen etterpå', 'Bevegelsesmengden er ikke bevart'], 'I elastiske støt går ingen kinetisk energi over til andre former.'),
           mc('Hva kjennetegner et fullstendig uelastisk støt?', ['Legemene henger sammen og får felles fart etterpå', 'Kinetisk energi er bevart', 'Bevegelsesmengden forsvinner', 'Legemene spretter fra hverandre med samme fart'], 'Her går mest mulig E_k over til andre energiformer.'),
           tf('I et uelastisk støt forsvinner noe av bevegelsesmengden.', false, 'Bevegelsesmengden er bevart. Det er den kinetiske energien som ikke er bevart.'),
           mc('Hvor blir det av den kinetiske energien som «forsvinner» i et uelastisk støt?', ['Den blir til varme, lyd og deformasjon', 'Den blir til bevegelsesmengde', 'Den forsvinner helt', 'Den blir til potensiell energi i tyngdefeltet'], 'Energien er bevart, men går over til andre former.'),
           mc('En biljardkule treffer en like tung kule som ligger i ro, rett forfra og helt elastisk. Hva skjer?', ['Den første stopper, og den andre fortsetter med samme fart', 'Begge fortsetter med halv fart', 'Begge stopper', 'Den første spretter tilbake med samme fart'], 'Med like masser i et elastisk sentralt støt bytter kulene hastighet.'),
+          num(() => { const m1 = ri(1, 4), m2 = ri(1, 4) + 1, v1 = ri(2, 6); const u2 = (2 * m1 * v1) / (m1 + m2); return { q: `En vogn på ${m1} kg i ${v1} m/s støter helt elastisk og sentralt mot en vogn på ${m2} kg i ro. Hvilken fart får vogn 2?`, a: u2, u: 'm/s', e: `Bevaring av p og E_k gir u₂ = 2m₁v₁/(m₁ + m₂) = ${f(u2)} m/s` }; }),
+          num(() => { const m = pick([0.005, 0.01]), M = pick([0.45, 1]), hh = pick([0.05, 0.07, 0.1]); const u = Math.sqrt(2 * g * hh); const v = ((m + M) / m) * u; return { q: `En kule på ${f(m)} kg skytes inn i en leirklump på ${f(M)} kg som henger i en snor. Klumpen med kula løftes ${f(hh)} m. Hva var kulas fart?`, a: v, u: 'm/s', e: `Etter støtet: u = √(2gh) = ${f(u)} m/s. Bevegelsesmengde: v = (m + M)u/m = ${f(v)} m/s` }; }),
           num(() => { const m1 = ri(1, 5), v1 = ri(2, 10), m2 = ri(1, 5); const v = (m1 * v1) / (m1 + m2); const loss = 0.5 * m1 * v1 * v1 - 0.5 * (m1 + m2) * v * v; return { q: `En vogn på ${m1} kg i ${v1} m/s kolliderer med en vogn på ${m2} kg i ro, og de henger sammen. Hvor mye kinetisk energi går tapt?`, a: loss, u: 'J', e: `v′ = ${f(v)} m/s. ΔE_k = ½·${m1}·${v1}² − ½·${m1 + m2}·${f(v)}² = ${f(loss)} J` }; }),
         ],
       },
@@ -336,6 +403,7 @@
     skills: [
       {
         id: 'u5s1', title: 'Ladning, strøm og spenning',
+        intro: [["Q", "Ladning", "Enhet: coulomb (C).", "s"], ["I = Q/t", "Strøm", "Ladning per tid. Enhet: ampere (A).", "f"], ["U = W/Q", "Spenning", "Energi per ladning. Enhet: volt (V).", "f"], ["e", "Elementærladningen", "1,60 · 10⁻¹⁹ C, ladningen til ett elektron (med motsatt fortegn).", "s"]],
         items: [
           match([['Ladning', 'C'], ['Strøm', 'A'], ['Spenning', 'V'], ['Resistans', 'Ω']], 'Koble størrelsen med enheten'),
           mc('Hva er elektrisk spenning?', ['Energi per ladning', 'Ladning per tid', 'Kraft per ladning', 'Strøm per resistans'], 'U = W/Q. 1 V = 1 J/C.'),
@@ -348,6 +416,7 @@
       },
       {
         id: 'u5s2', title: 'Ohms lov og resistans',
+        intro: [["U = R·I", "Ohms lov", "Spenning er resistans ganger strøm.", "f"], ["Ω", "Ohm", "Enheten for resistans. 1 Ω = 1 V/A.", "s"], ["R = ρL/A", "Resistans i en ledning", "ρ er resistiviteten, L lengden og A tverrsnittsarealet.", "f"]],
         items: [
           bank('Fullfør Ohms lov', 'U = ▢ · ▢', ['R', 'I'], ['P', 'Q', 't'], 'Spenning = resistans · strøm', { any: true }),
           mc('Hva skjer med resistansen hvis en ledning blir dobbelt så lang (samme materiale og tverrsnitt)?', ['Den dobles', 'Den halveres', 'Den firedobles', 'Den er uendret'], 'R = ρL/A, så R er proporsjonal med L.'),
@@ -361,6 +430,7 @@
       },
       {
         id: 'u5s3', title: 'Elektriske kretser',
+        intro: [["R = R₁ + R₂", "Seriekobling", "Resistansene legges sammen. Samme strøm overalt.", "f"], ["1/R = 1/R₁ + 1/R₂", "Parallellkobling", "Samme spenning over alle greinene.", "f"], ["ε", "Ems", "Spenningen kilden gir når det ikke går strøm.", "s"], ["U = ε − R_i·I", "Polspenning", "Spenningen ut fra kilden når det går strøm.", "f"]],
         items: [
           mc('Hva er likt for alle greinene i en parallellkobling?', ['Spenningen', 'Strømmen', 'Resistansen', 'Effekten'], 'Alle greinene er koblet mellom de samme to punktene.'),
           mc('Hva er likt for alle komponentene i en seriekobling?', ['Strømmen', 'Spenningen', 'Resistansen', 'Effekten'], 'Det finnes bare én vei for strømmen.'),
@@ -374,9 +444,14 @@
       },
       {
         id: 'u5s4', title: 'Elektrisk effekt og energi',
+        intro: [["P = U·I", "Elektrisk effekt", "Effekten i en komponent.", "f"], ["P = R·I²", "Effekt og strøm", "Viser at varmetap øker med kvadratet av strømmen.", "f"], ["E = P·t", "Elektrisk energi", "Effekt ganger tid.", "f"]],
         items: [
           mc('Hvorfor overføres elektrisk energi med svært høy spenning i kraftledninger?', ['Lavere strøm gir mindre varmetap i ledningene', 'Høy spenning går raskere', 'Det trengs for at strømmen skal komme fram', 'Det gir mindre resistans i ledningene'], 'Tapet er P = R·I². Ved samme effekt gir høy U lav I.'),
           tf('Effekten i en motstand er proporsjonal med kvadratet av strømmen.', true, 'P = R·I²'),
+          order('Utled P = R·I²', ['Start med P = U·I', 'Ohms lov: U = R·I', 'Sett inn: P = R·I·I', 'P = R·I²'], ['P = R/I'], 'Setter du i stedet inn I = U/R, får du P = U²/R.'),
+          num(() => { const P = pick([25, 40, 60, 100]); return { q: `En lampe er merket 230 V / ${P} W. Hva er resistansen i lampen når den lyser normalt?`, a: (230 * 230) / P, u: 'Ω', e: `P = U²/R ⇒ R = 230²/${P} = ${f((230 * 230) / P)} Ω` }; }),
+          mc('Tre like lamper er parallellkoblet til en konstant spenning. Den ene ryker. Hva skjer med de to andre?', ['De lyser like sterkt som før', 'De lyser sterkere', 'De lyser svakere', 'De slukner'], 'Spenningen over hver grein er den samme som før.'),
+          mc('To lamper er seriekoblet. Den ene ryker. Hva skjer med den andre?', ['Den slukner', 'Den lyser sterkere', 'Den lyser like sterkt', 'Den lyser svakere'], 'Kretsen blir brutt, så det går ingen strøm.'),
           match([['P = U·I', 'Effekt'], ['E = P·t', 'Energi'], ['I = Q/t', 'Strøm'], ['U = R·I', 'Ohms lov']], 'Koble formelen med det den beskriver'),
           num(() => { const I = rs(1, 10, 0.5); return { q: `En vannkoker kobles til 230 V og trekker ${f(I)} A. Hva er effekten?`, a: 230 * I, u: 'W', e: `P = UI = 230·${f(I)} = ${f(230 * I)} W` }; }),
           num(() => { const U = pick([12, 24, 230]), R = ri(10, 100); return { q: `En motstand på ${R} Ω kobles til ${U} V. Hva er effekten?`, a: (U * U) / R, u: 'W', e: `P = U²/R = ${U}²/${R} = ${f((U * U) / R)} W` }; }),
@@ -406,6 +481,7 @@
     skills: [
       {
         id: 'u6s1', title: 'Temperatur og indre energi',
+        intro: [["T", "Absolutt temperatur", "Måles i kelvin (K).", "s"], ["T = t + 273,15", "Fra celsius til kelvin", "0 K er det absolutte nullpunktet.", "f"], ["Indre energi", "U", "Summen av energien til alle partiklene i stoffet.", "b"]],
         items: [
           mc('Hva er temperatur et mål på?', ['Den gjennomsnittlige kinetiske energien til partiklene', 'Den totale energien i stoffet', 'Hvor mye varme stoffet inneholder', 'Massen til partiklene'], 'Høyere temperatur betyr at partiklene i gjennomsnitt beveger seg raskere.'),
           tf('Varme og temperatur er det samme.', false, 'Varme er energi som overføres. Temperatur er en tilstandsstørrelse.'),
@@ -417,6 +493,7 @@
       },
       {
         id: 'u6s2', title: 'Spesifikk varmekapasitet',
+        intro: [["Q = c·m·ΔT", "Varme og temperaturendring", "Energien som trengs for å endre temperaturen.", "f"], ["c", "Spesifikk varmekapasitet", "Energi per kg per kelvin. Vann: 4,18 kJ/(kg·K).", "s"], ["ΔT", "Temperaturendring", "Like stor i kelvin som i grader celsius.", "s"]],
         items: [
           mc('Hvorfor holder havet på varmen lenge utover høsten?', ['Vann har høy spesifikk varmekapasitet', 'Vann har lav spesifikk varmekapasitet', 'Saltet i havet varmer opp vannet', 'Havet reflekterer sollys'], 'Det trengs mye energi for å endre temperaturen til vann, og vannet avgir mye energi når det avkjøles.'),
           bank('Fullfør formelen for varme', 'Q = ▢ · ▢ · ΔT', ['c', 'm'], ['g', 'h', 'v'], 'Q = c·m·ΔT', { any: true }),
@@ -429,6 +506,7 @@
       },
       {
         id: 'u6s3', title: 'Faseoverganger og 1. lov',
+        intro: [["Q = l·m", "Faseovergang", "Energien som trengs for å smelte eller fordampe massen m.", "f"], ["ΔU = Q + W", "Termofysikkens 1. lov", "Endring i indre energi = tilført varme + arbeid gjort på systemet.", "f"], ["l_s", "Spesifikk smeltevarme", "Is: 334 kJ/kg.", "s"]],
         items: [
           mc('Hva skjer med temperaturen mens is smelter ved normalt trykk?', ['Den er konstant på 0 °C', 'Den stiger jevnt', 'Den synker', 'Den svinger opp og ned'], 'Energien går med til å bryte bindinger mellom molekylene.'),
           tf('Når vann fordamper fra huden, tar det opp energi fra kroppen.', true, 'Fordamping krever energi, derfor kjøler svette.'),
@@ -441,6 +519,7 @@
       },
       {
         id: 'u6s4', title: 'Energi og klima',
+        intro: [["Fornybar energi", "Fylles på naturlig", "F.eks. vannkraft, sol og vind.", "b"], ["Drivhuseffekt", "Atmosfæren holder på varme", "Gasser absorberer infrarød stråling fra jorda.", "b"], ["Varmepumpe", "Flytter varme", "Henter varme utenfra og leverer mer varme enn strømmen den bruker.", "b"]],
         items: [
           mc('Påstand: «Vi holder på å gå tom for energi.» Hva er den fysisk mest presise kommentaren?', ['Energi er bevart. Vi går tom for energikilder med høy kvalitet', 'Påstanden er helt riktig', 'Energi kan lages fra ingenting', 'Vi går tom for varme'], 'Energien blir ikke borte, men blir til varme med lav kvalitet.'),
           mc('Hvilken av disse energikildene er fornybar?', ['Vannkraft', 'Kull', 'Naturgass', 'Uran'], 'Vannkraft drives av sola via vannets kretsløp.'),
@@ -471,6 +550,7 @@
     skills: [
       {
         id: 'u7s1', title: 'Bølger og spekteret',
+        intro: [["v = f·λ", "Bølgelikningen", "Fart er frekvens ganger bølgelengde.", "f"], ["λ", "Bølgelengde", "Avstanden mellom to bølgetopper.", "s"], ["f", "Frekvens", "Svingninger per sekund. Enhet: hertz (Hz).", "s"], ["c", "Lysfarten", "3,00 · 10⁸ m/s i vakuum.", "s"]],
         items: [
           mc('Hvilken type stråling har kortest bølgelengde?', ['Gammastråling', 'Synlig lys', 'Radiobølger', 'Infrarød stråling'], 'Gamma har kortest bølgelengde og høyest fotonenergi.'),
           mc('Hva slags bølge er lyd i luft?', ['Longitudinal', 'Transversal', 'Elektromagnetisk', 'Stående'], 'Luftmolekylene svinger fram og tilbake i samme retning som bølgen går.'),
@@ -482,6 +562,7 @@
       },
       {
         id: 'u7s2', title: 'Wiens forskyvningslov',
+        intro: [["λ_maks·T = b", "Wiens forskyvningslov", "b = 2,90 · 10⁻³ m·K.", "f"], ["Svart legeme", "Perfekt absorbent", "Absorberer all stråling og stråler perfekt.", "b"], ["λ_maks", "Toppbølgelengde", "Bølgelengden der et legeme stråler mest.", "s"]],
         items: [
           tf('Jo varmere et legeme er, jo kortere bølgelengde har toppen i strålingsspekteret.', true, 'λ_maks = b/T'),
           mc('Hvorfor er røde stjerner kaldere enn blå stjerner?', ['Strålingstoppen ligger ved lengre bølgelengde, og etter Wiens lov betyr det lavere temperatur', 'Røde stjerner er lenger unna', 'Rødt lys har mer energi', 'Blå stjerner er mindre'], 'λ_maks · T er konstant.'),
@@ -493,6 +574,7 @@
       },
       {
         id: 'u7s3', title: 'Stefan–Boltzmanns lov',
+        intro: [["I = σT⁴", "Stefan–Boltzmanns lov", "Utstrålt intensitet fra et svart legeme.", "f"], ["σ", "Stefan–Boltzmanns konstant", "5,67 · 10⁻⁸ W/(m²·K⁴).", "s"], ["e", "Emissivitet", "Fra 0 til 1: hvor godt flaten stråler.", "s"]],
         items: [
           mc('Den absolutte temperaturen til et svart legeme dobles. Hva skjer med utstrålt intensitet?', ['Den blir 16 ganger så stor', 'Den dobles', 'Den firedobles', 'Den blir 8 ganger så stor'], 'I = σT⁴, og 2⁴ = 16.'),
           mc('Hva forteller emissiviteten e til en flate?', ['Hvor godt flaten stråler sammenliknet med et svart legeme', 'Temperaturen til flaten', 'Hvor stor flaten er', 'Fargen til lyset'], 'e = 1 for et svart legeme, og e < 1 for virkelige flater.'),
@@ -504,6 +586,7 @@
       },
       {
         id: 'u7s4', title: 'Jordas strålingsbalanse',
+        intro: [["α", "Albedo", "Andelen av innstrålingen som reflekteres.", "s"], ["S", "Solarkonstanten", "≈ 1361 W/m² ved jordas avstand.", "s"], ["(1 − α)S/4", "Gjennomsnittlig absorbert", "Det jorda tar opp per m² i snitt.", "f"]],
         items: [
           mc('Hva er albedo?', ['Andelen av innkommende stråling som reflekteres', 'Temperaturen til jordoverflaten', 'Mengden CO₂ i atmosfæren', 'Strålingen jorda sender ut'], 'Snø og is har høy albedo. Hav og skog har lav.'),
           mc('Hvorfor deler vi solarkonstanten på 4 i modellen for jordas strålingsbalanse?', ['Jorda tar imot stråling på tverrsnittet πR², men stråler ut fra hele overflaten 4πR²', 'Bare en fjerdedel av sollyset når fram', 'Jorda roterer fire ganger i døgnet', 'Atmosfæren stopper tre fjerdedeler'], '4πR² / πR² = 4'),
@@ -534,6 +617,7 @@
     skills: [
       {
         id: 'u8s1', title: 'Atommodeller',
+        intro: [["Thomson", "Rosinbollemodellen", "Positiv kule med elektroner i.", "b"], ["Rutherford", "Kjernemodellen", "Liten, tett, positiv kjerne.", "b"], ["Bohr", "Energinivåmodellen", "Elektroner i bestemte energinivåer.", "b"]],
         items: [
           mc('Hva viste Rutherfords gullfolieforsøk?', ['At atomet har en liten, tett og positivt ladd kjerne', 'At elektronene har bestemte energinivåer', 'At atomet er en jevn positiv kule med elektroner i', 'At lys består av fotoner'], 'De fleste alfapartiklene gikk rett gjennom, men noen få ble sendt kraftig tilbake.'),
           mc('Hvordan beskriver Thomsons atommodell atomet?', ['En positiv kule med elektroner spredt rundt i, som rosiner i en bolle', 'En liten kjerne med elektroner i baner', 'Elektroner i bestemte energinivåer', 'Elektronskyer rundt en kjerne'], 'Den kalles ofte rosinbollemodellen.'),
@@ -545,6 +629,7 @@
       },
       {
         id: 'u8s2', title: 'Fotoner',
+        intro: [["E = h·f", "Fotonenergi", "Energien til ett foton.", "f"], ["h", "Plancks konstant", "6,63 · 10⁻³⁴ J·s.", "s"], ["eV", "Elektronvolt", "1 eV = 1,60 · 10⁻¹⁹ J.", "s"]],
         items: [
           mc('Hvilket foton har mest energi?', ['Et blått foton', 'Et rødt foton', 'De har like mye', 'Det avhenger av lysstyrken'], 'Blått lys har høyere frekvens (kortere bølgelengde), og E = hf.'),
           mc('Hvilken observasjon støtter at lys består av fotoner?', ['Fotoelektrisk effekt: elektroner løsrives bare over en bestemt frekvens', 'Lys brytes i et prisme', 'Lys kan reflekteres', 'Lys går rettlinjet'], 'Hvis lys bare var en bølge, ville sterkt nok lys alltid løsrevet elektroner.'),
@@ -556,6 +641,7 @@
       },
       {
         id: 'u8s3', title: 'Spektre og energinivåer',
+        intro: [["E_n = −13,6 eV/n²", "Energinivåene i hydrogen", "n = 1, 2, 3, …", "f"], ["n", "Kvantetall", "Nummeret på energinivået.", "s"], ["Linjespekter", "Bestemte bølgelengder", "Hvert grunnstoff har sitt eget.", "b"]],
         items: [
           mc('Hvorfor har hvert grunnstoff sitt eget linjespekter?', ['Hvert grunnstoff har sine egne energinivåer', 'Grunnstoffene har ulik farge', 'De har ulik masse', 'De har ulik temperatur'], 'Linjene tilsvarer forskjeller mellom energinivåene, som er unike for hvert grunnstoff.'),
           mc('Hva er forskjellen på et emisjonsspekter og et absorpsjonsspekter?', ['Emisjon gir lyse linjer på mørk bakgrunn, absorpsjon gir mørke linjer i et kontinuerlig spekter', 'Det er ingen forskjell', 'Emisjon gir et kontinuerlig spekter', 'Absorpsjon gir bare ultrafiolette linjer'], 'Linjene ligger ved de samme bølgelengdene for samme grunnstoff.'),
@@ -585,6 +671,7 @@
     skills: [
       {
         id: 'u9s1', title: 'Atomkjernen',
+        intro: [["Z", "Protontall", "Antall protoner i kjernen.", "s"], ["A", "Nukleontall", "Protoner + nøytroner.", "s"], ["N = A − Z", "Nøytrontall", "Antall nøytroner.", "f"], ["Isotop", "Samme Z, ulik N", "Samme grunnstoff, ulik masse.", "b"]],
         items: [
           tf('Isotoper av et grunnstoff har ulikt antall protoner.', false, 'Isotoper har likt antall protoner, men ulikt antall nøytroner.'),
           mc('Hvilken kraft holder protonene og nøytronene sammen i kjernen?', ['Den sterke kjernekraften', 'Tyngdekraften', 'Den elektriske kraften', 'Friksjon'], 'Den virker over svært korte avstander og er sterkere enn frastøtningen mellom protonene.'),
@@ -594,6 +681,7 @@
       },
       {
         id: 'u9s2', title: 'E = mc² og bindingsenergi',
+        intro: [["E = mc²", "Masse og energi", "Masse kan omdannes til energi.", "f"], ["Massedefekt", "Δm", "Kjernen veier mindre enn delene.", "b"], ["u", "Atommasseenhet", "1 u tilsvarer 931,5 MeV.", "s"]],
         items: [
           mc('Hva er massedefekten til en atomkjerne?', ['Forskjellen mellom summen av massene til nukleonene og massen til kjernen', 'Massen til elektronene', 'Massen som forsvinner ved radioaktivitet', 'Massen til nøytronene'], 'Kjernen veier mindre enn delene. Forskjellen tilsvarer bindingsenergien.'),
           mc('Hvor ligger toppen på kurven for bindingsenergi per nukleon?', ['Ved jern og nikkel (A ≈ 56–62)', 'Ved hydrogen', 'Ved uran', 'Ved helium'], 'Derfor gir fusjon av lette kjerner og fisjon av tunge kjerner energi.'),
@@ -605,6 +693,7 @@
       },
       {
         id: 'u9s3', title: 'Fusjon',
+        intro: [["Fusjon", "Lette kjerner smelter sammen", "Frigjør energi opp til jern.", "b"], ["Fisjon", "Tunge kjerner deles", "Brukes i kjernekraftverk.", "b"], ["4 ¹H → ⁴He", "Fusjon i sola", "Hydrogen blir til helium.", "f"]],
         items: [
           mc('Hva er fusjon?', ['Lette atomkjerner smelter sammen til en tyngre kjerne', 'En tung kjerne deles i to', 'Et elektron hopper til et lavere energinivå', 'En kjerne sender ut et alfapartikkel'], 'Fisjon er det motsatte: deling av tunge kjerner.'),
           mc('Hvorfor krever fusjon svært høy temperatur?', ['Kjernene må ha stor fart for å komme nær nok hverandre til tross for den elektriske frastøtningen', 'Kjernene må smelte', 'Elektronene må fordampe', 'Det trengs lys for å starte reaksjonen'], 'Først på svært korte avstander tar den sterke kjernekraften over.'),
@@ -635,6 +724,7 @@
     skills: [
       {
         id: 'u10s1', title: 'Stjerners liv',
+        intro: [["Hovedserien", "H → He i kjernen", "Den lengste fasen i livet til en stjerne.", "b"], ["Rød kjempe", "Oppsvulmet stjerne", "Fusjon av helium til karbon og oksygen.", "b"], ["Supernova", "Eksplosjon", "Slutten for en massiv stjerne.", "b"], ["Hvit dverg", "Restkjerne", "Slutten for stjerner som sola.", "b"]],
         items: [
           mc('Hva gir en stjerne på hovedserien energi?', ['Fusjon av hydrogen til helium i kjernen', 'Fisjon av uran', 'Kjemisk forbrenning', 'Sammentrekning alene'], 'Dette er den lengste fasen i livet til en stjerne.'),
           mc('Hva bestemmer først og fremst hvordan livet til en stjerne blir?', ['Massen', 'Fargen', 'Avstanden til jorda', 'Hvor mange planeter den har'], 'Massen avgjør temperatur, levetid og hvordan stjerna dør.'),
@@ -646,6 +736,7 @@
       },
       {
         id: 'u10s2', title: 'Dannelse av grunnstoff',
+        intro: [["Big Bang", "H og He", "De første grunnstoffene.", "b"], ["Trippel-alfa", "3 He → C", "Dannelse av karbon i røde kjemper.", "b"], ["r-prosessen", "Rask nøytroninnfanging", "Lager gull i nøytronstjernekollisjoner.", "b"]],
         items: [
           mc('Hvilke grunnstoff ble i hovedsak dannet i Big Bang?', ['Hydrogen og helium (og litt litium)', 'Karbon og oksygen', 'Jern og nikkel', 'Gull og uran'], 'Tyngre grunnstoff er dannet senere, i stjerner.'),
           mc('Hvorfor stopper fusjonen i stjerner ved jern?', ['Jern har størst bindingsenergi per nukleon, så videre fusjon krever energi', 'Det finnes ikke mer hydrogen', 'Jern er magnetisk', 'Jern er for tungt til å bevege seg'], 'Toppen på bindingsenergikurven ligger ved jern og nikkel.'),
@@ -657,6 +748,7 @@
       },
       {
         id: 'u10s3', title: 'Stjernespektre',
+        intro: [["Absorpsjonslinjer", "Mørke linjer", "Viser hvilke grunnstoff stjerna inneholder.", "b"], ["Kilonova", "Nøytronstjernekollisjon", "Observert i 2017, dannet tunge grunnstoff.", "b"], ["Farge", "Temperatur", "Blå stjerner er varme, røde er kalde.", "b"]],
         items: [
           mc('Hvordan vet vi hvilke grunnstoff fjerne stjerner består av?', ['Ved å studere absorpsjonslinjene i spekteret deres', 'Ved å hente prøver med romsonder', 'Ved å måle massen', 'Ved å se på fargen alene'], 'Hvert grunnstoff har sine egne linjer.'),
           mc('Hvorfor var kilonovaen som ble observert i 2017 viktig?', ['Den bekreftet at tunge grunnstoff som gull dannes når nøytronstjerner kolliderer', 'Den viste at sola er en nøytronstjerne', 'Den var den første supernovaen som ble sett', 'Den beviste at Big Bang lagde gull'], 'Både gravitasjonsbølger og lys ble observert fra samme hendelse.'),
@@ -748,6 +840,9 @@
     ['Epsilon (ε)', 'ε', 'ε er ems, spenningen fra kilden.'],
     ['Eta (η)', 'η', 'η er virkningsgraden.'],
     ['v₀', 'v₀', 'Startfarten, farten ved t = 0.'],
+    ['v̄', 'v̄', 'Gjennomsnittsfart. Ved konstant akselerasjon er v̄ = (v₀ + v)/2.'],
+    ['Momentanfart', W('momentanfart'), 'Farten i et bestemt øyeblikk: stigningstallet til tangenten i s-t-grafen, eller v(t) = s′(t).'],
+    ['Parameterfremstilling', W('parameterfremstilling'), 'Posisjonen gitt som en funksjon av tiden, s(t).'],
     ['E_k', 'E_k', 'Kinetisk energi, ½mv².'],
     ['E_p', 'E_p', 'Potensiell energi, mgh.'],
     ['Ohm (Ω)', 'Ω', 'Ω (ohm) er enheten for resistans. 1 Ω = 1 V/A.'],

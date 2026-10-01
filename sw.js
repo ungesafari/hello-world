@@ -1,6 +1,6 @@
 // Nettverk først, med hurtigbuffer som reserve, slik at appen virker offline
 // og samtidig alltid får siste versjon når du er på nett.
-const CACHE = 'fysikkling-v2';
+const CACHE = 'fysikkling-v3';
 const CORE = [
   './',
   'index.html',
