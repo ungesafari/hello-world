@@ -4,7 +4,7 @@ I am Hugo. Forever student, and haver of large ambition.
 
 ## Fysikkling
 
-A personal, Duolingo-style study app for the Norwegian Fysikk 1 (LK20) curriculum. It is a plain HTML/CSS/JavaScript web app with no build step, and it can be installed on the iPhone home screen and works offline.
+A personal, Duolingo-style study app with two courses: the Norwegian Fysikk 1 (LK20) curriculum, and the official basketball rules (NBBF's Norwegian translation of FIBA Official Basketball Rules 2026). Switch course with the course button at the top of the screen. It is a plain HTML/CSS/JavaScript web app with no build step, and it can be installed on the iPhone home screen and works offline.
 
 ### Publish with GitHub Pages
 
@@ -22,6 +22,10 @@ Open the link in Safari, tap the share button, then "Add to Home Screen". On Win
 
 Progress is saved locally on each device. Go to Profil, then "Kopier kode" on one device, and "Lim inn kode" on the other.
 
+### Study features
+
+Number exercises have a calculator button (angles in degrees, EXP for powers of ten). Underlined words and symbols can be tapped for a short definition. Each skill has a strength that fades over time; faded skills show as cracked on the path, and "Styrk svake emner" builds a review lesson from your weakest skills, favouring questions you have answered wrong before.
+
 ### Structure
 
-`index.html` is the page shell, `css/style.css` holds the styling, `js/app.js` contains the game logic (path, lessons, hearts, streak, XP, leagues, quests, achievements), and `js/course-fysikk1.js` holds all the course content. New questions or units are added in the course file; the format is documented at the top of it.
+`index.html` is the page shell, `css/style.css` holds the styling, `js/app.js` contains the game logic (path, lessons, hearts, streak, XP, leagues, quests, achievements), and `js/course-fysikk1.js` and `js/course-basket.js` hold the course content, including each course's glossary. New questions or units are added in the course file; the format is documented at the top of it.

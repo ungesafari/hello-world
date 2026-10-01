@@ -380,3 +380,63 @@ p { line-height: 1.5; }
 .wd i { width: 28px; height: 28px; border-radius: 50%; background: var(--line); font-style: normal; color: #fff; display: flex; align-items: center; justify-content: center; }
 .wd.on i { background: var(--orange); }
 .wd.today span { color: var(--orange); }
+
+/* ---------- matchingskort: grønt og rødt blink ---------- */
+.mtile.good { border-color: #a5ed6e; background: var(--ok-bg); color: var(--ok-t); box-shadow: 0 4px 0 #a5ed6e; animation: pop .3s; }
+.mtile.bad { box-shadow: 0 4px 0 #ffb2b2; }
+@keyframes pop { 50% { transform: scale(1.06); } }
+
+/* ---------- kalkulator ---------- */
+.num-tools { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.num-tools .hint { flex: 1; }
+.calc-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 8px 12px; border: 2px solid var(--line); border-radius: 12px; color: var(--blue); box-shadow: 0 3px 0 var(--line); font-size: 14px; text-transform: uppercase; letter-spacing: .3px; }
+.calc-btn.on { background: var(--sel-bg); border-color: #84d8ff; box-shadow: 0 3px 0 #84d8ff; }
+.calc { border: 2px solid var(--line); border-radius: 16px; padding: 12px; margin-top: 6px; background: var(--bg2); max-width: 420px; }
+.calc-disp { background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; margin-bottom: 10px; text-align: right; min-height: 64px; }
+.calc-expr { font-size: 22px; word-break: break-all; font-family: ui-monospace, 'Cascadia Code', Consolas, Menlo, monospace; }
+.calc-res { font-size: 15px; color: var(--muted); min-height: 18px; }
+.calc-keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.ck { height: 44px; border-radius: 10px; background: var(--card); border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line); font-size: 17px; }
+.ck.op { color: var(--blue-d); font-size: 15px; }
+.ck.eq { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 3px 0 var(--green-d); }
+.ck:active { transform: translateY(2px); box-shadow: none; }
+.calc-use { margin-top: 10px; text-transform: none; letter-spacing: 0; }
+.calc .hint { margin: 8px 0 0; font-size: 12px; }
+
+/* ---------- ordliste ---------- */
+.term { display: inline; font: inherit; color: inherit; padding: 0; border: 0; background: none; cursor: help; text-decoration: underline dotted; text-decoration-thickness: 2px; text-underline-offset: 4px; text-decoration-color: var(--blue); }
+.term:hover { color: var(--blue-d); }
+.tip { position: fixed; z-index: 300; background: var(--card); color: var(--text); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; box-shadow: 0 8px 24px rgba(0,0,0,.18); font-size: 15px; line-height: 1.45; animation: fade .12s; }
+.tip b { display: block; color: var(--blue); margin-bottom: 4px; font-size: 16px; }
+.tip span { font-weight: 600; }
+
+/* ---------- svake ferdigheter ---------- */
+.node.done.weak { filter: saturate(.35) brightness(1.08); }
+.node .crack { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.practice-top { margin-bottom: 16px; }
+.card.practice .pr-row { display: flex; align-items: center; gap: 12px; }
+.pr-ic { color: var(--orange); }
+.pr-ic .ic { width: 36px; height: 36px; }
+.pr-main { flex: 1; display: flex; flex-direction: column; }
+.card.practice .btn.green { min-height: 42px; padding: 0 14px; font-size: 13px; }
+.pr-skill { margin-bottom: 10px; }
+.pr-skill span { display: block; font-size: 14px; margin-bottom: 4px; }
+.q-fill.red-f { background: var(--red); }
+.q-fill.green-f { background: var(--green); }
+
+/* ---------- kursvelger ---------- */
+.caret { font-style: normal; font-size: 12px; color: var(--muted); }
+.course-chip { border: 2px solid transparent; }
+.course-chip:hover { border-color: var(--line); }
+.modal-bg.top { align-items: flex-start; padding-top: calc(64px + env(safe-area-inset-top, 0px)); background: rgba(0,0,0,.35); }
+.course-menu { background: var(--bg); border: 2px solid var(--line); border-radius: 18px; width: 100%; max-width: 380px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.2); }
+.cm-h { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: 6px 10px 10px; }
+.cm-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px; border-radius: 12px; border: 2px solid transparent; }
+.cm-row:hover { background: var(--bg2); }
+.cm-row.on { border-color: #84d8ff; background: var(--sel-bg); }
+.cm-ic .logo-ic { width: 40px; height: 40px; }
+.cm-main { flex: 1; display: flex; flex-direction: column; }
+.cm-main small { color: var(--muted); font-weight: 600; }
+.cm-check { color: var(--blue); font-size: 20px; }
+@media (min-width: 1100px) { .modal-bg.top { justify-content: flex-end; padding-right: max(24px, calc(50vw - 620px)); padding-top: 70px; } }
+.node-wrap.has-bubble { margin-top: 30px; }

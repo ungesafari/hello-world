@@ -1,9 +1,11 @@
 (function () {
   'use strict';
 
-  const COURSE = window.FYSIKK1;
-  const fmt = COURSE.fmt;
+  const COURSES = [window.FYSIKK1, window.BASKET].filter(Boolean);
+  const fmt = window.FYSIKK1.fmt;
   const app = document.getElementById('app');
+  let COURSE = COURSES[0];
+  let NODES = [];
 
   const LEVELS = 3; // leksjoner per ferdighet
   const LESSON_LEN = 8;
@@ -13,6 +15,7 @@
   const MAX_HEARTS = 5;
   const HEART_MS = 4 * 3600 * 1000;
   const BOOST_MS = 15 * 60 * 1000;
+  const DAY_MS = 86400000;
   const KEY = 'fysikkling-v1';
 
   // ------------------------------------------------------------------
@@ -47,6 +50,55 @@
   const pickR = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
   // ------------------------------------------------------------------
+  // Ordliste: nøkkelord og symboler i teksten kan trykkes på for en kort forklaring.
+  // Hver oppføring har et regex-mønster (m) og en forklaring (d).
+  // ------------------------------------------------------------------
+  function glossRe(c) {
+    if (c._gre !== undefined) return c._gre;
+    const g = (c.glossary || []).slice().sort((a, b) => b.m.length - a.m.length);
+    c._gl = g;
+    try { c._gre = g.length ? new RegExp(g.map((e) => `(${e.m})`).join('|'), 'gu') : null; }
+    catch (err) { c._gre = null; } // eldre nettlesere uten støtte for lookbehind
+    return c._gre;
+  }
+  function gloss(text, c = COURSE) {
+    const re = glossRe(c);
+    if (!re || !text) return nl(text || '');
+    let out = '', last = 0, m;
+    const seen = new Set();
+    re.lastIndex = 0;
+    while ((m = re.exec(text))) {
+      if (!m[0]) { re.lastIndex++; continue; }
+      let gi = -1;
+      for (let k = 1; k < m.length; k++) if (m[k] !== undefined) { gi = k - 1; break; }
+      if (gi < 0 || seen.has(gi)) continue;
+      seen.add(gi);
+      out += nl(text.slice(last, m.index)) + `<button type="button" class="term" data-a="term" data-c="${c.id}" data-g="${gi}">${esc(m[0])}</button>`;
+      last = m.index + m[0].length;
+    }
+    return out + nl(text.slice(last));
+  }
+  function closeTip() { const t = document.querySelector('.tip'); if (t) t.remove(); }
+  function showTip(el) {
+    closeTip();
+    const c = COURSES.find((cc) => cc.id === el.dataset.c);
+    const e = c && c._gl[+el.dataset.g];
+    if (!e) return;
+    const tip = document.createElement('div');
+    tip.className = 'tip';
+    tip.innerHTML = `<b>${esc(e.t)}</b><span>${esc(e.d)}</span>`;
+    document.body.appendChild(tip);
+    const r = el.getBoundingClientRect();
+    const w = Math.min(300, window.innerWidth - 24);
+    tip.style.width = w + 'px';
+    tip.style.left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2)) + 'px';
+    const below = r.bottom + 10 + tip.offsetHeight < window.innerHeight;
+    tip.style.top = (below ? r.bottom + 10 : r.top - 10 - tip.offsetHeight) + 'px';
+    sfx.tap();
+  }
+  window.addEventListener('scroll', closeTip, { passive: true });
+
+  // ------------------------------------------------------------------
   // Ikoner (enkle SVG-er)
   // ------------------------------------------------------------------
   const I = {
@@ -66,6 +118,10 @@
     x: () => `<svg viewBox="0 0 24 24" class="ic"><path stroke="currentColor" stroke-width="3" stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/></svg>`,
     clock: () => `<svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
     aim: () => `<svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="m8 12 3 3 5-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    dumbbell: () => `<svg viewBox="0 0 24 24" class="ic"><g fill="currentColor"><rect x="1.5" y="9" width="3" height="6" rx="1"/><rect x="4.5" y="6.5" width="3.5" height="11" rx="1.2"/><rect x="8" y="10.8" width="8" height="2.4"/><rect x="16" y="6.5" width="3.5" height="11" rx="1.2"/><rect x="19.5" y="9" width="3" height="6" rx="1"/></g></svg>`,
+    calc: () => `<svg viewBox="0 0 24 24" class="ic"><rect x="4" y="2" width="16" height="20" rx="3" fill="currentColor"/><rect x="7" y="5" width="10" height="4" rx="1" fill="#fff"/><g fill="#fff"><circle cx="8.5" cy="13" r="1.2"/><circle cx="12" cy="13" r="1.2"/><circle cx="15.5" cy="13" r="1.2"/><circle cx="8.5" cy="17" r="1.2"/><circle cx="12" cy="17" r="1.2"/><circle cx="15.5" cy="17" r="1.2"/></g></svg>`,
+    ball: () => `<svg viewBox="0 0 64 64" class="logo-ic"><circle cx="32" cy="32" r="27" fill="#ff9600"/><g fill="none" stroke="#7a3d00" stroke-width="3"><path d="M5 32h54M32 5v54"/><path d="M13 13c8 8 8 30 0 38M51 13c-8 8-8 30 0 38"/></g></svg>`,
+    crack: () => `<svg viewBox="0 0 72 66" class="crack"><path d="M20 6 30 22 22 30 34 44 28 60M52 10 44 24 52 34 46 48" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     atom: () => `<svg viewBox="0 0 64 64" class="logo-ic"><g fill="none" stroke="#58cc02" stroke-width="4"><ellipse cx="32" cy="32" rx="27" ry="10"/><ellipse cx="32" cy="32" rx="27" ry="10" transform="rotate(60 32 32)"/><ellipse cx="32" cy="32" rx="27" ry="10" transform="rotate(-60 32 32)"/></g><circle cx="32" cy="32" r="6" fill="#58cc02"/></svg>`,
   };
 
@@ -85,6 +141,7 @@
       today: null, quests: null, boost: 0,
       league: null, leagueBest: 0,
       sound: true, theme: 'auto', name: '',
+      course: 'fysikk1', mem: {}, wrong: {},
     };
   }
   function load() {
@@ -104,22 +161,55 @@
   // ------------------------------------------------------------------
   // Kursstien
   // ------------------------------------------------------------------
-  const NODES = [];
-  COURSE.units.forEach((u, ui) => {
-    u.index = ui;
-    u.first = NODES.length;
-    u.skills.forEach((sk, si) => {
-      sk.unit = u;
-      NODES.push({ id: sk.id, type: 'skill', unit: u, skill: sk, title: sk.title });
-      if (si === 1 && u.skills.length > 2) NODES.push({ id: u.id + '-chest', type: 'chest', unit: u, title: 'Skattekiste' });
+  COURSES.forEach((c) => {
+    const nodes = [];
+    c.units.forEach((u, ui) => {
+      u.index = ui;
+      u.first = nodes.length;
+      u.course = c;
+      u.skills.forEach((sk, si) => {
+        sk.unit = u;
+        sk.items.forEach((it, k) => { it.id = `${sk.id}#${k}`; it.skill = sk.id; });
+        nodes.push({ id: sk.id, type: 'skill', unit: u, skill: sk, title: sk.title });
+        if (si === 1 && u.skills.length > 2) nodes.push({ id: u.id + '-chest', type: 'chest', unit: u, title: 'Skattekiste' });
+      });
+      nodes.push({ id: u.id + '-review', type: 'review', unit: u, title: 'Enhetsrepetisjon' });
     });
-    NODES.push({ id: u.id + '-review', type: 'review', unit: u, title: 'Enhetsrepetisjon' });
+    nodes.forEach((n, i) => { n.i = i; });
+    c.nodes = nodes;
   });
-  NODES.forEach((n, i) => { n.i = i; });
+  function setCourse(id) {
+    COURSE = COURSES.find((c) => c.id === id) || COURSES[0];
+    NODES = COURSE.nodes;
+    S.course = COURSE.id;
+  }
+  setCourse(S.course);
 
   const nodeDone = (n) => (n.type === 'skill' ? (S.prog[n.id] || 0) >= LEVELS : n.type === 'chest' ? !!S.chests[n.id] : !!S.reviews[n.id]);
-  function currentIndex() { const i = NODES.findIndex((n) => !nodeDone(n)); return i < 0 ? NODES.length : i; }
-  const unitDone = (u) => !!S.reviews[u.id];
+  function currentIndex(nodes = NODES) { const i = nodes.findIndex((n) => !nodeDone(n)); return i < 0 ? nodes.length : i; }
+
+  // ------------------------------------------------------------------
+  // Styrke per ferdighet (repetisjon over tid)
+  // Styrken halveres etter h dager. Gode økter dobler h, svake økter halverer den.
+  // ------------------------------------------------------------------
+  function strength(id) {
+    const m = S.mem[id];
+    if (!m) return 1;
+    return Math.pow(2, -(Date.now() - m.t) / (m.h * DAY_MS));
+  }
+  const practiced = (id) => (S.prog[id] || 0) > 0;
+  const isWeak = (id) => practiced(id) && strength(id) < 0.5;
+  function updateMem(id, acc) {
+    const m = S.mem[id];
+    const good = acc >= 0.8;
+    if (!m) S.mem[id] = { t: Date.now(), h: good ? 2 : 1 };
+    else { m.h = good ? Math.min(120, m.h * 2) : Math.max(1, m.h / 2); m.t = Date.now(); }
+  }
+  function courseSkills(c = COURSE) { return c.nodes.filter((n) => n.type === 'skill').map((n) => n.skill); }
+  function weakest(n = 3) {
+    return courseSkills().filter((sk) => practiced(sk.id)).sort((a, b) => strength(a.id) - strength(b.id)).slice(0, n);
+  }
+  const weakCount = () => courseSkills().filter((sk) => isWeak(sk.id)).length;
 
   // ------------------------------------------------------------------
   // Dag, rekke, hjerter, XP
@@ -277,6 +367,11 @@
   // Oppgaver: instansiering og retting
   // ------------------------------------------------------------------
   function instantiate(item) {
+    const x = makeInstance(item);
+    if (x) { x.id = item.id; x.skill = item.skill; }
+    return x;
+  }
+  function makeInstance(item) {
     if (item.t === 'num') {
       const g = item.gen();
       return { t: 'num', q: g.q, a: g.a, u: g.u, e: g.e, tol: g.tol, input: '' };
@@ -336,6 +431,119 @@
   }
 
   // ------------------------------------------------------------------
+  // Kalkulator (enkel, uten eval). Vinkler regnes i grader.
+  // ------------------------------------------------------------------
+  function calcEval(src) {
+    const toks = [];
+    const s = src.replace(/,/g, '.').replace(/−/g, '-').replace(/\s+/g, '');
+    let i = 0;
+    while (i < s.length) {
+      const ch = s[i];
+      const num = s.slice(i).match(/^(\d+\.?\d*|\.\d+)(e[-+]?\d+)?/i);
+      if (num) { toks.push({ t: 'n', v: parseFloat(num[0]) }); i += num[0].length; continue; }
+      const fn = s.slice(i).match(/^(sin|cos|tan|√|ln|log)/);
+      if (fn) { toks.push({ t: 'f', v: fn[1] }); i += fn[1].length; continue; }
+      if (ch === 'π') { toks.push({ t: 'n', v: Math.PI }); i++; continue; }
+      if ('+-−×*÷/^²()·'.includes(ch)) { toks.push({ t: 'o', v: ch === '−' ? '-' : ch === '×' || ch === '·' ? '*' : ch === '÷' ? '/' : ch }); i++; continue; }
+      throw new Error('tegn');
+    }
+    let p = 0;
+    const peek = () => toks[p];
+    const isOp = (v) => peek() && peek().t === 'o' && peek().v === v;
+    const startsFactor = () => peek() && (peek().t === 'n' || peek().t === 'f' || (peek().t === 'o' && peek().v === '('));
+    const rad = (d) => (d * Math.PI) / 180;
+    const F = { sin: (x) => Math.sin(rad(x)), cos: (x) => Math.cos(rad(x)), tan: (x) => Math.tan(rad(x)), '√': Math.sqrt, ln: Math.log, log: Math.log10 };
+    function expr() {
+      let v = term();
+      while (isOp('+') || isOp('-')) { const o = toks[p++].v; const r = term(); v = o === '+' ? v + r : v - r; }
+      return v;
+    }
+    function term() {
+      let v = unary();
+      for (;;) {
+        if (isOp('*') || isOp('/')) { const o = toks[p++].v; const r = unary(); v = o === '*' ? v * r : v / r; }
+        else if (startsFactor()) v *= unary(); // underforstått gange, f.eks. 2π
+        else return v;
+      }
+    }
+    function unary() {
+      if (isOp('-')) { p++; return -unary(); }
+      if (isOp('+')) { p++; return unary(); }
+      return power();
+    }
+    function power() {
+      const b = postfix();
+      if (isOp('^')) { p++; return Math.pow(b, unary()); }
+      return b;
+    }
+    function postfix() {
+      let v = primary();
+      while (isOp('²')) { p++; v = v * v; }
+      return v;
+    }
+    function primary() {
+      const tk = toks[p++];
+      if (!tk) throw new Error('slutt');
+      if (tk.t === 'n') return tk.v;
+      if (tk.t === 'f') {
+        let arg;
+        if (isOp('(')) { p++; arg = expr(); if (isOp(')')) p++; } else arg = unary();
+        return F[tk.v](arg);
+      }
+      if (tk.v === '(') { const v = expr(); if (isOp(')')) p++; return v; }
+      throw new Error('uventet');
+    }
+    const v = expr();
+    if (p < toks.length) throw new Error('rest');
+    return v;
+  }
+  function calcFmt(v) {
+    if (!isFinite(v)) return 'Feil';
+    if (v === 0) return '0';
+    const a = Math.abs(v);
+    let out = a >= 1e9 || a < 1e-4 ? v.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', 'e') : String(+v.toPrecision(10));
+    return out.replace('.', ',');
+  }
+  const CALC_KEYS = [
+    ['C', '(', ')', '⌫', '÷'],
+    ['sin', 'cos', 'tan', '√', '×'],
+    ['7', '8', '9', '^', '−'],
+    ['4', '5', '6', 'x²', '+'],
+    ['1', '2', '3', '·10^', 'π'],
+    ['0', ',', 'e', 'ans', '='],
+  ];
+  function calcPanel(L) {
+    const c = L.calc;
+    return `<div class="calc" data-stop>
+      <div class="calc-disp"><div class="calc-expr" id="calcExpr">${esc(c.expr) || '&nbsp;'}</div><div class="calc-res" id="calcRes">${esc(c.res || '')}</div></div>
+      <div class="calc-keys">${CALC_KEYS.flat().map((k) => `<button class="ck ${/^[0-9,]$/.test(k) ? 'd' : k === '=' ? 'eq' : 'op'}" data-a="ck" data-k="${k}">${k === 'ans' ? 'Ans' : k === 'e' ? 'EXP' : k}</button>`).join('')}</div>
+      <button class="btn blue wide calc-use" data-a="calcUse" ${c.last === undefined ? 'disabled' : ''}>Bruk ${c.last !== undefined ? esc(calcFmt(c.last)) : 'svaret'} som svar</button>
+      <p class="hint">Vinkler regnes i grader. EXP gir tierpotens: 6,6 EXP −34 = 6,6 · 10⁻³⁴.</p>
+    </div>`;
+  }
+  function calcKey(k) {
+    const L = LESSON, c = L.calc;
+    if (c.fresh && /^[0-9,(π]|sin|cos|tan|√/.test(k)) c.expr = '';
+    c.fresh = false;
+    if (k === 'C') { c.expr = ''; c.res = ''; }
+    else if (k === '⌫') c.expr = c.expr.replace(/(sin\(|cos\(|tan\(|√\(|·10\^|.)$/, '');
+    else if (k === '=') {
+      try { const v = calcEval(c.expr); c.last = v; c.res = '= ' + calcFmt(v); c.expr = calcFmt(v); c.fresh = true; }
+      catch (err) { c.res = 'Feil i uttrykket'; }
+    }
+    else if (k === 'ans') { if (c.last !== undefined) c.expr += calcFmt(c.last); }
+    else if (k === 'x²') c.expr += '²';
+    else if (['sin', 'cos', 'tan', '√'].includes(k)) c.expr += k + '(';
+    else c.expr += k;
+    const ex = document.getElementById('calcExpr'), rs = document.getElementById('calcRes');
+    if (ex) ex.textContent = c.expr || '\u00a0';
+    if (rs) rs.textContent = c.res || '';
+    const use = document.querySelector('[data-a="calcUse"]');
+    if (use && c.last !== undefined) { use.disabled = false; use.textContent = `Bruk ${calcFmt(c.last)} som svar`; }
+    sfx.tap();
+  }
+
+  // ------------------------------------------------------------------
   // Leksjoner
   // ------------------------------------------------------------------
   function buildItems(pool, n) {
@@ -349,6 +557,19 @@
     return list.map(instantiate);
   }
   const allItems = (skills) => skills.reduce((acc, sk) => acc.concat(sk.items), []);
+  // Øving på svake emner: oppgaver du har svart feil på før kommer oftere.
+  function buildWeakItems(skills, n) {
+    const scored = allItems(skills).map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + Math.random() * 1.5 }));
+    scored.sort((a, b) => b.w - a.w);
+    let seenMatch = false;
+    const list = [];
+    for (const { it } of scored) {
+      if (list.length >= n) break;
+      if (it.t === 'match') { if (seenMatch) continue; seenMatch = true; }
+      list.push(it);
+    }
+    return shuffle(list).map(instantiate);
+  }
 
   function startLesson(kind, node, opts = {}) {
     let items, title;
@@ -358,13 +579,14 @@
       const skills = COURSE.units.slice(0, opts.unit.index).reduce((a, u) => a.concat(u.skills), []);
       items = buildItems(allItems(skills), JUMP_LEN); title = 'Hopp hit';
     } else {
-      const done = NODES.filter((n) => n.type === 'skill' && (S.prog[n.id] || 0) > 0).map((n) => n.skill);
-      items = buildItems(allItems(done.length ? done : [NODES[0].skill]), LESSON_LEN); title = 'Øving';
+      const weak = weakest(3);
+      items = buildWeakItems(weak.length ? weak : [NODES[0].skill], LESSON_LEN); title = 'Styrk svake emner';
     }
     LESSON = {
       kind, node, title, unit: opts.unit || (node && node.unit),
       queue: items, total: items.length, correct: 0, mistakes: 0, combo: 0, maxCombo: 0,
       lives: JUMP_LIVES, cur: items[0], state: 'idle', start: Date.now(), flash: '',
+      tally: {}, calc: { open: false, expr: '' },
     };
     UI.open = -1;
     UI.modal = null;
@@ -373,6 +595,18 @@
   }
   const usesHearts = (L) => L.kind === 'skill' || L.kind === 'review' || L.kind === 'redo';
 
+  // Husker hvilke oppgaver og ferdigheter du får til, for repetisjon senere.
+  function recordAnswer(x, ok) {
+    if (x.id) {
+      if (ok) { if (S.wrong[x.id]) { S.wrong[x.id]--; if (!S.wrong[x.id]) delete S.wrong[x.id]; } }
+      else S.wrong[x.id] = Math.min(5, (S.wrong[x.id] || 0) + 1);
+    }
+    if (x.skill && LESSON) {
+      const t = LESSON.tally[x.skill] || (LESSON.tally[x.skill] = { ok: 0, n: 0 });
+      t.n++; if (ok) t.ok++;
+    }
+  }
+
   function check() {
     const L = LESSON, x = L.cur;
     if (L.state !== 'idle' || !canCheck(x)) return;
@@ -380,6 +614,7 @@
     L.ok = ok;
     L.state = ok ? 'right' : 'wrong';
     S.stats.answered++;
+    recordAnswer(x, ok);
     if (ok) {
       S.stats.correct++;
       L.correct++; L.combo++;
@@ -440,7 +675,8 @@
         if (n.type === 'review') S.reviews[n.unit.id] = true;
       });
     }
-    if (L.kind === 'practice') gainHeart();
+    if (L.kind === 'practice') { L.heartGained = hearts() < MAX_HEARTS; gainHeart(); }
+    Object.keys(L.tally).forEach((id) => { const t = L.tally[id]; updateMem(id, t.ok / t.n); });
     const streakUp = extendStreak();
     const goalHit = xpToday() >= S.goal && xpToday() - xp < S.goal;
     save();
@@ -471,7 +707,7 @@
     let top;
     if (L.kind === 'jump') top = `<div class="l-hearts">${[0, 1, 2].map((i) => I.heart(i < L.lives)).join('')}</div>`;
     else if (usesHearts(L)) top = `<div class="l-hearts">${I.heart()}<b class="red">${hearts()}</b></div>`;
-    else top = `<div class="l-hearts"><span class="pill">${L.kind === 'practice' ? 'Øving' : ''}</span></div>`;
+    else top = `<div class="l-hearts"><span class="pill">${L.kind === 'practice' ? 'Styrk' : ''}</span></div>`;
 
     let body = '';
     if (x.t === 'mc') {
@@ -484,7 +720,9 @@
         }).join('')}</div>`;
     } else if (x.t === 'num') {
       body = `<div class="num-wrap"><input id="numIn" class="num-in ${L.state}" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Skriv svaret" value="${esc(x.input)}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="num-unit">${esc(x.u)}</span></div>
-        <p class="hint">Bruk komma eller punktum. Store og små tall kan skrives som 6,2e18 eller 6,2·10^18.</p>`;
+        <div class="num-tools"><p class="hint">Bruk komma eller punktum. Store og små tall kan skrives som 6,2e18 eller 6,2·10^18.</p>
+        ${L.state === 'idle' ? `<button class="calc-btn ${L.calc.open ? 'on' : ''}" data-a="calc" aria-label="Kalkulator">${I.calc()}<span>${L.calc.open ? 'Skjul' : 'Kalkulator'}</span></button>` : ''}</div>
+        ${L.state === 'idle' && L.calc.open ? calcPanel(L) : ''}`;
     } else if (x.t === 'bank') {
       let k = 0;
       const line = esc(x.tpl).replace(/▢/g, () => {
@@ -498,10 +736,11 @@
         }).join('')}</div>`;
     } else if (x.t === 'match') {
       const col = (side, arr) => arr.map((it) => {
-        const done = x.done.includes(it.i);
+        const flashOk = (x.ok || []).includes(it.i);
+        const done = x.done.includes(it.i) && !flashOk;
         const sel = (side === 'L' ? x.selL : x.selR) === it.i;
         const bad = x.bad && x.bad[side] === it.i;
-        return `<button class="mtile ${done ? 'done' : ''} ${sel ? 'sel' : ''} ${bad ? 'bad' : ''}" data-a="m${side}" data-i="${it.i}" ${done ? 'disabled' : ''}>${esc(it.text)}</button>`;
+        return `<button class="mtile ${done ? 'done' : ''} ${flashOk ? 'good' : ''} ${sel ? 'sel' : ''} ${bad ? 'bad' : ''}" data-a="m${side}" data-i="${it.i}" ${done || flashOk ? 'disabled' : ''}>${esc(it.text)}</button>`;
       }).join('');
       body = `<div class="match"><div class="mcol">${col('L', x.left)}</div><div class="mcol">${col('R', x.right)}</div></div>`;
     }
@@ -518,7 +757,7 @@
         <div class="fb">
           <div class="fb-title">${ok ? esc(L.praise || 'Riktig!') : 'Riktig svar:'}</div>
           ${ok ? '' : `<div class="fb-ans">${esc(correctText(x))}</div>`}
-          ${x.e ? `<div class="fb-exp">${nl(x.e)}</div>` : ''}
+          ${x.e ? `<div class="fb-exp">${gloss(x.e)}</div>` : ''}
         </div>
         <button class="btn ${ok ? 'green' : 'red'}" data-a="cont" id="contBtn">Fortsett</button>
       </div></div>`;
@@ -529,7 +768,7 @@
         <div class="bar"><div class="fill" style="width:${pct}%"></div>${L.flash ? `<span class="combo">${esc(L.flash)}</span>` : ''}</div>${top}</div>
       <div class="l-body"><div class="l-inner">
         <div class="l-type">${TYPE_LABEL[x.t]}</div>
-        <h2 class="l-q">${nl(x.q)}</h2>
+        <h2 class="l-q">${gloss(x.q)}</h2>
         ${body}
       </div></div>
       ${foot}
@@ -539,7 +778,7 @@
     const inp = document.getElementById('numIn');
     if (inp) {
       inp.addEventListener('input', () => { x.input = inp.value; const b = document.getElementById('checkBtn'); if (b) b.disabled = !canCheck(x); });
-      if (L.state === 'idle' && !UI.modal) setTimeout(() => inp.focus(), 30);
+      if (L.state === 'idle' && !UI.modal && !L.calc.open) setTimeout(() => inp.focus(), 30);
     }
     const cb = document.getElementById('contBtn');
     if (cb) cb.focus({ preventScroll: true });
@@ -564,7 +803,7 @@
         ${mascot('happy')}
         <h1 class="gold-t">${L.mistakes === 0 ? 'Perfekt leksjon!' : 'Leksjon fullført!'}</h1>
         ${L.kind === 'jump' ? '<p>Du hoppet videre! Alle tidligere enheter er låst opp.</p>' : ''}
-        ${L.kind === 'practice' ? `<p>Du tjente ett hjerte ${I.heart()}</p>` : ''}
+        ${L.heartGained ? `<p>Du tjente ett hjerte ${I.heart()}</p>` : ''}${L.kind === 'practice' ? '<p class="muted">De svake emnene dine er styrket.</p>' : ''}
         <div class="stat-cards">
           <div class="sc gold"><div class="sc-h">Total XP</div><div class="sc-b">${I.bolt()} ${r.xp}</div></div>
           <div class="sc green"><div class="sc-h">${r.acc === 100 ? 'Perfekt' : 'Riktig'}</div><div class="sc-b">${I.aim()} ${r.acc} %</div></div>
@@ -623,6 +862,7 @@
       const path = nodes.map((n, k) => {
         const done = nodeDone(n), isCur = n.i === cur, isLocked = n.i > cur;
         const state = done ? 'done' : isCur ? 'cur' : 'locked';
+        const weak = n.type === 'skill' && isWeak(n.id);
         let icon;
         if (n.type === 'chest') icon = I.chest(done);
         else if (n.type === 'review') icon = I.trophy();
@@ -631,21 +871,22 @@
         const ring = n.type === 'skill' && isCur
           ? `<svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="ring-bg"/><circle cx="50" cy="50" r="46" class="ring-fg" style="stroke-dasharray:${(289 * lv) / LEVELS} 289"/></svg>` : '';
         const pop = UI.open === n.i ? popover(n, state) : '';
-        return `<div class="node-wrap ${UI.open === n.i ? 'open' : ''}" style="--x:${OFFSETS[(k + u.index * 3) % OFFSETS.length]}px">
+        return `<div class="node-wrap ${UI.open === n.i ? 'open' : ''} ${isCur && UI.open !== n.i ? 'has-bubble' : ''}" style="--x:${OFFSETS[(k + u.index * 3) % OFFSETS.length]}px">
           ${isCur && UI.open !== n.i ? `<div class="start-bubble">${n.type === 'chest' ? 'ÅPNE' : 'START'}</div>` : ''}
-          <button class="node ${state} ${n.type}" data-a="node" data-n="${n.i}" ${isCur ? 'id="curNode"' : ''} aria-label="${esc(n.title)}">${ring}<span class="node-face">${icon}</span></button>
+          <button class="node ${state} ${n.type} ${weak ? 'weak' : ''}" data-a="node" data-n="${n.i}" ${isCur ? 'id="curNode"' : ''} aria-label="${esc(n.title)}">${ring}<span class="node-face">${icon}</span>${weak ? I.crack() : ''}</button>
           ${pop}
         </div>`;
       }).join('');
       return `<section class="unit" style="--c:${u.color};--cd:${u.dark}">${banner}<div class="path">${path}</div></section>`;
-    }).join('') + (cur >= NODES.length ? `<div class="course-done">${mascot('happy')}<h2>Du har fullført hele Fysikk 1!</h2><p>Fortsett å øve for å holde kunnskapen ved like.</p><button class="btn green" data-a="practice">Øv</button></div>` : '');
+    }).join('') + (cur >= NODES.length ? `<div class="course-done">${mascot('happy')}<h2>Du har fullført hele ${esc(COURSE.title)}!</h2><p>Fortsett å øve for å holde kunnskapen ved like.</p><button class="btn green" data-a="practice">Øv</button></div>` : '');
   }
 
   function popover(n, state) {
     let inner;
     if (n.type === 'skill') {
       const lv = S.prog[n.id] || 0;
-      if (state === 'done') inner = `<h4>${esc(n.title)}</h4><p>Fullført! Repeter for å holde kunnskapen ved like.</p><button class="btn white" data-a="go" data-n="${n.i}">Øv +5 XP</button>`;
+      if (state === 'done' && isWeak(n.id)) inner = `<h4>${esc(n.title)}</h4><p>Det er en stund siden du øvde på dette. Styrk kunnskapen før den blekner!</p><button class="btn white" data-a="go" data-n="${n.i}">Styrk +5 XP</button>`;
+      else if (state === 'done') inner = `<h4>${esc(n.title)}</h4><p>Fullført! Styrke: ${Math.round(100 * strength(n.id))} %. Repeter for å holde kunnskapen ved like.</p><button class="btn white" data-a="go" data-n="${n.i}">Øv +5 XP</button>`;
       else if (state === 'cur') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>`;
       else inner = `<h4>${esc(n.title)}</h4><p>Fullfør alle nivåene over for å låse opp denne.</p><button class="btn locked-b" disabled>Låst</button>`;
     } else if (n.type === 'review') {
@@ -660,7 +901,7 @@
   function sidebarStats() {
     const st = streakNow();
     return `<div class="stats-row">
-      <button class="chip course-chip" data-a="tab" data-t="learn" title="Fysikk 1">${I.atom()}<span>Fysikk 1</span></button>
+      <button class="chip course-chip" data-a="courses" title="Bytt kurs">${I[COURSE.icon]()}<span>${esc(COURSE.short || COURSE.title)}</span><i class="caret">▾</i></button>
       <button class="chip" data-a="streakInfo" title="Dagsrekke">${I.flame(st > 0 && S.streak.last === dayKey())}<b class="${st > 0 ? 'orange-t' : 'grey-t'}">${st}</b></button>
       <button class="chip" data-a="tab" data-t="profile" title="Total XP">${I.bolt()}<b class="gold-t">${S.xp}</b></button>
       <button class="chip" data-a="heartsInfo" title="Hjerter">${I.heart(hearts() > 0)}<b class="red">${hearts()}</b></button>
@@ -710,6 +951,20 @@
       ${full ? `<p class="muted small">Hver kiste gir 10 XP. Fullfør alle tre oppdragene for å få dobbel XP i 15 minutter.</p>` : ''}
       ${all && boostActive() ? `<div class="notice">Dobbel XP er aktiv i ${Math.ceil((S.boost - Date.now()) / 60000)} min til!</div>` : ''}
     </div>`;
+  }
+
+  function practiceCard(compact) {
+    const list = weakest(3);
+    if (!list.length) return '';
+    const n = weakCount();
+    if (compact) {
+      return `<div class="card practice"><div class="pr-row"><div class="pr-ic">${I.dumbbell()}</div><div class="pr-main"><b>Styrk svake emner</b><span class="muted">${n === 1 ? '1 emne' : n + ' emner'} trenger repetisjon</span></div>
+        <button class="btn green" data-a="practice">Øv +10 XP</button></div></div>`;
+    }
+    return `<div class="card practice"><div class="card-h"><h3>Styrk svake emner</h3></div>
+      ${list.map((sk) => { const st = strength(sk.id); return `<div class="pr-skill"><span>${esc(sk.title)}</span><div class="q-bar"><div class="q-fill ${st < 0.5 ? 'red-f' : st < 0.75 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div></div>`; }).join('')}
+      <p class="muted small">Styrken synker over tid. Oppgaver du har svart feil på kommer oftere.</p>
+      <button class="btn green wide" data-a="practice">Øv +10 XP</button></div>`;
   }
 
   function goalCard() {
@@ -786,8 +1041,9 @@
       const u = COURSE.units[m.u];
       return `<div class="modal-bg" data-a="closeModal"><div class="modal guide" data-stop style="--c:${u.color};--cd:${u.dark}">
         <div class="guide-head"><div><div class="u-sub">ENHET ${u.index + 1} · VEILEDNING</div><h3>${esc(u.title)}</h3></div><button class="icon-btn" data-a="closeModal">${I.x()}</button></div>
-        <div class="guide-body"><div class="kmal"><b>Kompetansemål</b><p>${esc(u.goal)}</p></div>
-        ${u.guide.map(([hd, body]) => `<div class="g-sec"><h4>${esc(hd)}</h4><p>${nl(body)}</p></div>`).join('')}</div>
+        <div class="guide-body"><div class="kmal"><b>${esc(u.course.goalLabel || 'Kompetansemål')}</b><p>${gloss(u.goal, u.course)}</p></div>
+        ${u.guide.map(([hd, body]) => `<div class="g-sec"><h4>${esc(hd)}</h4><p>${gloss(body, u.course)}</p></div>`).join('')}
+        <p class="muted small">Tips: Trykk på understrekede ord og symboler for en kort forklaring.</p></div>
       </div></div>`;
     }
     if (m.type === 'hearts') {
@@ -818,6 +1074,18 @@
         <button class="btn blue wide" data-a="jumpGo" data-u="${u.index}">Start testen</button>
         <button class="btn link wide" data-a="closeModal">Kanskje senere</button></div></div>`;
     }
+    if (m.type === 'courses') {
+      return `<div class="modal-bg top" data-a="closeModal"><div class="course-menu" data-stop>
+        <div class="cm-h">Mine kurs</div>
+        ${COURSES.map((c) => {
+          const units = c.units.filter((u) => S.reviews[u.id]).length;
+          const cur = currentIndex(c.nodes);
+          const pct = Math.round((100 * cur) / c.nodes.length);
+          return `<button class="cm-row ${c.id === COURSE.id ? 'on' : ''}" data-a="setCourse" data-c="${c.id}">
+            <span class="cm-ic">${I[c.icon]()}</span><span class="cm-main"><b>${esc(c.title)}</b><small>${units} av ${c.units.length} enheter · ${pct} % av stien</small></span>${c.id === COURSE.id ? '<span class="cm-check">✓</span>' : ''}</button>`;
+        }).join('')}
+      </div></div>`;
+    }
     if (m.type === 'text') {
       return `<div class="modal-bg" data-a="closeModal"><div class="modal" data-stop><h3>${esc(m.title)}</h3>${m.html}</div></div>`;
     }
@@ -831,7 +1099,7 @@
     const tabs = [['learn', 'Lær', I.home()], ['league', 'Ligaer', I.shield()], ['quests', 'Oppdrag', I.target()], ['profile', 'Profil', I.user()]];
     const nav = (cls) => `<nav class="${cls}">${cls === 'side' ? `<div class="logo">${I.atom()}<span>fysikkling</span></div>` : ''}${tabs.map(([id, label, ic]) => `<button class="nav-i ${UI.tab === id ? 'on' : ''}" data-a="tab" data-t="${id}">${ic}<span>${label}</span></button>`).join('')}</nav>`;
     let content;
-    if (UI.tab === 'learn') content = `<div class="learn">${boostActive() ? `<div class="boost-banner">${I.bolt()} Dobbel XP aktiv i ${Math.ceil((S.boost - Date.now()) / 60000)} min</div>` : ''}${renderPath()}</div>`;
+    if (UI.tab === 'learn') content = `<div class="learn">${boostActive() ? `<div class="boost-banner">${I.bolt()} Dobbel XP aktiv i ${Math.ceil((S.boost - Date.now()) / 60000)} min</div>` : ''}${weakCount() ? `<div class="practice-top">${practiceCard(true)}</div>` : ''}${renderPath()}</div>`;
     else if (UI.tab === 'league') content = `<div class="page">${leagueCard(true)}</div>`;
     else if (UI.tab === 'quests') content = renderQuests();
     else content = renderProfile();
@@ -839,7 +1107,7 @@
     app.innerHTML = `<div class="shell">
       ${nav('side')}
       <main class="main"><header class="topbar">${sidebarStats()}</header>${content}</main>
-      <aside class="right">${sidebarStats()}${leagueCard(false)}${questsCard(false)}${goalCard()}</aside>
+      <aside class="right">${sidebarStats()}${practiceCard(false)}${leagueCard(false)}${questsCard(false)}${goalCard()}</aside>
       ${nav('bottom')}
       ${renderModal()}
     </div>`;
@@ -857,6 +1125,7 @@
   }
 
   function render() {
+    closeTip();
     applyTheme();
     if (LESSON) renderLesson();
     else renderMain();
@@ -882,6 +1151,7 @@
     if (!s || s.v !== 1) throw new Error('ugyldig');
     const base = fresh();
     S = Object.assign(base, s, { stats: Object.assign(base.stats, s.stats) });
+    setCourse(S.course);
     save();
   }
 
@@ -911,6 +1181,7 @@
 
   document.addEventListener('click', (ev) => {
     const el = ev.target.closest('[data-a]');
+    if (!(el && el.dataset.a === 'term') && !ev.target.closest('.tip')) closeTip();
     const stop = ev.target.closest('[data-stop]');
     if (!el) {
       if (!stop && UI.open >= 0 && !LESSON) { UI.open = -1; render(); }
@@ -919,12 +1190,15 @@
     const a = el.dataset.a;
     const L = LESSON;
     switch (a) {
+      case 'term': ev.stopPropagation(); showTip(el); break;
       case 'tab': UI.tab = el.dataset.t; UI.open = -1; UI.modal = null; if (UI.tab === 'learn') UI.scrollToCurrent = true; window.scrollTo(0, 0); render(); break;
       case 'node': ev.stopPropagation(); onNode(+el.dataset.n); break;
       case 'go': goNode(+el.dataset.n); break;
       case 'guide': UI.modal = { type: 'guide', u: +el.dataset.u }; render(); break;
       case 'jump': UI.modal = { type: 'jump', u: +el.dataset.u }; render(); break;
       case 'jumpGo': startLesson('jump', null, { unit: COURSE.units[+el.dataset.u] }); break;
+      case 'courses': UI.modal = { type: 'courses' }; UI.open = -1; render(); break;
+      case 'setCourse': setCourse(el.dataset.c); save(); UI.modal = null; UI.tab = 'learn'; UI.open = -1; UI.scrollToCurrent = true; window.scrollTo(0, 0); render(); break;
       case 'heartsInfo': UI.modal = { type: 'hearts' }; render(); break;
       case 'streakInfo': UI.modal = { type: 'streak' }; render(); break;
       case 'closeModal':
@@ -959,13 +1233,21 @@
         try { importCode(code); toast('Fremgangen er importert!'); UI.scrollToCurrent = true; render(); } catch (err) { toast('Koden var ugyldig.'); }
         break;
       }
-      case 'reset': if (confirm('Er du sikker? All fremgang blir slettet.')) { S = fresh(); save(); UI.tab = 'learn'; render(); } break;
+      case 'reset': if (confirm('Er du sikker? All fremgang blir slettet.')) { S = fresh(); setCourse(S.course); save(); UI.tab = 'learn'; render(); } break;
       // leksjon
       case 'sel': if (L && L.state === 'idle') { L.cur.sel = +el.dataset.i; sfx.tap(); render(); } break;
       case 'tile': if (L && L.state === 'idle') { const x = L.cur; const k = x.slots.indexOf(null); if (k >= 0) { x.slots[k] = +el.dataset.i; sfx.tap(); render(); } } break;
       case 'unslot': if (L && L.state === 'idle') { L.cur.slots[+el.dataset.i] = null; render(); } break;
       case 'mL': case 'mR': if (L && L.state === 'idle') matchTap(a === 'mL' ? 'L' : 'R', +el.dataset.i); break;
       case 'check': check(); break;
+      case 'calc': if (L && L.state === 'idle') { L.calc.open = !L.calc.open; render(); } break;
+      case 'ck': if (L && L.state === 'idle') calcKey(el.dataset.k); break;
+      case 'calcUse': if (L && L.state === 'idle' && L.calc.last !== undefined) {
+        L.cur.input = calcFmt(L.calc.last);
+        const inp = document.getElementById('numIn'); if (inp) inp.value = L.cur.input;
+        const b = document.getElementById('checkBtn'); if (b) b.disabled = !canCheck(L.cur);
+        sfx.tap();
+      } break;
       case 'cont': cont(); break;
       case 'skip': if (L && L.state === 'idle') { if (L.cur.t === 'match') { L.cur.done = L.cur.left.map((it) => it.i); L.state = 'right'; L.ok = true; L.correct++; render(); } else { forceWrong(); } } break;
       case 'quit': UI.modal = 'quit'; render(); break;
@@ -979,6 +1261,7 @@
   function forceWrong() {
     const L = LESSON;
     L.ok = false; L.state = 'wrong'; L.mistakes++; L.combo = 0;
+    recordAnswer(L.cur, false);
     if (usesHearts(L)) loseHeart();
     if (L.kind === 'jump') L.lives--;
     S.stats.answered++;
@@ -987,26 +1270,38 @@
 
   function matchTap(side, i) {
     const L = LESSON, x = L.cur;
-    x.bad = null;
+    if (x.bad) { x.bad = null; clearTimeout(x.badT); }
     if (side === 'L') x.selL = x.selL === i ? null : i; else x.selR = x.selR === i ? null : i;
     if (x.selL !== null && x.selR !== null) {
       if (x.selL === x.selR) {
-        x.done.push(x.selL); sfx.tap();
+        // riktig par: blinker grønt, og låses deretter
+        const k = x.selL;
+        x.done.push(k); x.ok = x.ok || [];
+        x.ok.push(k);
         x.selL = x.selR = null;
-        if (x.done.length === x.left.length) {
-          L.state = 'right'; L.ok = true; L.correct++; L.combo++;
-          L.maxCombo = Math.max(L.maxCombo, L.combo);
-          S.stats.maxCombo = Math.max(S.stats.maxCombo, L.combo);
-          S.stats.answered++; S.stats.correct++;
-          today().combo = Math.max(today().combo, L.combo);
-          L.praise = pickR(['Flott!', 'Alle par riktig!', 'Strålende!']);
-          sfx.right(); save();
-        }
+        sfx.tap();
+        setTimeout(() => {
+          if (!LESSON || LESSON.cur !== x) return;
+          x.ok = x.ok.filter((v) => v !== k);
+          if (x.done.length === x.left.length && L.state === 'idle') {
+            L.state = 'right'; L.ok = true; L.correct++; L.combo++;
+            L.maxCombo = Math.max(L.maxCombo, L.combo);
+            S.stats.maxCombo = Math.max(S.stats.maxCombo, L.combo);
+            S.stats.answered++; S.stats.correct++;
+            recordAnswer(x, true);
+            today().combo = Math.max(today().combo, L.combo);
+            L.praise = pickR(['Flott!', 'Alle par riktig!', 'Strålende!']);
+            sfx.right(); save();
+          }
+          render();
+        }, 550);
       } else {
+        // feil par: blinker rødt, men kan velges igjen
         x.bad = { L: x.selL, R: x.selR };
         x.selL = x.selR = null;
+        x.misses = (x.misses || 0) + 1;
         sfx.wrong();
-        setTimeout(() => { if (LESSON && LESSON.cur === x) { x.bad = null; render(); } }, 500);
+        x.badT = setTimeout(() => { if (LESSON && LESSON.cur === x) { x.bad = null; render(); } }, 650);
       }
     } else sfx.tap();
     render();
