@@ -543,3 +543,13 @@ sub { vertical-align: -.25em; }
 .mark-note { color: var(--muted); font-weight: 600; font-style: italic; }
 .modal-bg.still { animation: none; }
 .hero-band .due-n { background: rgba(255,255,255,.22); border-radius: 10px; padding: 6px 10px; display: inline-block; }
+
+/* ---------- figurer og grafer ---------- */
+.fig { display: flex; justify-content: center; margin: 4px 0 16px; color: var(--text); }
+.graph { width: 100%; max-width: 220px; height: auto; display: block; }
+.graph.wide { max-width: 320px; }
+.opts.figs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.opts.figs .opt { flex-direction: column; align-items: stretch; padding: 10px; }
+.opts.figs .opt .graph { max-width: none; }
+.fb-fig { max-width: 160px; color: inherit; }
+.fb-fig .graph path[stroke="#1cb0f6"] { stroke: currentColor; }

@@ -272,7 +272,7 @@
       today: null, quests: null, boost: 0,
       league: null, leagueBest: 0,
       sound: true, theme: 'auto', name: '',
-      course: 'fysikk1', mem: {}, wrong: {}, marks: {}, srs: {},
+      course: 'fysikk1', mem: {}, wrong: {}, marks: {}, srs: {}, cstage: {},
     };
   }
   function load() {
@@ -285,6 +285,7 @@
   let S = load();
   S.marks = S.marks || {};
   S.srs = S.srs || {};
+  S.cstage = S.cstage || {};
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (err) { /* ignorer */ } }
 
   // UI-tilstand som ikke lagres
@@ -334,6 +335,14 @@
     });
     nodes.forEach((n, i) => { n.i = i; });
     c.nodes = nodes;
+    c.units.forEach((u) => {
+      let pending = [];
+      u.skills.forEach((sk) => {
+        sk.apply = sk.concepts.length ? sk.items.filter((it) => it.src !== 'Formel') : [];
+        if (sk.concepts.length) pending.push(sk);
+        else if (!sk.optional && pending.length) { pending.forEach((p) => p.apply.push(...sk.items)); pending = []; }
+      });
+    });
     c.itemById = {};
     c.units.forEach((u) => { u.skills.forEach((sk) => sk.items.forEach((it) => { c.itemById[it.id] = it; })); if (u.exam) u.exam.items.forEach((it) => { c.itemById[it.id] = it; }); });
   });
@@ -421,7 +430,14 @@
   function cardsBySkill() {
     if (bySkillCache.v === srsVer) return bySkillCache.map;
     const map = {};
-    for (const [id, c] of Object.entries(S.srs)) if (c.sk) (map[c.sk] = map[c.sk] || []).push([id, c]);
+    // et begrep teller med kortet du øvde sist, uansett oppgavetype (navn, formel, skriv selv)
+    const latest = {};
+    for (const [id, c] of Object.entries(S.srs)) {
+      const m = /^(.*~\d+)[ntfr]$/.exec(id);
+      if (m) { if (!latest[m[1]] || latest[m[1]][1].last < c.last) latest[m[1]] = [id, c]; continue; }
+      if (c.sk) (map[c.sk] = map[c.sk] || []).push([id, c]);
+    }
+    for (const [id, c] of Object.values(latest)) if (c.sk) (map[c.sk] = map[c.sk] || []).push([id, c]);
     bySkillCache = { v: srsVer, map };
     return map;
   }
@@ -593,11 +609,11 @@
     if (item.t === 'tf') return { t: 'mc', q: item.q, opts: ['Sant', 'Usant'], correct: item.ans ? 0 : 1, e: item.e, sel: -1, tf: true };
     if (item.t === 'mc') {
       const order = shuffle(item.opts.map((_, i) => i));
-      return { t: 'mc', q: item.q, code: item.code, opts: order.map((i) => item.opts[i]), correct: order.indexOf(0), e: item.e, sel: -1 };
+      return { t: 'mc', q: item.q, code: item.code, fig: item.fig, svgOpts: item.svgOpts, opts: order.map((i) => item.opts[i]), correct: order.indexOf(0), e: item.e, sel: -1 };
     }
     if (item.t === 'bank') {
       const tokens = shuffle([...item.ans, ...item.dis]).map((text, id) => ({ id, text }));
-      return { t: 'bank', q: item.q, tpl: item.tpl, ans: item.ans, any: item.any, code: item.code, order: item.order, tokens, slots: item.ans.map(() => null), e: item.e };
+      return { t: 'bank', q: item.q, tpl: item.tpl, ans: item.ans, any: item.any, equiv: item.equiv, code: item.code, order: item.order, tokens, slots: item.ans.map(() => null), e: item.e };
     }
     if (item.t === 'match') {
       const left = shuffle(item.pairs.map((p, i) => ({ i, text: p[0] })));
@@ -628,6 +644,11 @@
     if (x.t === 'num') return numOk(parseNum(x.input), x.a, x.tol);
     if (x.t === 'bank') {
       const got = x.slots.map((id) => x.tokens[id].text);
+      if (x.equiv) {
+        let k = 0;
+        const eq = fEquiv(x.equiv.tpl.replace(/▢/g, () => got[k++]), x.equiv.rhs);
+        if (eq !== null) return eq;
+      }
       if (x.any) return [...got].sort().join('|') === [...x.ans].sort().join('|');
       return got.join('|') === x.ans.join('|');
     }
@@ -770,6 +791,174 @@
   // ------------------------------------------------------------------
   // Leksjoner
   // ------------------------------------------------------------------
+  // ------------------------------------------------------------------
+  // Formelregning: leser formler som «v̄ = (v₀ + v)/2» og regner dem ut med tilfeldige
+  // verdier. Brukes til å lage feilalternativer som ligner på riktig svar uten å være
+  // likeverdige med det, og til å godta likeverdige svar i fyll-inn-oppgaver.
+  // ------------------------------------------------------------------
+  const SUP = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-', 'ⁿ': 'n', 'ᵖ': 'p', 'ᵗ': 't', 'ˣ': 'x', 'ᵏ': 'k', 'ᵇ': 'b', 'ᵃ': 'a' };
+  const FUNCS = ['sin', 'cos', 'tan', 'lg', 'ln'];
+  function fTokens(str) {
+    const T = [];
+    let i = 0;
+    const s = str.replace(/\s+/g, ' ');
+    while (i < s.length) {
+      const ch = s[i];
+      if (ch === ' ') { i++; continue; }
+      if (/[0-9]/.test(ch)) { let j = i; while (j < s.length && /[0-9.,]/.test(s[j]) && !(/[.,]/.test(s[j]) && !/[0-9]/.test(s[j + 1] || ''))) j++; T.push({ k: 'n', v: parseFloat(s.slice(i, j).replace(',', '.')) }); i = j; continue; }
+      if (ch === '½') { T.push({ k: 'n', v: 0.5 }); i++; continue; }
+      if (SUP[ch] !== undefined) { let j = i, e = ''; while (j < s.length && SUP[s[j]] !== undefined) e += SUP[s[j++]]; T.push({ k: 'sup', v: e }); i = j; continue; }
+      if (ch === '√' || ch === '∛' || ch === '∜') { T.push({ k: 'root', v: ch === '∛' ? 3 : ch === '∜' ? 4 : 2 }); i++; continue; }
+      if ('+−-'.includes(ch)) { T.push({ k: 'op', v: ch === '+' ? '+' : '-' }); i++; continue; }
+      if ('·×*'.includes(ch)) { T.push({ k: 'op', v: '*' }); i++; continue; }
+      if ('/÷'.includes(ch)) { T.push({ k: 'op', v: '/' }); i++; continue; }
+      if (ch === '^') { T.push({ k: 'op', v: '^' }); i++; continue; }
+      if (ch === '(' || ch === ')') { T.push({ k: ch }); i++; continue; }
+      const fn = FUNCS.find((f) => s.startsWith(f, i) && !/\p{L}/u.test(s[i + f.length] || ''));
+      if (fn) { T.push({ k: 'fn', v: fn }); i += fn.length; continue; }
+      if (/[\p{L}]/u.test(ch)) {
+        let j = i + 1;
+        if ((ch === 'Δ' || ch === 'Σ') && /\p{L}/u.test(s[j] || '')) j++;
+        while (j < s.length && /[̀-ͯ₀-₉ₐ-ₜ′∥⊥]/.test(s[j])) j++;
+        if (s[j] === '_') { j++; while (j < s.length && /[\p{L}\p{N}]/u.test(s[j])) j++; }
+        T.push({ k: 'id', v: s.slice(i, j) }); i = j; continue;
+      }
+      return null; // ukjent tegn
+    }
+    return T;
+  }
+  // Rekursiv parser: gir en funksjon som regner ut uttrykket med gitte variabelverdier.
+  function fParse(str) {
+    const T = fTokens(str);
+    if (!T || !T.length) return null;
+    let p = 0;
+    const peek = () => T[p];
+    const startsFactor = (t) => t && (t.k === 'n' || t.k === 'id' || t.k === '(' || t.k === 'fn' || t.k === 'root');
+    function expr() {
+      let f = term();
+      while (peek() && peek().k === 'op' && (peek().v === '+' || peek().v === '-')) {
+        const o = T[p++].v, a = f, b = term();
+        f = o === '+' ? (e) => a(e) + b(e) : (e) => a(e) - b(e);
+      }
+      return f;
+    }
+    function term() {
+      let f = unary();
+      for (;;) {
+        const t = peek();
+        if (t && t.k === 'op' && (t.v === '*' || t.v === '/')) { p++; const a = f, b = unary(); f = t.v === '*' ? (e) => a(e) * b(e) : (e) => a(e) / b(e); }
+        else if (startsFactor(t)) { const a = f, b = unary(); f = (e) => a(e) * b(e); }
+        else return f;
+      }
+    }
+    function unary() {
+      if (peek() && peek().k === 'op' && peek().v === '-') { p++; const a = unary(); return (e) => -a(e); }
+      return power();
+    }
+    function power() {
+      let f = atom();
+      for (;;) {
+        const t = peek();
+        if (t && t.k === 'sup') { p++; const a = f, n = t.v === '-' ? -1 : /^-?\d+$/.test(t.v) ? +t.v : null; const sym = t.v; f = n !== null ? (e) => Math.pow(a(e), n) : (e) => Math.pow(a(e), e[sym.replace('-', '')] * (sym[0] === '-' ? -1 : 1)); }
+        else if (t && t.k === 'op' && t.v === '^') { p++; const a = f, b = atom(); f = (e) => Math.pow(a(e), b(e)); }
+        else return f;
+      }
+    }
+    function atom() {
+      const t = T[p++];
+      if (!t) throw new Error('slutt');
+      if (t.k === 'n') return () => t.v;
+      if (t.k === 'id') return (e) => e[t.v];
+      if (t.k === '(') { const f = expr(); if (!T[p] || T[p].k !== ')') throw new Error(')'); p++; return f; }
+      if (t.k === 'fn') {
+        const a = power();
+        const F = { sin: (x) => Math.sin(x), cos: (x) => Math.cos(x), tan: (x) => Math.tan(x), lg: (x) => Math.log10(x), ln: (x) => Math.log(x) }[t.v];
+        return (e) => F(a(e));
+      }
+      if (t.k === 'sup' && T[p] && T[p].k === 'root') { p++; const a = power(); const idx = t.v; return (e) => Math.pow(a(e), 1 / (+idx || e[idx])); }
+      if (t.k === 'root') { const a = power(); return (e) => Math.pow(a(e), 1 / t.v); }
+      throw new Error('uventet');
+    }
+    try {
+      const f = expr();
+      if (p !== T.length) return null;
+      const vars = [...new Set(T.filter((t) => t.k === 'id').map((t) => t.v).concat(T.filter((t) => t.k === 'sup' && /[a-z]/.test(t.v)).map((t) => t.v.replace('-', ''))))];
+      return { f, vars };
+    } catch (err) { return null; }
+  }
+  // Er to uttrykk like for alle verdier? null betyr at det ikke kan avgjøres.
+  function fEquiv(a, b) {
+    const A = fParse(a), B = fParse(b);
+    if (!A || !B) return null;
+    const vars = [...new Set(A.vars.concat(B.vars))];
+    for (let k = 0; k < 4; k++) {
+      const e = {};
+      vars.forEach((v, i) => { e[v] = 1.3 + ((i * 7 + k * 3) % 11) * 0.37 + k * 0.11; });
+      const x = A.f(e), y = B.f(e);
+      if (!isFinite(x) || !isFinite(y)) return null;
+      if (Math.abs(x - y) > 1e-9 * Math.max(1, Math.abs(x), Math.abs(y))) return false;
+    }
+    return true;
+  }
+  // Lager formler som ligner på riktig svar, men er feil: byttet fortegn, byttet
+  // gange og dele, byttede variabler, borte kvadrat og endrede tall.
+  const SWAPS = [['v₀', 'v'], ['s', 't'], ['v', 't'], ['sin', 'cos'], ['lg', 'ln'], ['p', 'q'], ['a', 'b'], ['m', 'g'], ['x', 'y'], ['R₁', 'R₂'], ['U', 'I'], ['F', 'm'], ['W', 't'], ['Q', 't'], ['f', 'λ'], ['T', 'λ'], ['n', 't'], ['k', 'n']];
+  const idRe = (w) => new RegExp(`(?<![\\p{L}\\u0300-\\u036f₀-₉])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\u0300-\\u036f₀-₉′])`, 'gu');
+  function nthReplace(str, re, n, rep) { let k = -1; return str.replace(re, (m) => (++k === n ? rep(m) : m)); }
+  // Feilalternativer til en hel høyreside: «x = ln b» endres bare etter siste likhetstegn.
+  function mutateSide(rhs) {
+    const k = rhs.lastIndexOf(' = ');
+    if (k < 0) return mutations(rhs);
+    const head = rhs.slice(0, k + 3);
+    return mutations(rhs.slice(k + 3)).map((m) => head + m);
+  }
+  // Plassen til hver variabel i en formel (funksjonsnavn som lg og sin regnes ikke med).
+  function idPositions(str) {
+    const masked = str.replace(/sin|cos|tan|log|lg|ln/g, (m) => '#'.repeat(m.length));
+    const out = [];
+    const re = /(?:[ΔΣ](?=\p{L}))?[\p{L}][\u0300-\u036f₀-₉′∥⊥]*(?:_[\p{L}\p{N}]+)?/gu;
+    let m;
+    while ((m = re.exec(masked))) out.push({ i: m.index, len: m[0].length });
+    return out;
+  }
+  function mutations(rhs) {
+    const out = new Set();
+    const count = (re) => (rhs.match(re) || []).length;
+    const flip = { '+': '−', '−': '+' };
+    for (let n = 0; n < count(/[+−]/g); n++) out.add(nthReplace(rhs, /[+−]/g, n, (m) => flip[m]));
+    for (let n = 0; n < count(/[·/]/g); n++) out.add(nthReplace(rhs, /[·/]/g, n, (m) => (m === '/' ? '·' : '/')));
+    for (const [a, b] of SWAPS) {
+      if (!idRe(a).test(rhs)) continue;
+      if (idRe(b).test(rhs)) out.add(rhs.replace(idRe(a), '\u0001').replace(idRe(b), a).replace(/\u0001/g, b));
+      else if (b !== 'v' && b !== 't') for (let n = 0; n < count(idRe(a)); n++) out.add(nthReplace(rhs, idRe(a), n, () => b));
+    }
+    for (let n = 0; n < count(/²/g); n++) out.add(nthReplace(rhs, /²/g, n, () => ''));
+    if (/½/.test(rhs)) { out.add(rhs.replace('½', '2')); out.add(rhs.replace('½', '')); }
+    if (/(?<![\d,])2(?![\d,])/.test(rhs)) { out.add(rhs.replace(/(?<![\d,])2(?![\d,])/, '4')); }
+    if (/\/2/.test(rhs)) out.add(rhs.replace('/2', '·2'));
+    if (!/²/.test(rhs) && /^[\p{L}][̀-ͯ₀-₉]*$/u.test(rhs.split(/[ ·/]/)[0] || '')) out.add(rhs.replace(/^([\p{L}][̀-ͯ₀-₉]*)/u, '$1²'));
+    // kvadrat på en variabel, og ² som blir ³
+    const ids = idPositions(rhs);
+    for (const { i, len } of ids.slice(0, 4)) if (!/[²³⁴ᵖᵗⁿˣᵏ^(]/.test(rhs[i + len] || '')) out.add(rhs.slice(0, i + len) + '²' + rhs.slice(i + len));
+    if (/²/.test(rhs)) out.add(rhs.replace('²', '³'));
+    // eksponenter med bokstaver: fjern én, eller bytt + og · i en eksponent
+    const SUPL = /[ᵖᵗⁿˣᵏ]/g;
+    for (let n = 0; n < count(SUPL); n++) out.add(nthReplace(rhs, SUPL, n, () => ''));
+    out.add(rhs.replace(/\^\(([^()]+)\)/, (m, e) => (e.includes('+') ? `^(${e.replace('+', '·')})` : e.includes('·') ? `^(${e.replace('·', '+')})` : m)));
+    // ett ledd uten + og −: legg til ½ eller 2 foran, snu en enkel brøk eller del et produkt
+    const mathy = ids.length && !/\p{L}{3,}/u.test(rhs.replace(/sin|cos|tan|log|lg|ln/g, '')) && !/^[−\d,. ]+$/.test(rhs);
+    if (mathy && !/[+−]/.test(rhs)) {
+      if (!/^[½2]/.test(rhs)) { out.add('½' + rhs); out.add('2' + rhs); }
+      if (!/[·/ ]/.test(rhs) && ids.length >= 2) out.add(rhs.slice(0, ids[1].i) + '/' + rhs.slice(ids[1].i));
+      const fr = /^([^/()]+?) ?\/ ?([^/()]+)$/.exec(rhs);
+      if (fr) out.add(`${fr[2].trim()}/${fr[1].trim()}`);
+      const prod = /^([\p{L}][̀-ͯ₀-₉]*)([\p{L}][̀-ͯ₀-₉]*²?)$/u.exec(rhs);
+      if (prod) { out.add(`${prod[1]}/${prod[2]}`); out.add(`${prod[2]}/${prod[1]}`); }
+    }
+    out.delete(rhs);
+    return [...out].filter((m) => fEquiv(m, rhs) !== true && m.trim());
+  }
+
   // Nye begreper, symboler og formler kommer ett og ett, slik Duolingo introduserer nye ord:
   // først et kort, så en oppgave på akkurat det begrepet, før neste begrep kommer.
   // Hver node har høyst tre nye begreper, og de øves igjen i de neste leksjonene.
@@ -800,38 +989,113 @@
     const lines = String(term).split('\n').filter((l) => / (=|⇔) /.test(l));
     if (!lines.length) return null;
     const line = pickR(lines);
-    const m = line.match(/^(.*?) (=|⇔) (.*)$/);
+    const m = / ⇔ /.test(line) ? line.match(/^(.*?) (⇔) (.*)$/) : line.match(/^(.*?) (=) (.*)$/);
     return m ? { lhs: m[1], op: m[2], rhs: m[3] } : null;
   }
   const rhsOf = (o) => { const f = formulaSides(o.term); return f ? f.rhs : null; };
+  // Plukker n tilfeldige elementer.
+  const pickN = (arr, n) => shuffle(arr).slice(0, n);
+  // Én linje av formelen (formler over flere linjer øves linje for linje).
+  function formulaLine(c) {
+    const f = formulaSides(c.term);
+    return f ? { ...f, line: `${f.lhs} ${f.op} ${f.rhs}` } : null;
+  }
+  // Gjenkjenning: velg riktig navn, riktig formel eller riktig høyreside.
+  // Feilalternativene er helst nære varianter av riktig formel.
   function makeDrill(c, type) {
+    if (type === 'recall') return makeRecall(c) || makeDrill(c, 'fill');
     const types = [];
-    if (c.kind === 'f' && formulaSides(c.term)) types.push('fill');
-    types.push('name', 'term');
+    if (c.kind === 'f' && formulaSides(c.term)) types.push('fill', 'term');
+    else types.push('term');
+    types.push('name');
     if (!type || !types.includes(type)) type = pickR(types);
     const e = `${c.term}\n${c.name}. ${c.d}`;
     const base = { id: `${c.id}${type[0]}`, skill: c.skill, drill: true };
     if (type === 'fill') {
       const f = formulaSides(c.term);
-      const dis = uniqueOpts(f.rhs, distractorPool(c, rhsOf));
+      const near = pickN(mutateSide(f.rhs), 3);
+      const dis = near.concat(near.length < 3 ? uniqueOpts(f.rhs, distractorPool(c, rhsOf).filter((o) => o && !near.includes(o)), 3 - near.length) : []);
       if (dis.length >= 2) return { ...base, t: 'mc', q: `Fullfør formelen (${c.name}):\n${f.lhs} ${f.op} ?`, opts: [f.rhs, ...dis], e };
       type = 'name';
     }
     if (type === 'term') {
-      const dis = uniqueOpts(c.term, distractorPool(c, 'term'));
+      const f = c.kind === 'f' ? formulaLine(c) : null;
+      const right = f ? f.line : c.term;
+      const near = f ? pickN(mutateSide(f.rhs), 3).map((m) => `${f.lhs} ${f.op} ${m}`) : [];
+      const dis = near.concat(near.length < 3 ? uniqueOpts(right, distractorPool(c, 'term').filter((o) => !near.includes(o)), 3 - near.length) : []);
       const q = c.kind === 'f' ? `Hvilken formel er «${c.name}»?` : c.kind === 's' ? `Hvilket symbol står for «${c.name}»?` : `Hvilket begrep passer til «${c.name}»?`;
-      if (dis.length >= 2) return { ...base, t: 'mc', q, opts: [c.term, ...dis], e };
+      if (dis.length >= 2) return { ...base, t: 'mc', q, opts: [right, ...dis], e };
     }
     const dis = uniqueOpts(c.name, distractorPool(c, 'name'));
     if (dis.length < 2) return null;
     const q = c.kind === 'f' ? `Hva sier denne formelen?\n${c.term}` : c.kind === 's' ? `Hva står dette symbolet for?\n${c.term}` : `Hva betyr «${c.term}»?`;
     return { ...base, id: `${c.id}n`, t: 'mc', q, opts: [c.name, ...dis], e };
   }
+  // Gjenkalling: skriv formelen selv ved å fylle inn størrelsene i tomme felt.
+  function makeRecall(c) {
+    if (c.kind !== 'f') return null;
+    const f = formulaSides(c.term);
+    if (!f || !fParse(f.rhs.slice(f.rhs.lastIndexOf(' = ') + 1))) return null;
+    const k = f.rhs.lastIndexOf(' = ');
+    const head = k < 0 ? '' : f.rhs.slice(0, k + 3);
+    const rhs = k < 0 ? f.rhs : f.rhs.slice(k + 3);
+    let ids = idPositions(rhs);
+    if (!ids.length) return null;
+    if (ids.length > 4) ids = pickN(ids, 4).sort((a, b) => a.i - b.i);
+    let tplRhs = '', last = 0;
+    const ans = [];
+    for (const { i, len } of ids) { tplRhs += rhs.slice(last, i) + '▢'; ans.push(rhs.slice(i, i + len)); last = i + len; }
+    tplRhs += rhs.slice(last);
+    // feilbrikker: størrelser fra andre formler i samme enhet, og noen fra formelen selv
+    const pool = COURSE.concepts.filter((o) => o !== c && o.kind === 'f' && o.unit === c.unit).flatMap((o) => { const g = formulaSides(o.term); return g ? idPositions(g.rhs).map(({ i, len }) => g.rhs.slice(i, i + len)) : []; });
+    const lhsIds = idPositions(f.lhs).map(({ i, len }) => f.lhs.slice(i, i + len));
+    const dis = uniqueOpts('\u0000', shuffle(pool.concat(lhsIds)).filter((t) => !ans.includes(t) && !/′/.test(t) && t !== 'd'), 3);
+    if (!dis.length) dis.push('2');
+    return {
+      id: `${c.id}r`, skill: c.skill, drill: true, t: 'bank', q: `Skriv formelen: ${c.name}`,
+      tpl: `${f.lhs} ${f.op} ${head}${tplRhs}`, ans, dis, equiv: { tpl: tplRhs, rhs }, e: `${c.term}\n${c.name}. ${c.d}`,
+    };
+  }
+  // Øvingen på et begrep blir vanskeligere etter hvert:
+  // 0 gjenkjenne (flervalg) → 1 skrive formelen selv → 2 praktiske oppgaver der formelen brukes.
+  const STAGE_UP = [3, 4]; // riktige på rad som trengs for å gå videre fra trinn 0 og 1
+  const conceptById = (id) => COURSE.concepts.find((o) => o.id === id);
+  const stageOf = (c) => (S.cstage[c.id] || { s: 0 }).s;
+  function applyItem(c) {
+    const sk = NODES.find((n) => n.type === 'skill' && n.id === c.skill);
+    const pool = sk ? sk.skill.apply.filter((it) => it.t !== 'match') : [];
+    if (!pool.length) return null;
+    return pool.map((it) => ({ it, w: cardPriority(it.id) + Math.min(1, (it.q || '').length / 120) + Math.random() })).sort((a, b) => b.w - a.w)[0].it;
+  }
+  function conceptExercise(c, noApply) {
+    const st = stageOf(c);
+    if (st === 0) return makeDrill(c);
+    const recall = makeRecall(c);
+    if (st === 1) return recall || makeDrill(c, 'fill');
+    if (!noApply && Math.random() < 0.7) { const a = applyItem(c); if (a) return a; }
+    return recall || makeDrill(c);
+  }
+  function updateStage(x, ok) {
+    const m = /^(.*~\d+)([ntfr])$/.exec(x.id || '');
+    if (!m) return;
+    const c = conceptById(m[1]);
+    if (!c) return;
+    const level = m[2] === 'r' ? 1 : 0;
+    const st = S.cstage[c.id] || (S.cstage[c.id] = { s: 0, run: 0 });
+    if (!ok) { st.run = 0; st.s = Math.min(st.s, level); return; }
+    if (level < st.s) return; // lettere oppgave enn trinnet: teller ikke
+    st.run++;
+    if (st.s < 2 && st.run >= STAGE_UP[st.s]) {
+      st.s = st.s === 0 && makeRecall(c) ? 1 : 2;
+      st.run = 0;
+    }
+  }
   // Velger begreper å repetere: de du har bommet på kommer oftere.
-  function drillsFor(cs, n) {
-    const picked = cs.map((c) => ({ c, w: Math.max(...['f', 'n', 't'].map((k) => cardPriority(c.id + k))) + ['f', 'n', 't'].reduce((a, k) => a + (S.wrong[c.id + k] || 0), 0) + Math.random() }))
+  function drillsFor(cs, n, noApply) {
+    const L = ['f', 'n', 't', 'r'];
+    const picked = cs.map((c) => ({ c, w: Math.max(...L.map((k) => cardPriority(c.id + k))) + L.reduce((a, k) => a + (S.wrong[c.id + k] || 0), 0) + Math.random() }))
       .sort((x, y) => y.w - x.w).slice(0, n).map(({ c }) => c);
-    return picked.map((c) => makeDrill(c)).filter(Boolean);
+    return picked.map((c) => conceptExercise(c, noApply)).filter(Boolean);
   }
   function conceptMatch(cs) {
     const more = COURSE.concepts.filter((o) => !cs.includes(o) && o.unit === cs[0].unit && COURSE.concepts.indexOf(o) < COURSE.concepts.indexOf(cs[0]));
@@ -874,7 +1138,7 @@
       .sort((x, y) => y.w - x.w).slice(0, n);
     return ranked.map(({ m }) => {
       const cs = m.skill.concepts;
-      if (cs.length && Math.random() < 0.4) { const d = makeDrill(pickR(cs)); if (d) return d; }
+      if (cs.length && Math.random() < 0.4) { const d = conceptExercise(pickR(cs)); if (d) return d; }
       const its = m.skill.items.filter((it) => it.t !== 'match');
       const marked = its.filter(repMarked);
       return pickR(marked.length && Math.random() < 0.7 ? marked : its);
@@ -925,9 +1189,7 @@
     skills.forEach((sk, k) => {
       const want = k === skills.length - 1 ? n - out.length : Math.max(2, Math.round(n * (skills.length === 1 ? 1 : share[k] || 0.2)));
       const cands = sk.items.filter((it) => it.t !== 'match').map((it) => ({ w: cardPriority(it.id, sk.id), get: () => it }));
-      for (const c of (sk.concepts.length ? sk.concepts : [])) for (const L of ['n', 't'].concat(c.kind === 'f' ? ['f'] : [])) {
-        cands.push({ w: cardPriority(c.id + L, sk.id), get: () => makeDrill(c, DRILL_TYPE[L]) });
-      }
+      for (const c of sk.concepts) cands.push({ w: Math.max(...['n', 't', 'f', 'r'].map((L) => cardPriority(c.id + L))), get: () => conceptExercise(c) });
       cands.sort((a, b) => b.w - a.w);
       const block = [];
       for (const c of cands) { if (block.length >= want) break; const it = c.get(); if (it && !block.some((b) => b.id === it.id)) block.push(it); }
@@ -972,6 +1234,7 @@
   // Husker hvilke oppgaver og ferdigheter du får til, for repetisjon senere.
   function recordAnswer(x, ok) {
     if (x.id) review(x.id, x.skill, ok);
+    if (x.drill) updateStage(x, ok);
     if (x.id) {
       if (ok) { if (S.wrong[x.id]) { S.wrong[x.id]--; if (!S.wrong[x.id]) delete S.wrong[x.id]; } }
       else S.wrong[x.id] = Math.min(5, (S.wrong[x.id] || 0) + 1);
@@ -1090,12 +1353,12 @@
 
     let body = '';
     if (x.t === 'mc') {
-      body = `${x.code ? `<pre class="code">${esc(x.code)}</pre>` : ''}
-        <div class="opts ${x.tf ? 'tf' : ''}">${x.opts.map((o, i) => {
+      body = `${x.code ? `<pre class="code">${esc(x.code)}</pre>` : ''}${x.fig ? `<div class="fig">${x.fig}</div>` : ''}
+        <div class="opts ${x.tf ? 'tf' : ''} ${x.svgOpts ? 'figs' : ''}">${x.opts.map((o, i) => {
           let cls = x.sel === i ? 'sel' : '';
           if (L.state !== 'idle' && i === x.correct) cls = 'good';
           if (L.state === 'wrong' && i === x.sel) cls = 'bad';
-          return `<button class="opt ${cls}" data-a="sel" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="k">${i + 1}</span><span class="${x.monoOpts ? 'mono-opt' : ''}">${x.monoOpts ? esc(o) : mathHTML(o)}</span></button>`;
+          return `<button class="opt ${cls}" data-a="sel" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="k">${i + 1}</span><span class="${x.monoOpts ? 'mono-opt' : ''}">${x.svgOpts ? o : x.monoOpts ? esc(o) : mathHTML(o)}</span></button>`;
         }).join('')}</div>`;
     } else if (x.t === 'num') {
       body = `<div class="num-wrap"><input id="numIn" class="num-in ${L.state}" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Skriv svaret" value="${esc(x.input)}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="num-unit">${mathHTML(x.u)}</span></div>
@@ -1146,7 +1409,7 @@
       foot = `<div class="l-foot ${ok ? 'ok' : 'no'}"><div class="foot-in">
         <div class="fb">
           <div class="fb-title">${ok ? esc(L.praise || 'Riktig!') : 'Riktig svar:'}</div>
-          ${ok ? '' : `<div class="fb-ans">${x.t === 'bank' && x.code ? nl(correctText(x)) : mathHTML(correctText(x))}</div>`}
+          ${ok ? '' : `<div class="fb-ans">${x.svgOpts ? `<div class="fb-fig">${correctText(x)}</div>` : x.t === 'bank' && x.code ? nl(correctText(x)) : mathHTML(correctText(x))}</div>`}
           ${x.e ? `<div class="fb-exp">${gloss(x.e)}</div>` : ''}
         </div>
         <button class="btn ${ok ? 'green' : 'red'}" data-a="cont" id="contBtn">Fortsett</button>
@@ -1423,7 +1686,7 @@
     const cs = nodes.flatMap((n) => n.skill.concepts);
     const chosen = cs.map((c) => ({ c, w: ['f', 'n', 't'].reduce((a, k) => a + (S.wrong[c.id + k] || 0), 0) * 2 + (1 - strength(c.skill)) + Math.random() })).sort((x, y) => y.w - x.w).slice(0, 10).map(({ c }) => c);
     chosen.sort((x, y) => COURSE.concepts.indexOf(x) - COURSE.concepts.indexOf(y));
-    return chosen.map((c) => makeDrill(c)).filter(Boolean);
+    return chosen.map((c) => conceptExercise(c, true)).filter(Boolean);
   }
   function wrongList() {
     return NODES.filter((n) => n.type === 'skill').flatMap((n) => n.skill.items.filter((it) => S.wrong[it.id])).slice(0, 12);
@@ -1431,11 +1694,11 @@
   // ------------------------------------------------------------------
   // Bokmerker: oppgaver du vil repetere oftere, eller gi tilbakemelding på
   // ------------------------------------------------------------------
-  const DRILL_TYPE = { n: 'name', t: 'term', f: 'fill' };
+  const DRILL_TYPE = { n: 'name', t: 'term', f: 'fill', r: 'recall' };
   // Finner oppgaven bak et bokmerke igjen, også formeloppgaver som lages automatisk.
   function itemFromId(id, c = COURSE) {
     if (c.itemById[id]) return c.itemById[id];
-    const m = /^(.*~\d+)([ntf])$/.exec(id);
+    const m = /^(.*~\d+)([ntfr])$/.exec(id);
     const cc = m && c.concepts.find((o) => o.id === m[1]);
     return cc ? makeDrill(cc, DRILL_TYPE[m[2]]) : null;
   }
@@ -1444,7 +1707,7 @@
     const sk = NODES.find((n) => n.type === 'skill' && n.id === x.skill);
     return {
       course: COURSE.id, skill: x.skill || null, where: sk ? sk.title : (LESSON && LESSON.title) || '',
-      src: x.src || '', q: x.q || '', ans: x.t === 'match' ? '' : correctText(x), opts: x.t === 'mc' && !x.tf ? x.opts.slice() : null,
+      src: x.src || '', q: x.q || '', ans: x.t === 'match' ? '' : x.svgOpts ? `alternativ ${'ABCD'[x.correct]} (graf)` : correctText(x), opts: x.t === 'mc' && !x.tf && !x.svgOpts ? x.opts.slice() : null,
     };
   }
   function markSheet() {
@@ -1967,7 +2230,7 @@
   }
 
   // Til testing
-  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), review, hearts, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
+  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), fEquiv, mutations, mutateSide, recordAnswerForTest: (x, ok) => recordAnswer(x, ok), startForTest: (i) => startLesson('redo', NODES[i]), startItems: (items) => startLesson('practice', null, { items, title: 'Test' }), makeDrill, makeRecall, conceptExercise, review, hearts, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
 
   render();
 })();

@@ -48,6 +48,26 @@
   const tf = (q, ans, e) => ({ t: 'tf', q, ans, e });
   const num = (gen) => ({ t: 'num', gen });
   const bank = (q, tpl, ans, dis, e, extra = {}) => ({ t: 'bank', q, tpl, ans, dis, e, ...extra });
+
+  // Små grafer som SVG. Fargen følger teksten, så de fungerer i mørk modus.
+  // vt: v-t-graf gjennom punktene [[t, v], …] med t fra 0 til 2,4 s og v fra −12 til 12 m/s.
+  function vt(pts) {
+    const X = (t) => 22 + t * 52, Y = (v) => 62 - v * 4.4;
+    const path = pts.map(([t, v], i) => `${i ? 'L' : 'M'}${X(t).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
+    return `<svg class="graph" viewBox="0 0 170 124" role="img" aria-label="v-t-graf"><g stroke="currentColor" fill="none" stroke-width="1.6">
+      <path d="M22 116 V6 M14 62 H160" stroke-opacity=".7"/><path d="M19 10 l3 -6 l3 6 M156 59 l6 3 l-6 3" stroke-opacity=".7"/>
+      <path d="M74 59 v6 M126 59 v6" stroke-opacity=".7"/><path d="${path}" stroke="#1cb0f6" stroke-width="2.6"/></g>
+      <g fill="currentColor" font-size="11" font-family="inherit"><text x="27" y="12">v</text><text x="160" y="76">t</text><text x="66" y="77">1 s</text><text x="118" y="77">2 s</text></g></svg>`;
+  }
+  // a-t-grafen i kapitteltestens oppgave 4, med punktene A, B, C og D.
+  function atFig() {
+    return `<svg class="graph wide" viewBox="0 0 220 120" role="img" aria-label="a-t-graf med punktene A, B, C og D"><g stroke="currentColor" fill="none" stroke-width="1.6">
+      <path d="M24 112 V6 M18 80 H210" stroke-opacity=".7"/><path d="M21 10 l3 -6 l3 6 M206 77 l6 3 l-6 3" stroke-opacity=".7"/>
+      <path d="M24 80 C40 20, 100 18, 128 80 C138 100, 156 100, 168 80" stroke="#1cb0f6" stroke-width="2.6"/></g>
+      <g fill="currentColor" font-size="12" font-family="inherit"><text x="29" y="12">a</text><text x="206" y="96">t</text>
+      <circle cx="24" cy="80" r="3"/><text x="10" y="96">A</text><circle cx="76" cy="35" r="3"/><text x="71" y="27">B</text>
+      <circle cx="128" cy="80" r="3"/><text x="132" y="97">C</text><circle cx="160" cy="94" r="3"/><text x="160" y="112">D</text></g></svg>`;
+  }
   const match = (pairs, q = 'Koble sammen parene') => ({ t: 'match', pairs, q });
   // order: sett stegene i riktig rekkefølge (stegene oppgis i riktig rekkefølge her)
   const order = (q, steps, dis, e) => ({ t: 'bank', order: true, q, tpl: steps.map(() => '▢').join('\n'), ans: steps, dis, e });
@@ -199,6 +219,28 @@
           num(() => { const t = ri(1, 5); return { q: `En ball faller fritt fra ro. Hvor stor er farten etter ${t} s? (g = 9,81 m/s²)`, a: g * t, u: 'm/s', e: `v = gt = 9,81 · ${t} = ${f(g * t)} m/s` }; }),
           num(() => { const v0 = ri(5, 25); return { q: `En ball kastes rett opp med ${v0} m/s. Hvor høyt over utkastpunktet kommer den? (g = 9,81 m/s²)`, a: (v0 * v0) / (2 * g), u: 'm', e: `I toppen er v = 0: s = v₀² / (2g) = ${v0}² / 19,62 = ${f((v0 * v0) / (2 * g))} m` }; }),
           num(() => { const a = ri(1, 4), dt = pick([0.1, 0.5, 1]), n = ri(3, 6); return { q: `Programmet starter med v = 0, a = ${a} og dt = ${f(dt)}, og kjører v = v + a*dt i ${n} steg. Hva blir v til slutt?`, a: n * a * dt, u: 'm/s', e: `v = ${n} · ${a} · ${f(dt)} = ${f(n * a * dt)} m/s` }; }),
+        ],
+      },
+      {
+        // Kapitteltest fra Flipclass (rettlinjet bevegelse). Flere oppgaver kommer.
+        id: 'u1kt', title: 'Kapitteltest (Flipclass)',
+        items: [
+          mc('Vi kaster en ball rett oppover med farten 10 m/s og ser bort fra luftmotstand. Vi setter g = 10 m/s². Ballen bruker',
+            ['1,0 s til toppen og 1,0 s ned igjen', '1,0 s til toppen og kortere tid ned igjen', '1,0 s til toppen og lengre tid ned igjen', '0,50 s til toppen og 0,50 s ned igjen'],
+            'På toppen er v = 0. Formel 1, a = (v − v₀)/t, gir t = (v − v₀)/a = (0 − 10)/(−10) s = 1,0 s. Uten luftmotstand er bevegelsen symmetrisk, så det tar like lang tid ned igjen.',
+            { src: 'Kapitteltest 1' }),
+          mc('Vi kaster en ball rett oppover med farten 10 m/s og ser bort fra luftmotstand, samme situasjon som i oppgave 1. Akselerasjonen er',
+            ['10 m/s² nedover i hele kastet', '10 m/s² nedover i hele kastet, unntatt på toppen der den er 0 m/s²', '−10 m/s² på vei opp, 10 m/s² på vei ned og 0 m/s² på toppen', 'varierende hele tiden'],
+            'I fritt fall er akselerasjonen konstant og rettet nedover mot jordas sentrum. Også på toppen endrer farten seg, selv om den akkurat da er null.',
+            { src: 'Kapitteltest 2' }),
+          mc('Vi kaster en ball rett oppover med farten 10 m/s og ser bort fra luftmotstand, samme situasjon som i oppgave 1 og 2. Hvilken graf viser farten v som funksjon av tiden t?',
+            [vt([[0, 10], [2, -10]]), vt([[0, 10], [1, 0], [2, 10]]), vt([[0, 0], [1, 10], [2, 0]]), vt([[0, 10], [2.3, 10]])],
+            'Med positiv retning oppover gir formel 2, v = v₀ + at = 10 − 10t, en rett linje med negativt stigningstall. Farten er 0 etter 1 s og −10 m/s etter 2 s.',
+            { src: 'Kapitteltest 3', svgOpts: true }),
+          mc('En partikkel beveger seg rettlinjet. Grafen viser akselerasjonen a som funksjon av tiden t. I hvilket punkt er farten størst?',
+            ['C', 'B', 'A', 'D'],
+            'a > 0 betyr at farten øker, og a < 0 betyr at den avtar. Farten øker helt fram til C og avtar etterpå. I B øker farten raskest, men den fortsetter å øke etter B.',
+            { src: 'Kapitteltest 4', fig: atFig() }),
         ],
       },
     ],
