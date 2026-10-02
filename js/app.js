@@ -235,6 +235,7 @@
     aim: () => `<svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="m8 12 3 3 5-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
     sigma: () => `<svg viewBox="0 0 64 64" class="logo-ic"><rect x="4" y="4" width="56" height="56" rx="14" fill="#ce82ff"/><path d="M44 16H20l14 16-14 16h24" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     exam: () => `<svg viewBox="0 0 48 48" class="nic big"><rect x="9" y="5" width="30" height="38" rx="4" fill="#fff" stroke="#ff4b4b" stroke-width="3"/><path d="M15 15h18M15 22h18M15 29h11" stroke="#afafaf" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="35" r="8" fill="#ff4b4b"/><path d="m30.5 35 2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    repeat: () => `<svg viewBox="0 0 24 24" class="ic"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 0 1 13.7-5.6M20 12a8 8 0 0 1-13.7 5.6"/><path fill="currentColor" d="M19.5 3v5.5H14zM4.5 21v-5.5H10z"/></svg>`,
     dumbbell: () => `<svg viewBox="0 0 24 24" class="ic"><g fill="currentColor"><rect x="1.5" y="9" width="3" height="6" rx="1"/><rect x="4.5" y="6.5" width="3.5" height="11" rx="1.2"/><rect x="8" y="10.8" width="8" height="2.4"/><rect x="16" y="6.5" width="3.5" height="11" rx="1.2"/><rect x="19.5" y="9" width="3" height="6" rx="1"/></g></svg>`,
     calc: () => `<svg viewBox="0 0 24 24" class="ic"><rect x="4" y="2" width="16" height="20" rx="3" fill="currentColor"/><rect x="7" y="5" width="10" height="4" rx="1" fill="#fff"/><g fill="#fff"><circle cx="8.5" cy="13" r="1.2"/><circle cx="12" cy="13" r="1.2"/><circle cx="15.5" cy="13" r="1.2"/><circle cx="8.5" cy="17" r="1.2"/><circle cx="12" cy="17" r="1.2"/><circle cx="15.5" cy="17" r="1.2"/></g></svg>`,
     ball: () => `<svg viewBox="0 0 64 64" class="logo-ic"><circle cx="32" cy="32" r="27" fill="#ff9600"/><g fill="none" stroke="#7a3d00" stroke-width="3"><path d="M5 32h54M32 5v54"/><path d="M13 13c8 8 8 30 0 38M51 13c-8 8-8 30 0 38"/></g></svg>`,
@@ -278,15 +279,37 @@
   // ------------------------------------------------------------------
   // Kursstien
   // ------------------------------------------------------------------
+  // Ferdigheter med mange nye begreper deles i trinn med høyst tre nye begreper hver.
+  // parts: [{ intro: [indekser], items: [indekser] }, …]. Oppgaver som ikke er nevnt, havner i siste trinn.
+  const SPLIT_IDS = [];
+  function expandSkill(sk) {
+    if (!sk.parts) return [sk];
+    const used = new Set(sk.parts.flatMap((p) => p.items || []));
+    return sk.parts.map((p, k) => {
+      const last = k === sk.parts.length - 1;
+      const items = (p.items || []).map((i) => sk.items[i]).concat(last ? sk.items.filter((_, i) => !used.has(i)) : []);
+      const id = k === 0 ? sk.id : sk.id + String.fromCharCode(97 + k);
+      if (k) SPLIT_IDS.push([sk.id, id]);
+      return { id, title: p.title || `${sk.title} ${k + 1}`, intro: (p.intro || []).map((i) => sk.intro[i]), items, optional: sk.optional };
+    });
+  }
   COURSES.forEach((c) => {
     const nodes = [];
+    c.concepts = [];
+    c.units.forEach((u) => { u.skills = u.skills.flatMap(expandSkill); });
     c.units.forEach((u, ui) => {
       u.index = ui;
       u.first = nodes.length;
       u.course = c;
       u.skills.forEach((sk, si) => {
         sk.unit = u;
-        sk.items.forEach((it, k) => { it.id = `${sk.id}#${k}`; it.skill = sk.id; });
+        sk.items = sk.items.map((it, k) => ({ ...it, id: `${sk.id}#${k}`, skill: sk.id }));
+        sk.items.forEach((it) => { if (it.t === 'num') { const g1 = it.gen(), g2 = it.gen(); it.fixed = g1.q === g2.q; } });
+        sk.concepts = (sk.intro || []).map(([term, name, d, kind], k) => ({ term, name, d, kind: kind || 'b', id: `${sk.id}~${k}`, skill: sk.id, unit: u }));
+        c.concepts.push(...sk.concepts);
+        // begrepene som er i bruk på dette punktet i enheten (for repetisjon i oppgavenoder)
+        sk.active = c.concepts.filter((cc) => cc.unit === u).slice(-6);
+        if (!sk.active.length) sk.active = c.concepts.slice(-4);
         nodes.push({ id: sk.id, type: 'skill', unit: u, skill: sk, title: sk.title, optional: !!sk.optional });
         if (si === 1 && u.skills.length > 2) nodes.push({ id: u.id + '-chest', type: 'chest', unit: u, title: 'Skattekiste' });
       });
@@ -303,8 +326,34 @@
   }
   setCourse(S.course);
 
+  // Når en ferdighet deles i trinn eller flyttes, beholder du fremgangen du allerede hadde.
+  (function migrate() {
+    S.migr = S.migr || {};
+    const pairs = SPLIT_IDS.slice();
+    COURSES.forEach((c) => Object.entries(c.migrate || {}).forEach(([old, news]) => news.forEach((nw) => pairs.push([old, nw]))));
+    let changed = false;
+    for (const [old, nw] of pairs) {
+      const key = old + '>' + nw;
+      if (S.migr[key]) continue;
+      S.migr[key] = 1; changed = true;
+      if (S.prog[old] && !S.prog[nw]) S.prog[nw] = S.prog[old];
+      if (S.mem[old] && !S.mem[nw]) S.mem[nw] = { ...S.mem[old] };
+    }
+    if (changed) save();
+  })();
+
   const nodeDone = (n) => (n.type === 'skill' ? (S.prog[n.id] || 0) >= LEVELS : n.type === 'chest' ? !!S.chests[n.id] : !!S.reviews[n.unit.id]);
   // Valgfrie ferdigheter (E1/E2) blokkerer ikke stien videre.
+  // Fremdrift i prosent: fullførte leksjoner og enhetsrepetisjoner. Temaer du ikke har vært innom, står på 0 %.
+  function progressPct(nodes) {
+    let have = 0, need = 0;
+    for (const n of nodes) {
+      if (n.optional || n.type === 'chest') continue;
+      if (n.type === 'skill') { need += LEVELS; have += Math.min(LEVELS, S.prog[n.id] || 0); }
+      else { need += 1; have += S.reviews[n.unit.id] ? 1 : 0; }
+    }
+    return need ? Math.round((100 * have) / need) : 0;
+  }
   function currentIndex(nodes = NODES) { const i = nodes.findIndex((n) => !n.optional && !nodeDone(n)); return i < 0 ? nodes.length : i; }
 
   // ------------------------------------------------------------------
@@ -397,48 +446,25 @@
   const xpToday = () => S.xpDays[dayKey()] || 0;
 
   // ------------------------------------------------------------------
-  // Liga (simulert, ukentlig)
+  // Liga: toppliste over dagene dine med mest XP (uke, måned eller år)
   // ------------------------------------------------------------------
-  const TIERS = [['Bronse', '#cd7f32'], ['Sølv', '#a6b0bf'], ['Gull', '#ffc800'], ['Safir', '#1cb0f6'], ['Rubin', '#ff4b4b'], ['Smaragd', '#58cc02'], ['Ametyst', '#ce82ff'], ['Perle', '#f0a3c4'], ['Obsidian', '#4b4b4b'], ['Diamant', '#4fd1ff']];
-  const BOT_NAMES = ['Ingrid', 'Jonas', 'Sofie', 'Emil', 'Nora', 'Lukas', 'Emma', 'Filip', 'Sara', 'Oskar', 'Maja', 'Henrik', 'Thea', 'Mathias', 'Ida', 'Sander', 'Julie', 'Elias', 'Aurora', 'Jakob', 'Vilde', 'Magnus', 'Amalie', 'Tobias', 'Hedda', 'Sindre', 'Live', 'Kasper', 'Selma', 'Aksel'];
-  const BOT_COLORS = ['#58cc02', '#1cb0f6', '#ff9600', '#ce82ff', '#ff4b4b', '#00b8a9', '#2b70c9', '#ff86d0'];
-  function makeBots(week, tier) {
-    const r = rng(hash(week + ':' + tier));
-    return shuffle(BOT_NAMES, r).slice(0, 14).map((name, i) => {
-      const base = 60 + tier * 45;
-      const total = r() < 0.2 ? Math.floor(r() * 25) : Math.round(base * (0.3 + 1.7 * r()));
-      const w = [0, 1, 2, 3, 4, 5, 6].map(() => (r() < 0.25 ? 0 : r()));
-      const sum = w.reduce((a, b) => a + b, 0) || 1;
-      return { name, total, w: w.map((x) => x / sum), col: BOT_COLORS[i % BOT_COLORS.length] };
-    });
+  function periodStart(kind, d = new Date()) {
+    if (kind === 'week') return weekStart(d);
+    if (kind === 'month') return dayKey(new Date(d.getFullYear(), d.getMonth(), 1));
+    return dayKey(new Date(d.getFullYear(), 0, 1));
   }
-  function botXp(b, week, now) {
-    const el = (now - parseDay(week).getTime()) / 86400000;
-    if (el >= 7) return b.total;
-    let x = 0;
-    for (let d = 0; d < 7; d++) x += b.w[d] * Math.max(0, Math.min(1, el - d));
-    return Math.round(b.total * x);
-  }
-  function weekXp(week) { let x = 0; for (let i = 0; i < 7; i++) x += S.xpDays[addDays(week, i)] || 0; return x; }
-  function standings(L, now = Date.now()) {
-    const rows = L.bots.map((b) => ({ name: b.name, col: b.col, xp: botXp(b, L.week, now) }));
-    rows.push({ name: S.name || 'Du', xp: weekXp(L.week), me: true, col: '#58cc02' });
-    rows.sort((a, b) => b.xp - a.xp || (a.me ? -1 : b.me ? 1 : 0));
+  // Alle dager fra periodens start til i dag, rangert. Like poengsummer deler plass.
+  function dayBoard(kind) {
+    const end = dayKey();
+    const rows = [];
+    for (let k = periodStart(kind); k <= end; k = addDays(k, 1)) rows.push({ day: k, xp: S.xpDays[k] || 0, today: k === end });
+    rows.sort((x, y) => y.xp - x.xp || (x.day < y.day ? -1 : 1));
+    rows.forEach((r, i) => { r.rank = i > 0 && rows[i - 1].xp === r.xp ? rows[i - 1].rank : i + 1; });
     return rows;
   }
-  function ensureLeague() {
-    const w = weekStart();
-    if (!S.league) { S.league = { week: w, tier: 0, bots: makeBots(w, 0), result: null }; return; }
-    const L = S.league;
-    if (L.week === w) return;
-    const rank = standings(L, Infinity).findIndex((r) => r.me) + 1;
-    const my = weekXp(L.week);
-    let tier = L.tier, res = 'stay';
-    if (my > 0 && rank <= 5 && tier < TIERS.length - 1) { tier++; res = 'up'; }
-    else if ((my === 0 || rank > 10) && tier > 0) { tier--; res = 'down'; }
-    S.league = { week: w, tier, bots: makeBots(w, tier), result: { res, rank, from: L.tier, to: tier, seen: false } };
-    S.leagueBest = Math.max(S.leagueBest || 0, tier);
-  }
+  const bestDay = () => Object.values(S.xpDays).reduce((m, x) => Math.max(m, x), 0);
+  const dayLabel = (k, kind) => cap(parseDay(k).toLocaleDateString('nb-NO', kind === 'year' ? { weekday: 'short', day: 'numeric', month: 'short' } : { weekday: 'long', day: 'numeric', month: 'short' }));
+  function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
 
   // ------------------------------------------------------------------
   // Prestasjoner
@@ -450,7 +476,7 @@
     { name: 'Perfeksjonist', icon: '💯', desc: (n) => `Fullfør ${n} leksjoner uten feil`, val: () => S.stats.perfect, t: [1, 5, 15, 30, 60] },
     { name: 'Erobrer', icon: '🏆', desc: (n) => `Fullfør ${n} enheter`, val: () => Object.keys(S.reviews).length, t: [1, 3, 5, 8, 10] },
     { name: 'Skarpskytter', icon: '🎯', desc: (n) => `Svar riktig på ${n} oppgaver på rad`, val: () => S.stats.maxCombo, t: [5, 10, 20, 30, 50] },
-    { name: 'Ligamester', icon: '💎', desc: (n) => `Nå ${TIERS[n][0]}-ligaen`, val: () => S.leagueBest || 0, t: [1, 3, 5, 7, 9] },
+    { name: 'Rekorddag', icon: '💎', desc: (n) => `Tjen ${n} XP på én dag`, val: bestDay, t: [50, 100, 200, 400, 800] },
   ];
   function achLevel(a) { const v = a.val(); let l = 0; while (l < a.t.length && v >= a.t[l]) l++; return l; }
 
@@ -668,19 +694,76 @@
   // ------------------------------------------------------------------
   // Leksjoner
   // ------------------------------------------------------------------
-  // Første leksjon i hver ferdighet starter med nye begreper, symboler og formler,
-  // slik Duolingo introduserer nye ord. Etterpå kommer en koble-oppgave på dem.
-  function introItems(skill) {
-    const intro = skill.intro || [];
-    const cards = intro.map(([term, name, d, kind]) => ({ t: 'card', term, name, d, kind: kind === 'f' ? 'Ny formel' : kind === 's' ? 'Nytt symbol' : 'Nytt begrep', skill: skill.id }));
-    if (intro.length >= 3) {
-      const pairs = shuffle(intro).slice(0, 4).map(([term, name]) => [term, name]);
-      if (new Set(pairs.map((p) => p[1])).size === pairs.length) {
-        const m = instantiate({ t: 'match', pairs, q: 'Koble sammen det du nettopp lærte' });
-        cards.push(m);
-      }
+  // Nye begreper, symboler og formler kommer ett og ett, slik Duolingo introduserer nye ord:
+  // først et kort, så en oppgave på akkurat det begrepet, før neste begrep kommer.
+  // Hver node har høyst tre nye begreper, og de øves igjen i de neste leksjonene.
+  const KIND_LABEL = { f: 'Ny formel', s: 'Nytt symbol', b: 'Nytt begrep' };
+  const cardOf = (c) => ({ t: 'card', term: c.term, name: c.name, d: c.d, kind: KIND_LABEL[c.kind] || KIND_LABEL.b, skill: c.skill });
+  const normTxt = (t) => String(t).replace(/\s+/g, '').toLowerCase();
+  function uniqueOpts(correct, pool, n = 3) {
+    const seen = new Set([normTxt(correct)]);
+    const out = [];
+    for (const o of pool) {
+      const k = normTxt(o);
+      if (!o || seen.has(k)) continue;
+      seen.add(k); out.push(o);
+      if (out.length >= n) break;
     }
-    return cards;
+    return out;
+  }
+  // Andre begreper i samme kurs som feilalternativer: helst samme type og samme enhet.
+  function distractorPool(c, key) {
+    const all = COURSE.concepts.filter((o) => o !== c);
+    const at = COURSE.concepts.indexOf(c);
+    // helst begreper du allerede har møtt, så feilalternativene ikke avslører det som kommer senere
+    const score = (o) => (o.kind === c.kind ? 2 : 0) + (o.unit === c.unit ? 1 : 0) + (COURSE.concepts.indexOf(o) < at ? 1.5 : 0) + Math.random() * 1.5;
+    return all.map((o) => ({ o, w: score(o) })).sort((x, y) => y.w - x.w).map(({ o }) => (typeof key === 'function' ? key(o) : o[key]));
+  }
+  // Deler en formel i venstre og høyre side: «v = v₀ + at» blir ['v', 'v₀ + at'].
+  function formulaSides(term) {
+    const lines = String(term).split('\n').filter((l) => / (=|⇔) /.test(l));
+    if (!lines.length) return null;
+    const line = pickR(lines);
+    const m = line.match(/^(.*?) (=|⇔) (.*)$/);
+    return m ? { lhs: m[1], op: m[2], rhs: m[3] } : null;
+  }
+  const rhsOf = (o) => { const f = formulaSides(o.term); return f ? f.rhs : null; };
+  function makeDrill(c, type) {
+    const types = [];
+    if (c.kind === 'f' && formulaSides(c.term)) types.push('fill');
+    types.push('name', 'term');
+    if (!type || !types.includes(type)) type = pickR(types);
+    const e = `${c.term}\n${c.name}. ${c.d}`;
+    const base = { id: `${c.id}${type[0]}`, skill: c.skill, drill: true };
+    if (type === 'fill') {
+      const f = formulaSides(c.term);
+      const dis = uniqueOpts(f.rhs, distractorPool(c, rhsOf));
+      if (dis.length >= 2) return { ...base, t: 'mc', q: `Fullfør formelen (${c.name}):\n${f.lhs} ${f.op} ?`, opts: [f.rhs, ...dis], e };
+      type = 'name';
+    }
+    if (type === 'term') {
+      const dis = uniqueOpts(c.term, distractorPool(c, 'term'));
+      const q = c.kind === 'f' ? `Hvilken formel er «${c.name}»?` : c.kind === 's' ? `Hvilket symbol står for «${c.name}»?` : `Hvilket begrep passer til «${c.name}»?`;
+      if (dis.length >= 2) return { ...base, t: 'mc', q, opts: [c.term, ...dis], e };
+    }
+    const dis = uniqueOpts(c.name, distractorPool(c, 'name'));
+    if (dis.length < 2) return null;
+    const q = c.kind === 'f' ? `Hva sier denne formelen?\n${c.term}` : c.kind === 's' ? `Hva står dette symbolet for?\n${c.term}` : `Hva betyr «${c.term}»?`;
+    return { ...base, id: `${c.id}n`, t: 'mc', q, opts: [c.name, ...dis], e };
+  }
+  // Velger begreper å repetere: de du har bommet på kommer oftere.
+  function drillsFor(cs, n) {
+    const picked = cs.map((c) => ({ c, w: ['f', 'n', 't'].reduce((a, k) => a + (S.wrong[c.id + k] || 0), 0) * 2 + Math.random() * 1.5 }))
+      .sort((x, y) => y.w - x.w).slice(0, n).map(({ c }) => c);
+    return picked.map((c) => makeDrill(c)).filter(Boolean);
+  }
+  function conceptMatch(cs) {
+    const more = COURSE.concepts.filter((o) => !cs.includes(o) && o.unit === cs[0].unit && COURSE.concepts.indexOf(o) < COURSE.concepts.indexOf(cs[0]));
+    const list = cs.concat(more.slice(-Math.max(0, 4 - cs.length)));
+    if (list.length < 3) return null;
+    const pairs = list.slice(0, 4).map((c) => [c.term, c.name]);
+    if (new Set(pairs.map((p) => normTxt(p[1]))).size !== pairs.length || new Set(pairs.map((p) => normTxt(p[0]))).size !== pairs.length) return null;
+    return { t: 'match', pairs, q: 'Koble sammen det du har lært', skill: cs[0].skill };
   }
 
   function buildItems(pool, n) {
@@ -699,11 +782,53 @@
       if (k >= 0) list[k] = it; else list.push(it);
     }
     list = shuffle(list);
-    const gens = pool.filter((it) => it.t === 'num');
+    // tilfeldige talloppgaver kan gjentas med nye tall, faste oppgaver gjentas ikke
+    const gens = pool.filter((it) => it.t === 'num' && !it.fixed);
     while (list.length < n && gens.length) list.push(pickR(gens));
-    return list.map(instantiate);
+    return list;
   }
   const allItems = (skills) => skills.reduce((acc, sk) => acc.concat(sk.items), []);
+  // Litt tidligere stoff blandes inn: helst fra samme enhet og fra ferdigheter som har blitt svake.
+  function mixItems(node, n) {
+    if (!node || n <= 0) return [];
+    const prev = NODES.slice(0, node.i).filter((m) => m.type === 'skill' && !m.optional && practiced(m.id) && m.skill.items.length);
+    const ranked = prev.map((m) => ({ m, w: (m.unit === node.unit ? 1 : 0) + (1 - strength(m.id)) + (node.i - m.i < 4 ? 0.6 : 0) + Math.random() * 0.8 }))
+      .sort((x, y) => y.w - x.w).slice(0, n);
+    return ranked.map(({ m }) => {
+      const cs = m.skill.concepts;
+      if (cs.length && Math.random() < 0.4) { const d = makeDrill(pickR(cs)); if (d) return d; }
+      return pickR(m.skill.items.filter((it) => it.t !== 'match'));
+    }).filter(Boolean);
+  }
+  // Setter inn elementer på tilfeldige plasser i siste halvdel av leksjonen.
+  function sprinkle(list, extra) {
+    const out = list.slice();
+    for (const it of extra) out.splice(Math.floor(out.length / 2) + Math.floor(Math.random() * (Math.ceil(out.length / 2) + 1)), 0, it);
+    return out;
+  }
+  function skillLesson(node, first) {
+    const sk = node.skill;
+    const cs = sk.concepts;
+    if (first && cs.length) {
+      const out = [];
+      cs.forEach((c, k) => { out.push(cardOf(c)); const d = makeDrill(c, k % 2 ? 'term' : 'name'); if (d) out.push(d); });
+      const m = cs.length >= 2 && conceptMatch(cs);
+      if (m) out.push(m);
+      const own = buildItems(sk.items.filter((it) => it.t !== 'match'), Math.max(4, LESSON_LEN - 3));
+      const recall = drillsFor(cs, Math.min(2, cs.length));
+      return out.concat(sprinkle(own, recall));
+    }
+    const nd = cs.length ? Math.min(3, cs.length) : Math.min(2, sk.active.length);
+    const drills = drillsFor(cs.length ? cs : sk.active, nd);
+    const mix = mixItems(node, 2);
+    let own = buildItems(sk.items, LESSON_LEN - drills.length - mix.length + 1);
+    let list = sprinkle(drills.slice(0, 1).concat(own, drills.slice(1)), mix);
+    // for få egne oppgaver: fyll på med mer repetisjon i stedet for å gjenta samme oppgave
+    if (list.length < LESSON_LEN) list = list.concat(mixItems(node, LESSON_LEN - list.length), drillsFor(cs.length ? cs : sk.active, Math.max(0, LESSON_LEN - list.length - 2)));
+    const seen = new Set();
+    list = list.filter((it) => !it.id || it.t === 'num' && !it.fixed || (seen.has(it.id) ? false : seen.add(it.id)));
+    return list.slice(0, LESSON_LEN + 2);
+  }
   // Øving på svake emner: oppgaver du har svart feil på før kommer oftere.
   function buildWeakItems(skills, n) {
     const scored = allItems(skills).map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + Math.random() * 1.5 }));
@@ -715,25 +840,28 @@
       if (it.t === 'match') { if (seenMatch) continue; seenMatch = true; }
       list.push(it);
     }
-    return shuffle(list).map(instantiate);
+    const cs = skills.flatMap((sk) => (sk.concepts.length ? sk.concepts : sk.active));
+    return shuffle(list).concat(drillsFor([...new Set(cs)], 2));
   }
 
   function startLesson(kind, node, opts = {}) {
     let items, title;
-    if (kind === 'skill' && !(S.prog[node.id] || 0) && node.skill.intro) {
-      const intro = introItems(node.skill);
-      items = intro.concat(buildItems(node.skill.items, Math.max(4, LESSON_LEN - 2)));
-      title = node.skill.title;
-    } else if (kind === 'skill' || kind === 'redo') { items = buildItems(node.skill.items, LESSON_LEN); title = node.skill.title; }
-    else if (kind === 'review') { items = buildItems(allItems(node.unit.skills.filter((sk) => !sk.optional)), REVIEW_LEN); title = 'Enhetsrepetisjon'; }
-    else if (kind === 'exam') { items = node.unit.exam.items.map(instantiate); title = node.unit.exam.title; }
+    if (opts.items) { items = opts.items; title = opts.title; }
+    else if (kind === 'skill' || kind === 'redo') { items = skillLesson(node, kind === 'skill' && !(S.prog[node.id] || 0)); title = node.skill.title; }
+    else if (kind === 'review') {
+      const sks = node.unit.skills.filter((sk) => !sk.optional);
+      items = sprinkle(buildItems(allItems(sks), REVIEW_LEN - 3), drillsFor(sks.flatMap((sk) => sk.concepts), 3));
+      title = 'Enhetsrepetisjon';
+    }
+    else if (kind === 'exam') { items = node.unit.exam.items; title = node.unit.exam.title; }
     else if (kind === 'jump') {
       const skills = COURSE.units.slice(0, opts.unit.index).reduce((a, u) => a.concat(u.skills), []);
       items = buildItems(allItems(skills), JUMP_LEN); title = 'Hopp hit';
     } else {
       const weak = weakest(3);
-      items = buildWeakItems(weak.length ? weak : [NODES[0].skill], LESSON_LEN); title = 'Styrk svake emner';
+      items = buildWeakItems(weak.length ? weak : [NODES[0].skill], LESSON_LEN - 2); title = 'Styrk svake emner';
     }
+    items = items.map((it) => (it.t === 'card' ? it : instantiate(it))).filter(Boolean);
     LESSON = {
       kind, node, title, unit: opts.unit || (node && node.unit),
       queue: items, total: items.length, correct: 0, mistakes: 0, combo: 0, maxCombo: 0,
@@ -1022,26 +1150,23 @@
 
   function renderPath() {
     const cur = currentIndex();
-    const curUnit = cur < NODES.length ? NODES[cur].unit.index : COURSE.units.length;
     return COURSE.units.map((u) => {
-      const locked = u.first > cur;
       const nodes = NODES.filter((n) => n.unit === u);
       const banner = `<div class="unit-banner" style="--c:${u.color};--cd:${u.dark}">
-          <div><div class="u-sub">ENHET ${u.index + 1}</div><div class="u-title">${esc(u.title)}</div></div>
+          <div><div class="u-sub">ENHET ${u.index + 1} · ${progressPct(nodes)} %</div><div class="u-title">${esc(u.title)}</div></div>
           <div class="u-actions">
-            ${locked && u.index > curUnit && !COURSE.handDone ? `<button class="u-btn" data-a="jump" data-u="${u.index}">Hopp hit?</button>` : ''}
             <button class="u-btn" data-a="guide" data-u="${u.index}" aria-label="Veiledning">${I.book()}<span class="hide-s">Veiledning</span></button>
           </div>
         </div>`;
       const path = nodes.map((n, k) => {
-        const done = nodeDone(n), isCur = n.i === cur, isLocked = n.i > cur;
+        const done = nodeDone(n), isCur = n.i === cur;
         const state = done ? 'done' : isCur ? 'cur' : n.i < cur ? 'open' : 'locked';
         const weak = n.type === 'skill' && isWeak(n.id);
         let icon;
         if (n.type === 'chest') icon = I.chest(done);
         else if (n.type === 'review') icon = I.trophy();
         else if (n.type === 'exam') icon = I.exam();
-        else icon = done ? I.check() : isLocked ? I.lock() : I.star();
+        else icon = done ? I.check() : I.star();
         const lv = S.prog[n.id] || 0;
         const ring = n.type === 'skill' && isCur
           ? `<svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="ring-bg"/><circle cx="50" cy="50" r="46" class="ring-fg" style="stroke-dasharray:${(289 * lv) / LEVELS} 289"/></svg>` : '';
@@ -1058,14 +1183,13 @@
 
   function popover(n, state) {
     let inner;
-    const hand = COURSE.handDone && n.type === 'skill' && state !== 'done' && state !== 'locked'
+    const hand = COURSE.handDone && n.type === 'skill' && !n.skill.concepts.length && state !== 'done'
       ? `<button class="btn link hand-b" data-a="handDone" data-n="${n.i}">Gjort for hånd – hopp over</button>` : '';
     if (n.type === 'exam') {
-      if (state === 'locked') inner = `<h4>${esc(n.title)}</h4><p>Fullfør alle nivåene over for å låse opp prøven.</p><button class="btn locked-b" disabled>Låst</button>`;
-      else inner = `<h4>${esc(n.title)}</h4><p>${n.unit.exam.items.length} oppgaver. Du har ${n.unit.exam.lives} liv, og prøven må bestås for å komme videre.</p><button class="btn white" data-a="go" data-n="${n.i}">${state === 'done' ? 'Ta prøven igjen +30 XP' : 'Start prøven +30 XP'}</button>`;
-      return `<div class="popover ${state === 'open' ? 'cur' : state}" data-stop>${inner}</div>`;
+      inner = `<h4>${esc(n.title)}</h4><p>${n.unit.exam.items.length} oppgaver. Du har ${n.unit.exam.lives} liv, og prøven må bestås for å komme videre.</p><button class="btn white" data-a="go" data-n="${n.i}">${state === 'done' ? 'Ta prøven igjen +30 XP' : 'Start prøven +30 XP'}</button>`;
+      return `<div class="popover ${state === 'done' ? 'done' : 'cur'}" data-stop>${inner}</div>`;
     }
-    if (n.type === 'skill' && n.optional && state !== 'done' && state !== 'locked') {
+    if (n.type === 'skill' && n.optional && state !== 'done') {
       const lv = S.prog[n.id] || 0;
       inner = `<h4>${esc(n.title)}</h4><p>Valgfrie ekstraoppgaver. Leksjon ${lv + 1} av ${LEVELS}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
       return `<div class="popover cur" data-stop>${inner}</div>`;
@@ -1074,15 +1198,14 @@
       const lv = S.prog[n.id] || 0;
       if (state === 'done' && isWeak(n.id)) inner = `<h4>${esc(n.title)}</h4><p>Det er en stund siden du øvde på dette. Styrk kunnskapen før den blekner!</p><button class="btn white" data-a="go" data-n="${n.i}">Styrk +5 XP</button>`;
       else if (state === 'done') inner = `<h4>${esc(n.title)}</h4><p>Fullført! Styrke: ${Math.round(100 * strength(n.id))} %. Repeter for å holde kunnskapen ved like.</p><button class="btn white" data-a="go" data-n="${n.i}">Øv +5 XP</button>`;
-      else if (state === 'cur') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}${lv === 0 && n.skill.intro ? ' · Nye begreper' : ''}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
-      else inner = `<h4>${esc(n.title)}</h4><p>Fullfør alle nivåene over for å låse opp denne.</p><button class="btn locked-b" disabled>Låst</button>`;
+      else if (state === 'cur') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}${lv === 0 && n.skill.concepts.length ? ` · ${n.skill.concepts.length} ${n.skill.concepts.length === 1 ? 'nytt begrep' : 'nye begreper'}` : ''}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
+      else inner = `<h4>${esc(n.title)}</h4><p>${lv ? `Leksjon ${lv + 1} av ${LEVELS}` : 'Ikke startet ennå'}${lv === 0 && n.skill.concepts.length ? ` · ${n.skill.concepts.length} ${n.skill.concepts.length === 1 ? 'nytt begrep' : 'nye begreper'}` : ''}. Du kan starte her uten å ta temaene før.</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
     } else if (n.type === 'review') {
-      if (state === 'locked') inner = `<h4>Enhetsrepetisjon</h4><p>Fullfør alle nivåene over for å låse opp denne.</p><button class="btn locked-b" disabled>Låst</button>`;
-      else inner = `<h4>Enhetsrepetisjon</h4><p>Repeter hele enhet ${n.unit.index + 1}: ${esc(n.unit.title)}</p><button class="btn white" data-a="go" data-n="${n.i}">${state === 'done' ? 'Øv +5 XP' : 'Start +15 XP'}</button>`;
+      inner = `<h4>Enhetsrepetisjon</h4><p>Repeter hele enhet ${n.unit.index + 1}: ${esc(n.unit.title)}</p><button class="btn white" data-a="go" data-n="${n.i}">${state === 'done' ? 'Øv +5 XP' : 'Start +15 XP'}</button>`;
     } else {
       inner = state === 'done' ? `<h4>Skattekiste</h4><p>Du har allerede åpnet denne.</p>` : `<h4>Skattekiste</h4><p>Fullfør nivåene over for å åpne kista.</p><button class="btn locked-b" disabled>Låst</button>`;
     }
-    return `<div class="popover ${state}" data-stop>${inner}</div>`;
+    return `<div class="popover ${state === 'locked' && n.type !== 'chest' ? 'cur' : state}" data-stop>${inner}</div>`;
   }
 
   function sidebarStats() {
@@ -1095,30 +1218,39 @@
     </div>`;
   }
 
+  const PERIODS = [['week', 'Ukentlig', 'denne uka'], ['month', 'Månedlig', 'denne måneden'], ['year', 'Årlig', 'i år']];
   function leagueCard(full) {
-    ensureLeague();
-    const L = S.league;
-    const [tname, tcol] = TIERS[L.tier];
-    const rows = standings(L);
-    const myRank = rows.findIndex((r) => r.me) + 1;
-    const end = parseDay(addDays(L.week, 7)).getTime() - Date.now();
-    const dleft = Math.floor(end / 86400000), hleft = Math.floor((end % 86400000) / 3600000);
+    const kind = UI.board || 'week';
+    const rows = dayBoard(kind);
+    const me = rows.find((r) => r.today);
+    const [, , when] = PERIODS.find((p) => p[0] === kind);
     if (!full) {
-      return `<div class="card"><div class="card-h"><h3>${esc(tname)}-ligaen</h3><button class="link-b" data-a="tab" data-t="league">Vis liga</button></div>
-        <div class="league-mini"><div class="shield" style="color:${tcol}">${I.shield()}</div><div>Du er nr. <b>${myRank}</b> denne uka<br><span class="muted">${weekXp(L.week)} XP · ${dleft} d ${hleft} t igjen</span></div></div></div>`;
+      const wk = dayBoard('week').find((r) => r.today);
+      return `<div class="card"><div class="card-h"><h3>Liga</h3><button class="link-b" data-a="tab" data-t="league">Vis toppliste</button></div>
+        <div class="league-mini"><div class="shield" style="color:#ffc800">${I.shield()}</div><div>I dag: <b>${wk.xp} XP</b><br><span class="muted">Nr. ${wk.rank} av dagene denne uka</span></div></div></div>`;
     }
-    const res = L.result && !L.result.seen ? L.result : null;
-    if (res) { res.seen = true; save(); }
+    const pos = rows.filter((r) => r.xp > 0);
+    const zeros = rows.filter((r) => r.xp === 0 && !r.today);
+    const zeroRank = pos.length + 1;
+    const row = (r) => `<li class="row ${r.today ? 'me' : ''}"><span class="rk ${r.rank <= 3 && r.xp > 0 ? 'top' + r.rank : ''}">${r.rank}</span><span class="nm">${r.today ? `<b>I dag</b> · ${esc(dayLabel(r.day, kind).toLowerCase())}` : esc(dayLabel(r.day, kind))}</span><span class="xp">${r.xp} XP</span></li>`;
+    const zeroRow = zeros.length ? `<li class="row zero"><span class="rk">${zeroRank}</span><span class="nm">${zeros.length === 1 ? '1 dag' : zeros.length + ' dager'} uten XP</span><span class="xp">0 XP</span></li>` : '';
+    const showAll = kind === 'week' || UI.boardAll;
+    let list;
+    if (showAll) list = pos.concat(me.xp === 0 ? [me] : []).map(row).join('') + zeroRow;
+    else {
+      const top = pos.slice(0, 10);
+      list = top.map(row).join('');
+      if (!top.includes(me)) list += (me.xp > 0 || pos.length > 10 ? '<li class="gap">…</li>' : '') + row(me);
+      if (pos.length <= 10) list += zeroRow;
+    }
+    const total = rows.reduce((a, r) => a + r.xp, 0);
+    const more = kind !== 'week' && pos.length > 10;
     return `<div class="league-full">
-      <div class="tiers">${TIERS.map(([n, col], i) => `<div class="tier ${i === L.tier ? 'cur' : ''} ${i > L.tier ? 'lock' : ''}" style="color:${i > L.tier ? '#d0d0d0' : col}" title="${esc(n)}">${I.shield()}</div>`).join('')}</div>
-      <h2>${esc(tname)}-ligaen</h2>
-      <p class="muted">Topp 5 rykker opp til neste liga${L.tier > 0 ? ', og de 5 nederste rykker ned' : ''}. ${dleft} dager og ${hleft} timer igjen.</p>
-      ${res ? `<div class="notice">${res.res === 'up' ? `Gratulerer! Du endte som nr. ${res.rank} forrige uke og rykket opp til ${TIERS[res.to][0]}-ligaen.` : res.res === 'down' ? `Du endte som nr. ${res.rank} forrige uke og rykket ned til ${TIERS[res.to][0]}-ligaen.` : `Du endte som nr. ${res.rank} forrige uke og blir i ${TIERS[res.to][0]}-ligaen.`}</div>` : ''}
-      <ol class="board">${rows.map((r, i) => `
-        ${i === 5 && L.tier < TIERS.length - 1 ? '<li class="zone up">Opprykkssone</li>' : ''}
-        ${i === 10 && L.tier > 0 ? '<li class="zone down">Nedrykkssone</li>' : ''}
-        <li class="row ${r.me ? 'me' : ''}"><span class="rk ${i < 3 ? 'top' + (i + 1) : ''}">${i + 1}</span><span class="av" style="background:${r.col}">${esc(r.name[0])}</span><span class="nm">${esc(r.name)}</span><span class="xp">${r.xp} XP</span></li>`).join('')}</ol>
-      <p class="muted small">Ligaen er simulert med datamotstandere, siden appen er personlig.</p>
+      <div class="seg">${PERIODS.map(([k, label]) => `<button class="seg-b ${k === kind ? 'on' : ''}" data-a="board" data-v="${k}">${label}</button>`).join('')}</div>
+      <h2>Dine beste dager ${when}</h2>
+      <p class="muted">I dag har du <b>${me.xp} XP</b> og er nr. <b>${me.rank}</b> av ${rows.length} ${rows.length === 1 ? 'dag' : 'dager'}. Totalt ${total} XP ${when}.</p>
+      <ol class="board days">${list}</ol>
+      ${more ? `<button class="btn wide ${UI.boardAll ? 'ghost' : 'green'}" data-a="boardAll">${UI.boardAll ? 'Vis bare topp 10' : `Vis alle (${pos.length} dager med XP)`}</button>` : ''}
     </div>`;
   }
 
@@ -1152,6 +1284,93 @@
       ${list.map((sk) => { const st = strength(sk.id); return `<div class="pr-skill"><span>${esc(sk.title)}</span><div class="q-bar"><div class="q-fill ${st < 0.5 ? 'red-f' : st < 0.75 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div></div>`; }).join('')}
       <p class="muted small">Styrken synker over tid. Oppgaver du har svart feil på kommer oftere.</p>
       <button class="btn green wide" data-a="practice">Øv +10 XP</button></div>`;
+  }
+
+  // ------------------------------------------------------------------
+  // Repetisjon: blandet øving, men gruppert etter tema så det henger sammen
+  // ------------------------------------------------------------------
+  const repSkills = () => NODES.filter((n) => n.type === 'skill' && !n.optional && practiced(n.id));
+  // Velger 2–3 temaer som hører sammen: en svak enhet og enheten før den.
+  function repPlan(fresh) {
+    if (!fresh && UI.repPlan && UI.repPlan.course === COURSE.id) {
+      const ok = UI.repPlan.ids.map((id) => NODES.find((n) => n.id === id)).filter(Boolean);
+      if (ok.length) return ok;
+    }
+    const nodes = repSkills();
+    if (!nodes.length) return [];
+    const units = [...new Set(nodes.map((n) => n.unit))];
+    const avg = (u) => { const ns = nodes.filter((n) => n.unit === u); return ns.reduce((a, n) => a + strength(n.id), 0) / ns.length; };
+    const anchor = units.map((u) => ({ u, w: avg(u) + Math.random() * 0.35 })).sort((x, y) => x.w - y.w)[0].u;
+    const near = units.filter((u) => u === anchor || u.index === anchor.index - 1);
+    const pool = nodes.filter((n) => near.includes(n.unit));
+    const pick = pool.map((n) => ({ n, w: strength(n.id) + Math.random() * 0.5 })).sort((x, y) => x.w - y.w).slice(0, 3).map(({ n }) => n).sort((x, y) => x.i - y.i);
+    UI.repPlan = { course: COURSE.id, ids: pick.map((n) => n.id) };
+    return pick;
+  }
+  // Ett tema om gangen: først formlene, så oppgaver, og til slutt litt blanding på tvers.
+  function repItems(nodes, per = 3) {
+    const blocks = nodes.map((n) => {
+      const sk = n.skill;
+      const items = sk.items.filter((it) => it.t !== 'match').map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + Math.random() * 1.5 })).sort((x, y) => y.w - x.w).map(({ it }) => it);
+      const own = items.slice(0, per);
+      const d = drillsFor(sk.concepts.length ? sk.concepts : sk.active, sk.concepts.length ? 2 : 1);
+      return { d, own, rest: items.slice(per) };
+    });
+    const out = blocks.flatMap((b) => b.d.slice(0, 1).concat(b.own, b.d.slice(1)));
+    const tail = shuffle(blocks.flatMap((b) => b.rest.slice(0, 1))).slice(0, 2);
+    return out.concat(tail);
+  }
+  function conceptReview(unit) {
+    const nodes = repSkills().filter((n) => !unit || n.unit === unit);
+    const cs = nodes.flatMap((n) => n.skill.concepts);
+    const chosen = cs.map((c) => ({ c, w: ['f', 'n', 't'].reduce((a, k) => a + (S.wrong[c.id + k] || 0), 0) * 2 + (1 - strength(c.skill)) + Math.random() })).sort((x, y) => y.w - x.w).slice(0, 10).map(({ c }) => c);
+    chosen.sort((x, y) => COURSE.concepts.indexOf(x) - COURSE.concepts.indexOf(y));
+    return chosen.map((c) => makeDrill(c)).filter(Boolean);
+  }
+  function wrongList() {
+    return NODES.filter((n) => n.type === 'skill').flatMap((n) => n.skill.items.filter((it) => S.wrong[it.id])).slice(0, 12);
+  }
+  function startRep(kind, arg) {
+    let items = [], title = 'Repetisjon';
+    if (kind === 'mix') { items = repItems(repPlan()); title = 'Blandet repetisjon'; UI.repPlan = null; }
+    else if (kind === 'concepts') { items = conceptReview(arg != null ? COURSE.units[arg] : null); title = 'Formler og begreper'; }
+    else if (kind === 'wrong') { items = wrongList(); title = 'Oppgaver du har bommet på'; }
+    else if (kind === 'unit') { const u = COURSE.units[arg]; items = repItems(repSkills().filter((n) => n.unit === u), 2).slice(0, 14); title = `Repeter: ${u.title}`; }
+    if (!items.length) { toast('Du har ikke noe å repetere her ennå.'); return; }
+    startLesson('practice', null, { items, title });
+  }
+  function renderRep() {
+    const nodes = repSkills();
+    if (!nodes.length) {
+      return `<div class="page"><div class="hero-band"><div><h2>Repetisjon</h2><p>Her kan du repetere alt du har lært, blandet sammen tema for tema.</p></div>${mascot('happy')}</div>
+        <div class="card"><p>Fullfør den første leksjonen i ${esc(COURSE.title)}, så dukker repetisjonen opp her.</p></div></div>`;
+    }
+    const plan = repPlan();
+    const conceptsN = nodes.reduce((a, n) => a + n.skill.concepts.length, 0);
+    const wrongN = wrongList().length;
+    const units = COURSE.units.filter((u) => nodes.some((n) => n.unit === u));
+    const bar = (st) => `<div class="q-bar"><div class="q-fill ${st < 0.5 ? 'red-f' : st < 0.75 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div>`;
+    return `<div class="page rep">
+      <div class="hero-band"><div><h2>Repetisjon</h2><p>Blandet øving på det du allerede har lært. Temaene velges slik at de henger sammen.</p></div>${mascot('happy')}</div>
+      <div class="card rep-main">
+        <div class="card-h"><h3>Blandet repetisjon</h3><button class="link-b" data-a="repNew">Bytt temaer</button></div>
+        <p class="muted">Denne runden: ${plan.map((n) => `<b>${esc(n.title)}</b>`).join(', ')}</p>
+        <button class="btn green wide" data-a="rep" data-k="mix">Start +10 XP</button>
+      </div>
+      <div class="grid2 rep-grid">
+        <div class="card"><h3>Formler og begreper</h3><p class="muted">${conceptsN} ${conceptsN === 1 ? 'begrep' : 'begreper'} du har lært. De du bommer på kommer oftere.</p>
+          <button class="btn ghost wide" data-a="rep" data-k="concepts" ${conceptsN ? '' : 'disabled'}>Øv formler</button></div>
+        <div class="card"><h3>Oppgaver du har bommet på</h3><p class="muted">${wrongN ? `${wrongN} ${wrongN === 1 ? 'oppgave' : 'oppgaver'} å ta igjen.` : 'Ingen akkurat nå. Bra jobba!'}</p>
+          <button class="btn ghost wide" data-a="rep" data-k="wrong" ${wrongN ? '' : 'disabled'}>Ta dem igjen</button></div>
+      </div>
+      <h3 class="sec">Velg et tema</h3>
+      <div class="card rep-units">${units.map((u) => {
+        const ns = nodes.filter((n) => n.unit === u);
+        const st = ns.reduce((a, n) => a + strength(n.id), 0) / ns.length;
+        return `<div class="rep-u"><div class="rep-u-h"><span class="dot" style="background:${u.color}"></span><b>${esc(u.title)}</b></div>${bar(st)}
+          <div class="rep-u-b"><button class="btn ghost small" data-a="rep" data-k="unit" data-u="${u.index}">Repeter</button>${ns.some((n) => n.skill.concepts.length) ? `<button class="btn ghost small" data-a="rep" data-k="concepts" data-u="${u.index}">Formler</button>` : ''}</div></div>`;
+      }).join('')}</div>
+    </div>`;
   }
 
   function goalCard() {
@@ -1194,7 +1413,7 @@
       <div class="grid2">
         <div class="stat">${I.flame(streakNow() > 0)}<div><b>${streakNow()}</b><span>Dagsrekke</span></div></div>
         <div class="stat">${I.bolt()}<div><b>${S.xp}</b><span>Total XP</span></div></div>
-        <div class="stat"><span style="color:${TIERS[S.league ? S.league.tier : 0][1]}">${I.shield()}</span><div><b>${TIERS[S.league ? S.league.tier : 0][0]}</b><span>Nåværende liga</span></div></div>
+        <div class="stat"><span style="color:#ffc800">${I.shield()}</span><div><b>${bestDay()} XP</b><span>Beste dag</span></div></div>
         <div class="stat">${I.aim()}<div><b>${acc} %</b><span>Riktige svar</span></div></div>
         <div class="stat">${I.trophy()}<div><b>${units} / ${COURSE.units.length}</b><span>Enheter fullført</span></div></div>
         <div class="stat">${I.clock()}<div><b>${Math.round(S.stats.seconds / 60)} min</b><span>Tid brukt</span></div></div>
@@ -1266,8 +1485,7 @@
         <div class="cm-h">Mine kurs</div>
         ${COURSES.map((c) => {
           const units = c.units.filter((u) => S.reviews[u.id]).length;
-          const cur = currentIndex(c.nodes);
-          const pct = Math.round((100 * cur) / c.nodes.length);
+          const pct = progressPct(c.nodes);
           return `<button class="cm-row ${c.id === COURSE.id ? 'on' : ''}" data-a="setCourse" data-c="${c.id}">
             <span class="cm-ic">${I[c.icon]()}</span><span class="cm-main"><b>${esc(c.title)}</b><small>${units} av ${c.units.length} enheter · ${pct} % av stien</small></span>${c.id === COURSE.id ? '<span class="cm-check">✓</span>' : ''}</button>`;
         }).join('')}
@@ -1280,13 +1498,13 @@
   }
 
   function renderMain() {
-    ensureLeague();
     today();
     hearts();
-    const tabs = [['learn', 'Lær', I.home()], ['league', 'Ligaer', I.shield()], ['quests', 'Oppdrag', I.target()], ['profile', 'Profil', I.user()]];
-    const nav = (cls) => `<nav class="${cls}">${cls === 'side' ? `<div class="logo">${I.atom()}<span>fysikkling</span></div>` : ''}${tabs.map(([id, label, ic]) => `<button class="nav-i ${UI.tab === id ? 'on' : ''}" data-a="tab" data-t="${id}">${ic}<span>${label}</span></button>`).join('')}</nav>`;
+    const tabs = [['learn', 'Lær', I.home()], ['rep', 'Repetisjon', I.repeat()], ['league', 'Liga', I.shield()], ['quests', 'Oppdrag', I.target()], ['profile', 'Profil', I.user()]];
+    const nav = (cls) => `<nav class="${cls}">${cls === 'side' ? `<div class="logo">${I.atom()}<span>HugoLingo</span></div>` : ''}${tabs.map(([id, label, ic]) => `<button class="nav-i ${UI.tab === id ? 'on' : ''}" data-a="tab" data-t="${id}">${ic}<span>${label}</span></button>`).join('')}</nav>`;
     let content;
     if (UI.tab === 'learn') content = `<div class="learn">${boostActive() ? `<div class="boost-banner">${I.bolt()} Dobbel XP aktiv i ${Math.ceil((S.boost - Date.now()) / 60000)} min</div>` : ''}${weakCount() ? `<div class="practice-top">${practiceCard(true)}</div>` : ''}${renderPath()}</div>`;
+    else if (UI.tab === 'rep') content = renderRep();
     else if (UI.tab === 'league') content = `<div class="page">${leagueCard(true)}</div>`;
     else if (UI.tab === 'quests') content = renderQuests();
     else content = renderProfile();
@@ -1365,7 +1583,7 @@
     if (n.type === 'exam') return startLesson('exam', n);
     if ((n.type === 'skill' || n.type === 'review') && hearts() <= 0) { UI.modal = { type: 'hearts' }; UI.open = -1; return render(); }
     if (n.type === 'skill') startLesson(done ? 'redo' : 'skill', n);
-    else if (n.type === 'review') startLesson(done ? 'redo' : 'review', done ? { ...n, skill: { items: allItems(n.unit.skills), title: n.unit.title } } : n);
+    else if (n.type === 'review') startLesson(done ? 'redo' : 'review', done ? { ...n, skill: { items: allItems(n.unit.skills.filter((sk) => !sk.optional)), title: n.unit.title, concepts: n.unit.skills.flatMap((sk) => sk.concepts), active: [] } } : n);
   }
 
   document.addEventListener('click', (ev) => {
@@ -1414,6 +1632,10 @@
         UI.modal = { type: 'chest', xp, title: 'Oppdrag fullført!', extra };
         render(); break;
       }
+      case 'rep': LESSON = null; startRep(el.dataset.k, el.dataset.u != null ? +el.dataset.u : null); break;
+      case 'repNew': repPlan(true); render(); break;
+      case 'board': UI.board = el.dataset.v; UI.boardAll = false; render(); break;
+      case 'boardAll': UI.boardAll = !UI.boardAll; render(); break;
       case 'goal': S.goal = +el.dataset.v; save(); render(); break;
       case 'sound': S.sound = !S.sound; save(); render(); break;
       case 'theme': S.theme = el.dataset.v; save(); render(); break;
@@ -1538,7 +1760,7 @@
   }
 
   // Til testing
-  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; } };
+  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), repItems, repPlan, conceptReview, makeDrill };
 
   render();
 })();

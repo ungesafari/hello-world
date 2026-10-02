@@ -229,6 +229,11 @@
       },
       {
         id: 'k4s2', title: '8 sekunder og tilbakespill',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: '8 sekunder', intro: [0, 1, 2], items: [0, 1, 2] },
+          { title: 'Tilbakespill', intro: [3] },
+        ],
         intro: [['Forsvarsfelt', 'Egen banehalvdel', 'Banehalvdelen med din egen kurv, inkludert midtlinjen.', 'b'], ['Angrepsfelt', 'Motstandernes halvdel', 'Banehalvdelen med kurven dere angriper.', 'b'], ['8 sekunder', 'Over midtlinjen', 'Laget må få ballen inn i angrepsfeltet innen 8 sekunder.', 'b'], ['Tilbakespill', 'Tilbake over midten', 'Ballen kan ikke spilles tilbake til forsvarsfeltet og berøres der av samme lag.', 'b']],
         items: [
           mc('Hvor lang tid har et lag på å få ballen fra forsvarsfeltet til angrepsfeltet?', ['8 sekunder', '10 sekunder', '5 sekunder', '24 sekunder'], 'Laget må bringe ballen inn i angrepsfeltet innen 8 sekunder.'),
@@ -470,6 +475,11 @@
       },
       {
         id: 'k8s3', title: 'IRS og dommere',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'IRS', intro: [0], items: [0, 1, 2] },
+          { title: 'Dommere og sekretariat', intro: [1, 2, 3] },
+        ],
         intro: [['IRS', 'Videoavspilling', 'Instant Replay System: dommerne ser på video.', 'b'], ['Førstedommer', 'Har siste ord', 'Dommeren med det overordnede ansvaret.', 'b'], ['Sekretariatet', 'Bordet ved siden av banen', 'Sekretær, tidtaker og skuddklokkeoperatør.', 'b'], ['Lagleder', 'Hovedtrener', 'Lagets trener, «head coach».', 'b']],
         items: [
           mc('Hva er IRS?', ['Avspilling av videopptak (Instant Replay System) som dommerne kan bruke', 'Et nytt skuddklokkesystem', 'Et system for lagfouls', 'Dommerens fløyte'], 'IRS brukes til å kontrollere bestemte situasjoner på video.'),
@@ -499,6 +509,11 @@
     skills: [
       {
         id: 'k9s1', title: 'Banens mål',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Banens størrelse og 3-poengslinjen', intro: [0, 1], items: [0, 1] },
+          { title: 'Straffekastlinjen og midtsirkelen', intro: [2, 3] },
+        ],
         intro: [['28 × 15 m', 'Banens størrelse', 'Målt fra innsiden av grenselinjene.', 'b'], ['6,75 m', '3-poengslinjen', 'Radius fra punktet rett under kurven.', 'b'], ['5,80 m', 'Straffekastlinjen', 'Fra innerkanten av endelinjen.', 'b'], ['1,80 m', 'Midtsirkelen', 'Radius til ytterkanten.', 'b']],
         items: [
           mc('Hvor stor er en basketballbane etter FIBA-reglene?', ['28 m × 15 m', '30 m × 15 m', '28 m × 17 m', '26 m × 14 m'], 'Banen er 28 m lang og 15 m bred, målt fra innsiden av grenselinjene.'),
@@ -545,6 +560,11 @@
     skills: [
       {
         id: 'k10s1', title: 'U13 (EasyBasket)',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'U13: spilletid og ball', intro: [0, 1, 3], items: [0, 1, 2, 3] },
+          { title: 'U13: forsvar og spill', intro: [2] },
+        ],
         intro: [['6 × 5 min', 'Spilletid i U13', 'Seks perioder på fem minutter effektiv tid.', 'b'], ['Str. 5', 'Ballstørrelse i U13', 'U13 spiller med ball i størrelse 5.', 'b'], ['Mann-mot-mann', 'Påbudt forsvar', 'Lagene skal spille personlig oppdekning, ikke sone.', 'b'], ['Ingen 3-poengere', 'Alle skudd gir 2', 'U13 bruker ikke 3-poengsregelen.', 'b']],
         items: [
           mc('Hvordan er spilletiden i U13 ordinært seriespill?', ['6 perioder à 5 minutter effektiv tid', '4 perioder à 10 minutter', '4 perioder à 8 minutter', '2 omganger à 20 minutter'], 'NBBFs tilpasninger for U13.'),

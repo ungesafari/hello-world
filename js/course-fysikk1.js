@@ -71,6 +71,11 @@
     skills: [
       {
         id: 'u1s1', title: 'Fart og akselerasjon',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Posisjon og fart', intro: [0, 1, 3], items: [1, 5, 6, 7] },
+          { title: 'Akselerasjon', intro: [2, 4] },
+        ],
         intro: [["s", "Posisjon eller strekning", "Hvor langt legemet er fra et valgt nullpunkt, eller hvor langt det har beveget seg. Enhet: meter (m).", "s"], ["v", "Fart eller hastighet", "Hvor fort (og i hvilken retning) legemet beveger seg. Enhet: m/s.", "s"], ["Δ", "Delta: «endring i»", "Δv = v − v₀ betyr endringen i fart. Δt betyr et tidsrom.", "s"], ["v̄ = Δs/Δt", "Gjennomsnittsfart", "Strekning delt på tid. Momentanfarten er stigningstallet til tangenten i s-t-grafen.", "f"], ["a = (v − v₀)/t", "Formel 1: akselerasjon", "Endring i fart per tid. Enhet: m/s².", "f"]],
         items: [
           mc('Hva er SI-enheten for akselerasjon?', ['m/s²', 'm/s', 'N', 'km/h'], 'Akselerasjon er endring i hastighet per tid: (m/s)/s = m/s².'),
@@ -86,6 +91,11 @@
       },
       {
         id: 'u1s2', title: 'Bevegelseslikningene',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Formel 2, 3 og 4', intro: [0, 1, 2], items: [2, 4, 8, 10] },
+          { title: 'Formel 5, 6 og 7', intro: [3, 4, 5] },
+        ],
         intro: [["v = v₀ + at", "Formel 2: fart", "Farten etter tiden t når akselerasjonen er konstant.", "f"], ["v̄ = (v₀ + v)/2", "Formel 3: gjennomsnittsfart", "Gjennomsnittsfarten ved konstant akselerasjon.", "f"], ["s = v̄·t", "Formel 4: strekning", "Strekning er gjennomsnittsfart ganger tid.", "f"], ["s = (v₀ + v)/2 · t", "Formel 5: strekning uten a", "Formel 3 satt inn i formel 4.", "f"], ["s = v₀t + ½at²", "Formel 6: strekning uten v", "Når du kjenner startfart, akselerasjon og tid.", "f"], ["2as = v² − v₀²", "Formel 7: den tidløse", "Kobler fart og strekning uten tiden t.", "f"]],
         items: [
           mc('Når gjelder bevegelseslikningene (som s = v₀t + ½at²)?', ['Bare når akselerasjonen er konstant', 'Bare når farten er konstant', 'Bare når legemet starter fra ro', 'Alltid'], 'Alle de fire bevegelseslikningene forutsetter konstant akselerasjon.'),
@@ -104,6 +114,11 @@
       },
       {
         id: 'u1s3', title: 'Bevegelsesgrafer',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 's-t-grafer', intro: [0, 2], items: [2, 4, 5] },
+          { title: 'v-t-grafer', intro: [1, 3] },
+        ],
         intro: [["s-t-graf", "Posisjon mot tid", "Stigningstallet er hastigheten.", "b"], ["v-t-graf", "Hastighet mot tid", "Stigningstallet er akselerasjonen. Arealet under grafen er forflytningen.", "b"], ["Stigningstall", "Hvor bratt grafen er", "Δy/Δx. For en v-t-graf: Δv/Δt = a.", "b"], ["Areal under grafen", "Høyde ganger bredde", "Under en v-t-graf har arealet enheten (m/s)·s = m, altså strekning.", "b"]],
         items: [
           mc('Hva forteller arealet under en v-t-graf?', ['Forflytningen', 'Akselerasjonen', 'Farten', 'Kraften'], 'Areal = v · t, som har enheten m. Det er forflytningen.'),
@@ -118,6 +133,11 @@
       },
       {
         id: 'u1s5', title: 'Utled bevegelsesformlene',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Utled formel 2 og 3', intro: [0, 1, 2], items: [0, 1, 6, 8, 11, 12] },
+          { title: 'Utled formel 5, 6 og 7', intro: [3] },
+        ],
         intro: [["a = (v − v₀)/t", "Formel 1: akselerasjon", "Definisjonen av akselerasjon når a er konstant. Utgangspunktet for alle utledningene.", "f"], ["v̄ = s/t", "Definisjonen av gjennomsnittsfart", "Gjennomsnittsfarten er strekning delt på tid. Gir formel 4: s = v̄t.", "f"], ["Lineær fart", "Farten øker jevnt", "Ved konstant a er v-t-grafen en rett linje. Da er gjennomsnittsfarten midt mellom v₀ og v.", "b"], ["Innsetting", "Sett en formel inn i en annen", "Slik får vi formel 5, 6 og 7.", "b"]],
         items: [
           order('Utled formel 2: v = v₀ + at', ['Start med formel 1: a = (v − v₀)/t', 'Gang begge sider med t: at = v − v₀', 'Legg v₀ til på begge sider: v = v₀ + at'], ['v = at − v₀'], 'Formel 2 er bare formel 1 løst for v.'),
@@ -139,6 +159,11 @@
       },
       {
         id: 'u1s6', title: 'Parameterfremstilling',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Posisjon, fart og akselerasjon', intro: [0, 1, 2], items: [0, 2, 3, 4, 9] },
+          { title: 'Snupunktet', intro: [3] },
+        ],
         intro: [["s(t)", "Posisjon som funksjon av tid", "En formel som gir posisjonen for hvert tidspunkt t.", "f"], ["v(t) = s′(t)", "Fart er den deriverte av posisjonen", "Stigningstallet til s(t) i hvert punkt.", "f"], ["a(t) = v′(t)", "Akselerasjon er den deriverte av farten", "Stigningstallet til v(t) i hvert punkt.", "f"], ["v(t) = 0", "Snupunktet", "Legemet snur når farten skifter fortegn.", "f"]],
         items: [
           mc('Hvordan finner du v(t) når posisjonen s(t) er gitt?', ['Deriverer s(t)', 'Integrerer s(t)', 'Deler s(t) på t', 'Setter t = 0'], 'v(t) = s′(t).'),
@@ -155,6 +180,11 @@
       },
       {
         id: 'u1s4', title: 'Fritt fall og numeriske metoder',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Fritt fall', intro: [0, 1], items: [0, 8, 9, 10] },
+          { title: 'Eulers metode', intro: [2, 3, 4] },
+        ],
         intro: [["g", "Tyngdeakselerasjonen", "9,81 m/s² nedover nær jordoverflaten.", "s"], ["Fritt fall", "Bare tyngden virker", "Uten luftmotstand faller alle legemer med samme akselerasjon g.", "b"], ["dt", "Tidssteg", "Et lite tidsrom i en numerisk beregning.", "s"], ["v = v + a·dt", "Eulers metode for fart", "I hvert lite tidssteg øker farten med a·dt.", "f"], ["s = s + v·dt", "Eulers metode for posisjon", "I hvert tidssteg flytter legemet seg v·dt.", "f"]],
         items: [
           mc('Vi ser bort fra luftmotstand. En hammer og en fjær slippes samtidig fra samme høyde. Hva skjer?', ['De treffer bakken samtidig', 'Hammeren lander først', 'Fjæra lander først', 'Det avhenger av høyden'], 'I fritt fall har alle legemer samme akselerasjon g, uansett masse.'),
@@ -192,6 +222,11 @@
     skills: [
       {
         id: 'u2s1', title: 'Newtons tre lover',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Kraft og Newtons 1. lov', intro: [0, 1, 2], items: [0, 3, 5, 7] },
+          { title: 'Newtons 3. lov', intro: [3] },
+        ],
         intro: [["F", "Kraft", "En påvirkning som kan endre bevegelsen. Enhet: newton (N).", "s"], ["ΣF", "Kraftsum", "Summen av alle kreftene som virker på legemet.", "s"], ["N1", "Newtons 1. lov", "ΣF = 0 betyr i ro eller konstant hastighet.", "b"], ["N3", "Newtons 3. lov", "Kraft og motkraft er like store, motsatt rettet og virker på hvert sitt legeme.", "b"]],
         items: [
           mc('Hva sier Newtons 1. lov?', ['Er summen av kreftene null, er legemet i ro eller har konstant hastighet', 'Kraft er lik masse ganger akselerasjon', 'Enhver kraft har en motkraft', 'Alle legemer faller like fort'], 'Dette kalles også treghetsloven.'),
@@ -206,6 +241,11 @@
       },
       {
         id: 'u2s2', title: 'Newtons 2. lov',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Newtons 2. lov', intro: [0, 1, 3], items: [0, 1, 2, 3, 5, 8] },
+          { title: 'Tyngde', intro: [2] },
+        ],
         intro: [["ΣF = m·a", "Newtons 2. lov", "Kraftsummen er masse ganger akselerasjon.", "f"], ["m", "Masse", "Hvor mye stoff legemet har. Enhet: kg.", "s"], ["G = m·g", "Tyngde", "Kraften fra jorda på et legeme.", "f"], ["1 N", "Én newton", "1 kg·m/s²: kraften som gir 1 kg akselerasjonen 1 m/s².", "b"]],
         items: [
           mc('1 N er det samme som …', ['1 kg·m/s²', '1 kg·m/s', '1 kg·m²/s²', '1 J/s'], 'F = ma gir enheten kg · m/s².'),
@@ -221,6 +261,11 @@
       },
       {
         id: 'u2s3', title: 'Friksjon og luftmotstand',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Friksjon', intro: [0, 1, 2], items: [2, 3, 4, 5, 7] },
+          { title: 'Luftmotstand', intro: [3] },
+        ],
         intro: [["N", "Normalkraft", "Kraft fra underlaget, vinkelrett ut fra det.", "s"], ["R = μN", "Friksjon", "Friksjonskraften er friksjonstallet ganger normalkraften.", "f"], ["μ", "Friksjonstall", "Tall uten enhet som sier hvor «ru» flatene er.", "s"], ["L = kv²", "Luftmotstand", "Luftmotstanden øker med kvadratet av farten.", "f"]],
         items: [
           mc('Hva er terminalfarten til en fallskjermhopper?', ['Farten der luftmotstanden er like stor som tyngden, så farten blir konstant', 'Farten hopperen har idet hen lander', 'Den største farten et legeme kan ha', 'Farten når skjermen åpnes'], 'Da er ΣF = 0 og a = 0.'),
@@ -235,6 +280,11 @@
       },
       {
         id: 'u2s4', title: 'Skråplan og snordrag',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Skråplan', intro: [0, 1, 2], items: [0, 1, 2, 3, 4, 5, 7] },
+          { title: 'Snordrag', intro: [3] },
+        ],
         intro: [["α", "Helningsvinkel", "Vinkelen mellom skråplanet og vannrett.", "s"], ["G∥ = mg·sin α", "Tyngden langs planet", "Komponenten som drar legemet nedover skråplanet.", "f"], ["G⊥ = mg·cos α", "Tyngden inn mot planet", "Komponenten som presser mot underlaget. N = G⊥.", "f"], ["S", "Snordrag", "Kraften fra en snor, rettet langs snora.", "s"]],
         items: [
           mc('En kloss glir på et friksjonsfritt skråplan. Hva er akselerasjonen uavhengig av?', ['Massen til klossen', 'Helningsvinkelen', 'Tyngdeakselerasjonen g', 'Ingen av delene'], 'a = g·sin α. Massen forkortes bort.'),
@@ -267,6 +317,11 @@
     skills: [
       {
         id: 'u3s1', title: 'Arbeid og effekt',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Arbeid', intro: [0, 2], items: [2, 3, 4, 5] },
+          { title: 'Effekt og kilowattimer', intro: [1, 3] },
+        ],
         intro: [["W = F·s·cos α", "Arbeid", "Energien en kraft overfører. Enhet: joule (J).", "f"], ["P = W/t", "Effekt", "Arbeid per tid. Enhet: watt (W).", "f"], ["J", "Joule", "Enheten for energi og arbeid. 1 J = 1 N·m.", "s"], ["kWh", "Kilowattime", "1 kWh = 3,6 MJ. Brukes på strømregningen.", "s"]],
         items: [
           match([['Arbeid', 'J'], ['Effekt', 'W'], ['Kraft', 'N'], ['1 kWh', '3,6 MJ']]),
@@ -281,6 +336,11 @@
       },
       {
         id: 'u3s2', title: 'Kinetisk og potensiell energi',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Kinetisk energi', intro: [0], items: [0, 3, 4, 5, 6, 8] },
+          { title: 'Potensiell energi', intro: [1, 2, 3] },
+        ],
         intro: [["E_k = ½mv²", "Kinetisk energi", "Bevegelsesenergi.", "f"], ["E_p = mgh", "Potensiell energi", "Stillingsenergi i tyngdefeltet.", "f"], ["h", "Høyde", "Høyden over et nullnivå du velger selv.", "s"], ["Nullnivå", "Der h = 0", "Kan velges fritt. Bare endringer i E_p betyr noe.", "b"]],
         items: [
           mc('Farten til en bil dobles. Hva skjer med den kinetiske energien?', ['Den blir fire ganger så stor', 'Den dobles', 'Den halveres', 'Den er uendret'], 'E_k = ½mv². v → 2v gir v² → 4v².'),
@@ -403,6 +463,11 @@
     skills: [
       {
         id: 'u5s1', title: 'Ladning, strøm og spenning',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Ladning og strøm', intro: [0, 1, 3], items: [2, 3, 4, 5] },
+          { title: 'Spenning', intro: [2] },
+        ],
         intro: [["Q", "Ladning", "Enhet: coulomb (C).", "s"], ["I = Q/t", "Strøm", "Ladning per tid. Enhet: ampere (A).", "f"], ["U = W/Q", "Spenning", "Energi per ladning. Enhet: volt (V).", "f"], ["e", "Elementærladningen", "1,60 · 10⁻¹⁹ C, ladningen til ett elektron (med motsatt fortegn).", "s"]],
         items: [
           match([['Ladning', 'C'], ['Strøm', 'A'], ['Spenning', 'V'], ['Resistans', 'Ω']], 'Koble størrelsen med enheten'),
@@ -430,6 +495,11 @@
       },
       {
         id: 'u5s3', title: 'Elektriske kretser',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Serie- og parallellkobling', intro: [0, 1], items: [0, 1, 2, 3, 4, 5, 6] },
+          { title: 'Ems og polspenning', intro: [2, 3] },
+        ],
         intro: [["R = R₁ + R₂", "Seriekobling", "Resistansene legges sammen. Samme strøm overalt.", "f"], ["1/R = 1/R₁ + 1/R₂", "Parallellkobling", "Samme spenning over alle greinene.", "f"], ["ε", "Ems", "Spenningen kilden gir når det ikke går strøm.", "s"], ["U = ε − R_i·I", "Polspenning", "Spenningen ut fra kilden når det går strøm.", "f"]],
         items: [
           mc('Hva er likt for alle greinene i en parallellkobling?', ['Spenningen', 'Strømmen', 'Resistansen', 'Effekten'], 'Alle greinene er koblet mellom de samme to punktene.'),
@@ -550,6 +620,11 @@
     skills: [
       {
         id: 'u7s1', title: 'Bølger og spekteret',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Bølger', intro: [1, 2, 0], items: [1, 3, 4] },
+          { title: 'Lys og spekteret', intro: [3] },
+        ],
         intro: [["v = f·λ", "Bølgelikningen", "Fart er frekvens ganger bølgelengde.", "f"], ["λ", "Bølgelengde", "Avstanden mellom to bølgetopper.", "s"], ["f", "Frekvens", "Svingninger per sekund. Enhet: hertz (Hz).", "s"], ["c", "Lysfarten", "3,00 · 10⁸ m/s i vakuum.", "s"]],
         items: [
           mc('Hvilken type stråling har kortest bølgelengde?', ['Gammastråling', 'Synlig lys', 'Radiobølger', 'Infrarød stråling'], 'Gamma har kortest bølgelengde og høyest fotonenergi.'),
@@ -671,6 +746,11 @@
     skills: [
       {
         id: 'u9s1', title: 'Atomkjernen',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Protoner og nukleoner', intro: [0, 1], items: [1] },
+          { title: 'Nøytroner og isotoper', intro: [2, 3] },
+        ],
         intro: [["Z", "Protontall", "Antall protoner i kjernen.", "s"], ["A", "Nukleontall", "Protoner + nøytroner.", "s"], ["N = A − Z", "Nøytrontall", "Antall nøytroner.", "f"], ["Isotop", "Samme Z, ulik N", "Samme grunnstoff, ulik masse.", "b"]],
         items: [
           tf('Isotoper av et grunnstoff har ulikt antall protoner.', false, 'Isotoper har likt antall protoner, men ulikt antall nøytroner.'),
@@ -724,6 +804,11 @@
     skills: [
       {
         id: 'u10s1', title: 'Stjerners liv',
+        // trinn med høyst tre nye begreper hver
+        parts: [
+          { title: 'Hovedserien og røde kjemper', intro: [0, 1], items: [0, 1, 2] },
+          { title: 'Supernova og hvite dverger', intro: [2, 3] },
+        ],
         intro: [["Hovedserien", "H → He i kjernen", "Den lengste fasen i livet til en stjerne.", "b"], ["Rød kjempe", "Oppsvulmet stjerne", "Fusjon av helium til karbon og oksygen.", "b"], ["Supernova", "Eksplosjon", "Slutten for en massiv stjerne.", "b"], ["Hvit dverg", "Restkjerne", "Slutten for stjerner som sola.", "b"]],
         items: [
           mc('Hva gir en stjerne på hovedserien energi?', ['Fusjon av hydrogen til helium i kjernen', 'Fisjon av uran', 'Kjemisk forbrenning', 'Sammentrekning alene'], 'Dette er den lengste fasen i livet til en stjerne.'),

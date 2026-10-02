@@ -2,9 +2,9 @@
 This repository is for practicing the GitHub Flow
 I am Hugo. Forever student, and haver of large ambition.
 
-## Fysikkling
+## HugoLingo
 
-A personal, Duolingo-style study app with three courses: Matematikk R1 (chapter 1 so far, following the class progress plan), the Norwegian Fysikk 1 (LK20) curriculum, and the official basketball rules (NBBF's Norwegian translation of FIBA Official Basketball Rules 2026). Switch course with the course button at the top of the screen. It is a plain HTML/CSS/JavaScript web app with no build step, and it can be installed on the iPhone home screen and works offline.
+HugoLingo is a personal, Duolingo-style study app with three courses: Matematikk R1 (chapter 1 so far, following the class progress plan), the Norwegian Fysikk 1 (LK20) curriculum, and the official basketball rules (NBBF's Norwegian translation of FIBA Official Basketball Rules 2026). Switch course with the course button at the top of the screen. It is a plain HTML/CSS/JavaScript web app with no build step, and it can be installed on the iPhone home screen and works offline.
 
 ### Publish with GitHub Pages
 
@@ -24,11 +24,19 @@ Progress is saved locally on each device. Go to Profil, then "Kopier kode" on on
 
 ### Study features
 
-The first lesson of every skill opens with cards that introduce its new terms, symbols and formulas, followed by a matching exercise on them. Derivations (for example of the seven motion formulas from the teacher's slides) are practised as "put the steps in order" exercises. The basketball course follows a practical order: basic play first, court measurements last, with NBBF's U13–U15 adaptations as their own unit. Number exercises have a calculator button (angles in degrees, EXP for powers of ten). Underlined words and symbols can be tapped for a short definition. Each skill has a strength that fades over time; faded skills show as cracked on the path, and "Styrk svake emner" builds a review lesson from your weakest skills, favouring questions you have answered wrong before.
+New terms, symbols and formulas are introduced gradually: each node on the path brings at most three new ones. Every new card is followed straight away by a question on that exact term, and the terms come back as recall questions (name the formula, pick the formula, complete the formula) in the following lessons. Later lessons also mix in a little material from earlier nodes. Fractions are shown with a horizontal fraction bar everywhere, and formulas that belong on separate lines are shown on separate lines.
+
+Every topic can be started directly from the path without testing your way there. Progress percentages (per unit and per course) only count lessons you have actually completed, so topics you have not been through stay at 0 %.
+
+The Repetisjon tab offers a mixed review built from two or three related topics (a weak unit and the unit before it), worked through one topic at a time; a drill of all formulas and terms you have learned; the questions you have answered wrong; and a review of any single unit. Faded skills show as cracked on the path, and "Styrk svake emner" builds a review lesson from your weakest skills.
+
+The Liga tab is a leaderboard of your own days ranked by XP, switchable between this week, this month and this year. Today is always shown with its rank. Month and year show the top 10 days plus today, with a "Vis alle" button for the full list; days with 0 XP share a single last place.
+
+Derivations (for example of the seven motion formulas from the teacher's slides) are practised as "put the steps in order" exercises. The basketball course follows a practical order: basic play first, court measurements last, with NBBF's U13–U15 adaptations as their own unit. Number exercises have a calculator button (angles in degrees, EXP for powers of ten). Underlined words and symbols can be tapped for a short definition.
 
 ### Matematikk R1
 
-Only tasks listed in the progress plan (plus the chapter test and the class true/false quiz) are included, each labelled with its textbook number. Tasks are turned into answer checks, step-ordering for proofs and multiple choice, so you do not have to redo every calculation by hand. Tasks marked "uten hjelpemidler" hide the calculator. Skills you have already solved by hand can be marked "Gjort for hånd" and then come back in review. E1/E2 extra tasks are optional and do not block the path. The chapter test must be passed with at most two mistakes before you can continue.
+Only tasks listed in the progress plan (plus the chapter test and the class true/false quiz) are included, each labelled with its textbook number. Each chapter section alternates between small formula nodes and the textbook tasks that use those formulas, with Lekser at the end of the section as mixed practice. Tasks are turned into answer checks, step-ordering for proofs and multiple choice, so you do not have to redo every calculation by hand. Tasks marked "uten hjelpemidler" hide the calculator. Task nodes you have already solved by hand can be marked "Gjort for hånd" and then come back in review. E1/E2 extra tasks are optional and do not block the path. Formula nodes cannot be skipped this way, since the formulas still need to be learned. The chapter test must be passed with at most two mistakes before you can continue.
 
 ### Structure
 

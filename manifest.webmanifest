@@ -1,7 +1,7 @@
 {
-  "name": "Fysikkling",
-  "short_name": "Fysikkling",
-  "description": "Lær Fysikk 1 på en spillbasert måte.",
+  "name": "HugoLingo",
+  "short_name": "HugoLingo",
+  "description": "Lær fysikk, matematikk og basketregler på en spillbasert måte.",
   "lang": "nb",
   "start_url": "./",
   "scope": "./",

@@ -174,10 +174,10 @@ p { line-height: 1.5; }
 .start-bubble::after { content: ''; position: absolute; left: 50%; bottom: -8px; width: 12px; height: 12px; background: var(--card); border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: translateX(-50%) rotate(45deg); }
 @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 .popover {
-  position: absolute; top: calc(100% + 18px); width: 290px; max-width: calc(100vw - 32px); left: 50%; transform: translateX(-50%);
+  position: absolute; top: calc(100% + 18px); width: 290px; max-width: calc(100vw - 32px); left: 50%; transform: translateX(calc(-50% - var(--x, 0px)));
   background: var(--c); color: #fff; border-radius: 16px; padding: 16px; z-index: 5; text-align: left;
 }
-.popover::before { content: ''; position: absolute; top: -8px; left: 50%; width: 16px; height: 16px; background: inherit; transform: translateX(-50%) rotate(45deg); border-radius: 3px; }
+.popover::before { content: ''; position: absolute; top: -8px; left: calc(50% + var(--x, 0px)); width: 16px; height: 16px; background: inherit; transform: translateX(-50%) rotate(45deg); border-radius: 3px; }
 .popover.locked { background: var(--bg2); color: var(--muted); border: 2px solid var(--line); }
 .popover h4 { font-size: 18px; margin-bottom: 4px; }
 .popover p { margin: 0 0 14px; font-weight: 600; }
@@ -485,3 +485,28 @@ sub { vertical-align: -.25em; }
 .bank-line .lb { flex-basis: 100%; height: 0; }
 .l-q, .fb-exp, .fb-ans, .g-sec p, .kmal p, .ic-d, .ic-term, .opt, .tile, .mtile { line-height: 1.6; }
 .ic-term .frac { font-size: .8em; }
+
+/* ---------- liga: toppliste over dager ---------- */
+.seg { display: flex; gap: 6px; background: var(--bg2); border: 2px solid var(--line); border-radius: 14px; padding: 4px; }
+.seg-b { border: 0; background: transparent; flex: 1; padding: 10px 6px; border-radius: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; font-size: 13px; letter-spacing: .4px; }
+.seg-b.on { background: var(--card); color: var(--blue); box-shadow: 0 2px 0 var(--line); }
+.league-full > p { margin: 6px 0 0; }
+.board.days .row { border-bottom: 2px solid var(--line); border-radius: 0; }
+.board.days .row.me { border-radius: 12px; border-bottom-color: transparent; }
+.board.days .row.zero { color: var(--muted); }
+.board .gap { text-align: center; color: var(--muted); padding: 2px 0; }
+
+/* ---------- repetisjon ---------- */
+.rep .card { margin-bottom: 14px; }
+.rep .card h3 { margin-bottom: 6px; }
+.rep-grid { gap: 14px; }
+.rep-grid .card { margin-bottom: 0; display: flex; flex-direction: column; }
+.rep-grid .card .btn { margin-top: auto; }
+.rep-units { display: flex; flex-direction: column; gap: 16px; }
+.rep-u-h { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.rep-u .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.rep-u-b { display: flex; gap: 8px; margin-top: 10px; }
+.btn.small { min-height: 38px; padding: 0 14px; font-size: 13px; }
+.btn:disabled { opacity: .5; }
+@media (max-width: 420px) { .nav-i { padding: 6px 6px; font-size: 10px; } .nav-i .ic { width: 26px; height: 26px; } }
+@media (max-width: 520px) { .rep-grid { grid-template-columns: 1fr; } }

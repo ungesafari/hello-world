@@ -43,15 +43,6 @@
     skills: [
       {
         id: 'r1a0', title: 'Formler: røtter og potenser',
-        intro: [
-          ['ⁿ√a', 'n-teroten av a', 'Tallet som opphøyd i n blir a: (ⁿ√a)ⁿ = a. Er n et partall, må a og ⁿ√a være positive.', 's'],
-          ['a⁰ = 1\na⁻ⁿ = 1/aⁿ', 'Definisjonene', 'Gjelder for alle a ≠ 0.', 'f'],
-          ['aᵖ · a^q = a^(p+q)', 'Like grunntall ganges', 'Eksponentene legges sammen.', 'f'],
-          ['aᵖ / a^q = a^(p−q)', 'Like grunntall deles', 'Eksponentene trekkes fra hverandre.', 'f'],
-          ['(aᵖ)^q = a^(p·q)', 'Potens av en potens', 'Eksponentene ganges.', 'f'],
-          ['a^(t/n) = ⁿ√(aᵗ)', 'Brøkeksponent', 'Nevneren i eksponenten blir rotindeksen: 8^(2/3) = (∛8)² = 4.', 'f'],
-          ['ⁿ√(ab) = ⁿ√a · ⁿ√b', 'Rot av et produkt', 'Brukes til å trekke faktorer ut av rota: √50 = 5√2.', 'f'],
-        ],
         items: [
           fx('Formel', 'Hva er a⁻³ lik?', ['1/a³', '−a³', 'a^(1/3)', '−3a'], 'Definisjonen: a⁻ⁿ = 1/aⁿ.'),
           fx('Formel', 'Hva er a⁵ · a³?', ['a⁸', 'a¹⁵', 'a²', '2a⁸'], 'Like grunntall ganges: eksponentene legges sammen.'),
@@ -175,14 +166,6 @@
     skills: [
       {
         id: 'r1b0', title: 'Formler: lg og ln',
-        intro: [
-          ['lg p', 'Briggsk logaritme', 'Tallet vi må opphøye 10 i for å få p. lg 1000 = 3 fordi 10³ = 1000.', 's'],
-          ['10^(lg p) = p', 'Definisjonen av lg', 'Gjelder for alle positive tall p.', 'f'],
-          ['lg 10ᵏ = k', 'Logaritmen til en tierpotens', 'lg 0,01 = lg 10⁻² = −2.', 'f'],
-          ['e ≈ 2,718', 'Eulertallet', 'Grunntallet for de naturlige logaritmene.', 's'],
-          ['ln p', 'Naturlig logaritme', 'Tallet vi må opphøye e i for å få p.', 's'],
-          ['e^(ln p) = p\nln eᵏ = k', 'Definisjonen av ln', 'ln 1 = 0\nln e = 1', 'f'],
-        ],
         items: [
           fx('Formel', 'Hva er lg 1?', ['0', '1', '10', 'Ikke definert'], '10⁰ = 1.'),
           fx('Formel', 'Hva er ln e?', ['1', '0', 'e', '10'], 'e¹ = e.'),
@@ -291,12 +274,6 @@
     skills: [
       {
         id: 'r1c0', title: 'Formler: logaritmesetningene',
-        intro: [
-          ['lg ab = lg a + lg b', '1. logaritmesetning', 'Logaritmen til et produkt er summen av logaritmene.', 'f'],
-          ['lg (a/b) = lg a − lg b', '2. logaritmesetning', 'Logaritmen til en brøk er differansen.', 'f'],
-          ['lg aᵇ = b · lg a', '3. logaritmesetning', 'Eksponenten kan flyttes ned foran logaritmen.', 'f'],
-          ['lg x = ln x / ln 10', 'Fra ln til lg', 'Følger av 10^(lg x) = x og 3. setning.', 'f'],
-        ],
         items: [
           fx('Formel', 'Hva er ln (a · b)?', ['ln a + ln b', 'ln a · ln b', 'ln a − ln b', 'a · ln b'], '1. logaritmesetning.'),
           fx('Formel', 'Hva er lg (a/b)?', ['lg a − lg b', 'lg a / lg b', 'lg b − lg a', 'lg (a − b)'], '2. logaritmesetning.'),
@@ -402,14 +379,6 @@
     skills: [
       {
         id: 'r1d0', title: 'Formler: likninger',
-        intro: [
-          ['lg x = a ⇔ x = 10ᵃ', 'Løse en lg-likning', 'Gjør begge sider til eksponent i 10.', 'f'],
-          ['ln x = a ⇔ x = eᵃ', 'Løse en ln-likning', 'Gjør begge sider til eksponent i e.', 'f'],
-          ['eˣ = b ⇔ x = ln b', 'Løse en e-likning', 'Ta ln på begge sider.', 'f'],
-          ['aˣ = b ⇔ x = lg b / lg a', 'Løse en eksponentiallikning', 'Ta lg (eller ln) på begge sider og bruk 3. setning.', 'f'],
-          ['Kontroll', 'Logaritmen må være definert', 'Forkast løsninger der argumentet i en logaritme blir null eller negativt.', 'b'],
-          ['m = (a + b)/2', 'Halveringsmetoden', 'Halver intervallet der f skifter fortegn, til f(m) ≈ 0.', 'f'],
-        ],
         items: [
           fx('Formel', 'Hva er løsningen av ln x = a?', ['x = eᵃ', 'x = 10ᵃ', 'x = ln a', 'x = a/e'], 'Definisjonen av ln.'),
           fx('Formel', 'Hva er løsningen av 10ˣ = b?', ['x = lg b', 'x = ln b', 'x = b/10', 'x = 10ᵇ'], 'Ta lg på begge sider.'),
@@ -544,13 +513,6 @@
     skills: [
       {
         id: 'r1e0', title: 'Formler: generelle logaritmer',
-        intro: [
-          ['log_n p', 'Logaritme med grunntall n', 'Tallet vi må opphøye n i for å få p. log₂ 16 = 4.', 's'],
-          ['n^(log_n p) = p', 'Definisjonen', 'Gjelder for positive n ≠ 1 og p > 0.', 'f'],
-          ['log_n nᵏ = k', 'Logaritmen til en potens av grunntallet', 'log₃ (1/9) = log₃ 3⁻² = −2.', 'f'],
-          ['log_n x = ln x / ln n', 'Bytte grunntall', 'Også lik lg x / lg n.', 'f'],
-          ['log_n x = a ⇔ x = nᵃ', 'Løse generelle likninger', 'Og nˣ = b ⇔ x = log_n b.', 'f'],
-        ],
         items: [
           fx('Formel', 'Hva er log₂ 8?', ['3', '4', '16', '1/3'], '2³ = 8.'),
           fx('Formel', 'Hva er log_n 1?', ['0', '1', 'n', 'Ikke definert'], 'n⁰ = 1.'),
@@ -798,6 +760,142 @@
     ['∅', '∅', 'Den tomme mengden: likningen har ingen løsning.'],
   ].map(([t, m, d]) => ({ t, m, d }));
 
+
+  // ================================================================
+  // Trinnvis innføring
+  // Formlene innføres i små noder med høyst tre nye formler eller begreper.
+  // Hver formelnode følges av oppgavene i boka som bruker akkurat disse formlene,
+  // og Lekser kommer til slutt i enheten som blandet repetisjon av alt.
+  // ================================================================
+  const sk = (u, id) => u.skills.find((s) => s.id === id);
+  const pick = (s, idx) => idx.map((i) => s.items[i]);
+  const bySrc = (s, re) => s.items.filter((it) => re.test(it.src));
+  const migrate = {};
+  function regroup(u, plan) {
+    const keep = u.skills.filter((s) => !/[01]$/.test(s.id));
+    plan.forEach((p) => { (migrate[p.from] = migrate[p.from] || []).push(p.id); delete p.from; });
+    u.skills = plan.concat(keep);
+  }
+
+  {
+    const F = sk(r1a, 'r1a0'), T = sk(r1a, 'r1a1');
+    regroup(r1a, [
+      { id: 'r1a-f1', from: 'r1a0', title: 'n-terøtter', intro: [
+        ['ⁿ√a', 'n-teroten av a', 'Tallet som opphøyd i n blir a: (ⁿ√a)ⁿ = a.', 's'],
+        ['∛−8 = −2', 'Odde og like rotindekser', 'Er n et oddetall, kan a være negativ.\nEr n et partall, må a og ⁿ√a være positive.', 'f'],
+      ], items: pick(F, [6, 7]).concat([
+        fx('Formel', 'Hva er (ⁿ√a)ⁿ?', ['a', 'aⁿ', 'n√a', '1'], 'Definisjonen: ⁿ√a er tallet som opphøyd i n blir a.'),
+        fx('Formel', 'Hva er ∛125?', ['5', '25', '−5', '41,7'], '5³ = 125.', U),
+      ]) },
+      { id: 'r1a-t1', from: 'r1a1', title: '1A I timen: røtter', items: bySrc(T, /^1\.[13] /) },
+      { id: 'r1a-f2', from: 'r1a0', title: 'Potensreglene', intro: [
+        ['a⁰ = 1\na⁻ⁿ = 1/aⁿ', 'Null og negative eksponenter', 'Gjelder for alle a ≠ 0.', 'f'],
+        ['aᵖ · a^q = a^(p+q)', 'Like grunntall ganges', 'Eksponentene legges sammen.', 'f'],
+        ['aᵖ / a^q = a^(p−q)', 'Like grunntall deles', 'Eksponentene trekkes fra hverandre.', 'f'],
+      ], items: pick(F, [0, 1, 3]).concat([
+        fx('Formel', 'Hva er 5⁰?', ['1', '0', '5', '−5'], 'a⁰ = 1 for alle a ≠ 0.', U),
+        fx('Formel', 'Hva er 2⁻³?', ['1/8', '−8', '−6', '8'], '2⁻³ = 1/2³ = 1/8.', U),
+      ]) },
+      { id: 'r1a-f3', from: 'r1a0', title: 'Potenser av produkt, brøk og potens', intro: [
+        ['(aᵖ)^q = a^(p·q)', 'Potens av en potens', 'Eksponentene ganges.', 'f'],
+        ['(a · b)ᵖ = aᵖ · bᵖ', 'Potens av et produkt', 'Hver faktor opphøyes for seg.', 'f'],
+        ['(a/b)ᵖ = aᵖ/bᵖ', 'Potens av en brøk', 'Teller og nevner opphøyes hver for seg (b ≠ 0).', 'f'],
+      ], items: pick(F, [2]).concat([
+        fx('Formel', 'Hva er (2a)³?', ['8a³', '2a³', '6a³', '8a'], '(a · b)ᵖ = aᵖ · bᵖ: 2³ · a³ = 8a³.'),
+        fx('Formel', 'Hva er (x/3)²?', ['x²/9', 'x²/3', 'x/9', '2x/6'], '(a/b)ᵖ = aᵖ/bᵖ.'),
+        fx('Formel', 'Hva er (x³)⁻²?', ['x⁻⁶', 'x', 'x⁻⁵', 'x⁹'], 'Potens av en potens: 3 · (−2) = −6.'),
+      ]) },
+      { id: 'r1a-t2', from: 'r1a1', title: '1A I timen: potensregler', items: bySrc(T, /^1\.5 /) },
+      { id: 'r1a-f4', from: 'r1a0', title: 'Brøkeksponenter', intro: [
+        ['a^(1/n) = ⁿ√a', 'Eksponenten 1/n', 'Å opphøye i 1/n er det samme som å ta n-teroten.', 'f'],
+        ['a^(t/n) = ⁿ√(aᵗ) = (ⁿ√a)ᵗ', 'Brøkeksponent', 'Nevneren i eksponenten blir rotindeksen: 8^(2/3) = (∛8)² = 4.', 'f'],
+      ], items: pick(F, [4, 5, 8]).concat([
+        fx('Formel', 'Hva er 27^(2/3)?', ['9', '18', '3', '81'], '(∛27)² = 3² = 9.', U),
+      ]) },
+      { id: 'r1a-f5', from: 'r1a0', title: 'Rotreglene', intro: [
+        ['ⁿ√(ab) = ⁿ√a · ⁿ√b', 'Rot av et produkt', 'Brukes til å trekke faktorer ut av rota: √50 = 5√2.', 'f'],
+        ['ⁿ√(a/b) = ⁿ√a / ⁿ√b', 'Rot av en brøk', 'Roten av teller delt på roten av nevner.', 'f'],
+      ], items: [
+        fx('Formel', 'Skriv √12 så enkelt som mulig.', ['2√3', '4√3', '3√2', '6√2'], '√12 = √(4 · 3) = √4 · √3 = 2√3.', U),
+        fx('Formel', 'Hva er √(9/16)?', ['3/4', '9/4', '3/16', '81/256'], '√9 / √16 = 3/4.', U),
+      ] },
+      { id: 'r1a-t3', from: 'r1a1', title: '1A I timen: brøkeksponenter og røtter', items: bySrc(T, /^1\.(7|12|13)( |$)/) },
+    ]);
+  }
+  {
+    const F = sk(r1b, 'r1b0'), T = sk(r1b, 'r1b1');
+    regroup(r1b, [
+      { id: 'r1b-f1', from: 'r1b0', title: 'Briggske logaritmer', intro: [
+        ['lg p', 'Briggsk logaritme', 'Tallet vi må opphøye 10 i for å få p. lg 1000 = 3 fordi 10³ = 1000.', 's'],
+        ['10^(lg p) = p', 'Definisjonen av lg', 'Gjelder for alle positive tall p.', 'f'],
+        ['lg 10ᵏ = k', 'Logaritmen til en tierpotens', 'lg 0,01 = lg 10⁻² = −2.', 'f'],
+      ], items: pick(F, [0, 2, 4, 5, 7]) },
+      { id: 'r1b-t1', from: 'r1b1', title: '1B I timen: lg', items: bySrc(T, /^1\.2[123] /) },
+      { id: 'r1b-f2', from: 'r1b0', title: 'Naturlige logaritmer', intro: [
+        ['e ≈ 2,718', 'Eulertallet', 'Grunntallet for de naturlige logaritmene.', 's'],
+        ['ln p', 'Naturlig logaritme', 'Tallet vi må opphøye e i for å få p.', 's'],
+        ['e^(ln p) = p\nln eᵏ = k', 'Definisjonen av ln', 'ln 1 = 0\nln e = 1', 'f'],
+      ], items: pick(F, [1, 3, 6, 8]) },
+      { id: 'r1b-t2', from: 'r1b1', title: '1B I timen: ln', items: bySrc(T, /^1\.2[67] /) },
+    ]);
+  }
+  {
+    const F = sk(r1c, 'r1c0'), T = sk(r1c, 'r1c1');
+    regroup(r1c, [
+      { id: 'r1c-f1', from: 'r1c0', title: 'Logaritmen til produkt og brøk', intro: [
+        ['lg ab = lg a + lg b', '1. logaritmesetning', 'Logaritmen til et produkt er summen av logaritmene. Gjelder også for ln.', 'f'],
+        ['lg (a/b) = lg a − lg b', '2. logaritmesetning', 'Logaritmen til en brøk er differansen. Gjelder også for ln.', 'f'],
+      ], items: pick(F, [0, 1, 4, 5]) },
+      { id: 'r1c-t1', from: 'r1c1', title: '1C I timen: produkt og brøk', items: bySrc(T, /^1\.(38|43) /) },
+      { id: 'r1c-f2', from: 'r1c0', title: 'Logaritmen til en potens', intro: [
+        ['lg aᵇ = b · lg a', '3. logaritmesetning', 'Eksponenten kan flyttes ned foran logaritmen.', 'f'],
+        ['lg x = ln x / ln 10', 'Fra ln til lg', 'Følger av 10^(lg x) = x og 3. setning.', 'f'],
+      ], items: pick(F, [2, 3, 6, 7]) },
+      { id: 'r1c-t2', from: 'r1c1', title: '1C I timen: forenkling', items: bySrc(T, /^1\.4[6-9] /) },
+    ]);
+  }
+  {
+    const F = sk(r1d, 'r1d0'), T = sk(r1d, 'r1d1');
+    regroup(r1d, [
+      { id: 'r1d-f1', from: 'r1d0', title: 'Logaritmelikninger', intro: [
+        ['lg x = a ⇔ x = 10ᵃ', 'Løse en lg-likning', 'Gjør begge sider til eksponent i 10.', 'f'],
+        ['ln x = a ⇔ x = eᵃ', 'Løse en ln-likning', 'Gjør begge sider til eksponent i e.', 'f'],
+        ['Kontroll', 'Logaritmen må være definert', 'Forkast løsninger der argumentet i en logaritme blir null eller negativt.', 'b'],
+      ], items: pick(F, [0, 4, 5]) },
+      { id: 'r1d-t1', from: 'r1d1', title: '1D I timen: logaritmelikninger', items: bySrc(T, /^1\.6[0-5] |^1\.59 /) },
+      { id: 'r1d-f2', from: 'r1d0', title: 'Eksponentiallikninger', intro: [
+        ['eˣ = b ⇔ x = ln b', 'Løse en e-likning', 'Ta ln på begge sider.', 'f'],
+        ['aˣ = b ⇔ x = lg b / lg a', 'Løse en eksponentiallikning', 'Ta lg (eller ln) på begge sider og bruk 3. setning.', 'f'],
+      ], items: pick(F, [1, 2, 3, 6]) },
+      { id: 'r1d-t2', from: 'r1d1', title: '1D I timen: eksponentiallikninger', items: bySrc(T, /^1\.(6[67]|7[23]) /) },
+      { id: 'r1d-f3', from: 'r1d0', title: 'Halveringsmetoden', intro: [
+        ['m = (a + b)/2', 'Halveringsmetoden', 'Halver intervallet der f skifter fortegn, til f(m) ≈ 0.', 'f'],
+      ], items: pick(F, [7]).concat([
+        fx('Formel', 'f(1) = −2 og f(3) = 4. Hva er det første midtpunktet m i halveringsmetoden?', ['2', '1', '3', '1,5'], 'm = (a + b)/2 = (1 + 3)/2 = 2.', U),
+        tf('Formel', 'Halveringsmetoden krever at f(a) og f(b) har motsatt fortegn.', true, 'Da vet vi at grafen krysser x-aksen mellom a og b (når f er kontinuerlig).'),
+      ]) },
+    ]);
+  }
+  {
+    const F = sk(r1e, 'r1e0'), T = sk(r1e, 'r1e1');
+    regroup(r1e, [
+      { id: 'r1e-f1', from: 'r1e0', title: 'Generelle logaritmer', intro: [
+        ['log_n p', 'Logaritme med grunntall n', 'Tallet vi må opphøye n i for å få p. log₂ 16 = 4.', 's'],
+        ['n^(log_n p) = p', 'Definisjonen av log_n', 'Gjelder for positive n ≠ 1 og p > 0.', 'f'],
+        ['log_n nᵏ = k', 'Logaritmen til en potens av grunntallet', 'log₃ (1/9) = log₃ 3⁻² = −2.', 'f'],
+      ], items: pick(F, [0, 1, 3, 4]) },
+      { id: 'r1e-t1', from: 'r1e1', title: '1E I timen: regne med log_n', items: bySrc(T, /^1\.8[47] /) },
+      { id: 'r1e-f2', from: 'r1e0', title: 'Bytte grunntall og løse likninger', intro: [
+        ['log_n x = ln x / ln n', 'Bytte grunntall', 'Også lik lg x / lg n.', 'f'],
+        ['log_n x = a ⇔ x = nᵃ', 'Løse generelle likninger', 'Og nˣ = b ⇔ x = log_n b.', 'f'],
+      ], items: pick(F, [2]).concat([
+        fx('Formel', 'Hva er log₂ x uttrykt med naturlige logaritmer?', ['ln x / ln 2', 'ln 2 / ln x', 'ln (x/2)', 'ln x − ln 2'], 'Bytte grunntall: log_n x = ln x / ln n.'),
+        fx('Formel', 'Løs log₃ x = 2.', ['9', '6', '8', '2/3'], 'log_n x = a ⇔ x = nᵃ, så x = 3² = 9.', U),
+      ]) },
+      { id: 'r1e-t2', from: 'r1e1', title: '1E I timen: likninger', items: bySrc(T, /^1\.88 /) },
+    ]);
+  }
+
   window.R1 = {
     id: 'r1',
     title: 'Matematikk R1',
@@ -805,6 +903,7 @@
     icon: 'sigma',
     goalLabel: 'Mål',
     handDone: true,
+    migrate,
     glossary,
     units: [r1a, r1b, r1c, r1d, r1e, r1m, r1p],
   };
