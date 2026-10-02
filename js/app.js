@@ -139,9 +139,21 @@
     }
     return out.map((x) => x.h).join('');
   }
+  // Ny setning på ny linje: etter . ! eller ? (og eventuelt et avsluttende anførselstegn
+  // eller en parentes) brytes linja når neste ord starter med stor bokstav.
+  // Vanlige forkortelser som «f.eks.» og «kap.» brytes ikke.
+  const ABBR = /(?:^|[\s(])(?:f\.eks|bl\.a|dvs|ca|kap|nr|jf|evt|osv|mht|ifm|o\.l|s)$/i;
+  function sentenceBreaks(str) {
+    return str.replace(/([.!?])(["»”)\]]?)[ \u00a0]+(?=\p{Lu})/gu, (m, p, q, off) => {
+      if (p === '.' && !q && ABBR.test(str.slice(Math.max(0, off - 8), off))) return m;
+      return p + q + '\n';
+    });
+  }
   function mathHTML(text) {
     if (text === undefined || text === null) return '';
-    return String(text).split('\n').map(renderSeq).join('<br>');
+    return sentenceBreaks(String(text)).split('\n').map(renderSeq).join('<br>')
+      // «s-t-grafen» og «v-t-graf» skal ikke deles over to linjer
+      .replace(/(?<![\p{L}<])(\p{L}-\p{L}-\p{L}+)/gu, '<span class="nw">$1</span>');
   }
 
   // ------------------------------------------------------------------
@@ -932,6 +944,8 @@
     if (!L.queue.length) return finish();
     L.cur = L.queue[0];
     L.state = 'idle';
+    // kalkulatoren nullstilles før hver nye oppgave
+    L.calc = { open: L.calc.open, expr: '' };
     L.flash = L.combo > 0 && L.combo % 5 === 0 ? `${L.combo} på rad!` : '';
     render();
   }

@@ -510,3 +510,4 @@ sub { vertical-align: -.25em; }
 .btn:disabled { opacity: .5; }
 @media (max-width: 420px) { .nav-i { padding: 6px 6px; font-size: 10px; } .nav-i .ic { width: 26px; height: 26px; } }
 @media (max-width: 520px) { .rep-grid { grid-template-columns: 1fr; } }
+.nw { white-space: nowrap; }
