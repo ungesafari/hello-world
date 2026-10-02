@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const COURSES = [window.FYSIKK1, window.BASKET].filter(Boolean);
+  const COURSES = [window.FYSIKK1, window.BASKET, window.R1].filter(Boolean);
   const fmt = window.FYSIKK1.fmt;
   const app = document.getElementById('app');
   let COURSE = COURSES[0];
@@ -118,6 +118,8 @@
     x: () => `<svg viewBox="0 0 24 24" class="ic"><path stroke="currentColor" stroke-width="3" stroke-linecap="round" d="m6 6 12 12M18 6 6 18"/></svg>`,
     clock: () => `<svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
     aim: () => `<svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="m8 12 3 3 5-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    sigma: () => `<svg viewBox="0 0 64 64" class="logo-ic"><rect x="4" y="4" width="56" height="56" rx="14" fill="#ce82ff"/><path d="M44 16H20l14 16-14 16h24" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    exam: () => `<svg viewBox="0 0 48 48" class="nic big"><rect x="9" y="5" width="30" height="38" rx="4" fill="#fff" stroke="#ff4b4b" stroke-width="3"/><path d="M15 15h18M15 22h18M15 29h11" stroke="#afafaf" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="35" r="8" fill="#ff4b4b"/><path d="m30.5 35 2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     dumbbell: () => `<svg viewBox="0 0 24 24" class="ic"><g fill="currentColor"><rect x="1.5" y="9" width="3" height="6" rx="1"/><rect x="4.5" y="6.5" width="3.5" height="11" rx="1.2"/><rect x="8" y="10.8" width="8" height="2.4"/><rect x="16" y="6.5" width="3.5" height="11" rx="1.2"/><rect x="19.5" y="9" width="3" height="6" rx="1"/></g></svg>`,
     calc: () => `<svg viewBox="0 0 24 24" class="ic"><rect x="4" y="2" width="16" height="20" rx="3" fill="currentColor"/><rect x="7" y="5" width="10" height="4" rx="1" fill="#fff"/><g fill="#fff"><circle cx="8.5" cy="13" r="1.2"/><circle cx="12" cy="13" r="1.2"/><circle cx="15.5" cy="13" r="1.2"/><circle cx="8.5" cy="17" r="1.2"/><circle cx="12" cy="17" r="1.2"/><circle cx="15.5" cy="17" r="1.2"/></g></svg>`,
     ball: () => `<svg viewBox="0 0 64 64" class="logo-ic"><circle cx="32" cy="32" r="27" fill="#ff9600"/><g fill="none" stroke="#7a3d00" stroke-width="3"><path d="M5 32h54M32 5v54"/><path d="M13 13c8 8 8 30 0 38M51 13c-8 8-8 30 0 38"/></g></svg>`,
@@ -170,10 +172,11 @@
       u.skills.forEach((sk, si) => {
         sk.unit = u;
         sk.items.forEach((it, k) => { it.id = `${sk.id}#${k}`; it.skill = sk.id; });
-        nodes.push({ id: sk.id, type: 'skill', unit: u, skill: sk, title: sk.title });
+        nodes.push({ id: sk.id, type: 'skill', unit: u, skill: sk, title: sk.title, optional: !!sk.optional });
         if (si === 1 && u.skills.length > 2) nodes.push({ id: u.id + '-chest', type: 'chest', unit: u, title: 'Skattekiste' });
       });
-      nodes.push({ id: u.id + '-review', type: 'review', unit: u, title: 'Enhetsrepetisjon' });
+      if (u.exam) nodes.push({ id: u.id + '-review', type: 'exam', unit: u, title: u.exam.title });
+      else nodes.push({ id: u.id + '-review', type: 'review', unit: u, title: 'Enhetsrepetisjon' });
     });
     nodes.forEach((n, i) => { n.i = i; });
     c.nodes = nodes;
@@ -185,8 +188,9 @@
   }
   setCourse(S.course);
 
-  const nodeDone = (n) => (n.type === 'skill' ? (S.prog[n.id] || 0) >= LEVELS : n.type === 'chest' ? !!S.chests[n.id] : !!S.reviews[n.id]);
-  function currentIndex(nodes = NODES) { const i = nodes.findIndex((n) => !nodeDone(n)); return i < 0 ? nodes.length : i; }
+  const nodeDone = (n) => (n.type === 'skill' ? (S.prog[n.id] || 0) >= LEVELS : n.type === 'chest' ? !!S.chests[n.id] : !!S.reviews[n.unit.id]);
+  // Valgfrie ferdigheter (E1/E2) blokkerer ikke stien videre.
+  function currentIndex(nodes = NODES) { const i = nodes.findIndex((n) => !n.optional && !nodeDone(n)); return i < 0 ? nodes.length : i; }
 
   // ------------------------------------------------------------------
   // Styrke per ferdighet (repetisjon over tid)
@@ -368,7 +372,7 @@
   // ------------------------------------------------------------------
   function instantiate(item) {
     const x = makeInstance(item);
-    if (x) { x.id = item.id; x.skill = item.skill; }
+    if (x) { x.id = item.id; x.skill = item.skill; x.src = item.src; x.noCalc = !!item.u; x.monoOpts = !!item.monoOpts; }
     return x;
   }
   function makeInstance(item) {
@@ -396,6 +400,8 @@
     let s = String(str).trim().toLowerCase()
       .replace(/−/g, '-').replace(/\s+/g, '').replace(/,/g, '.')
       .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]/g, (ch) => ({ '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-' }[ch]));
+    const fr = s.match(/^([-+]?\d*\.?\d+)\/(\d*\.?\d+)$/);
+    if (fr) return parseFloat(fr[1]) / parseFloat(fr[2]);
     const m = s.match(/^([-+]?\d*\.?\d+)(?:(?:e|[*·x×]10\^?)([-+]?\d+))?/);
     if (!m) return NaN;
     return parseFloat(m[1]) * (m[2] !== undefined ? Math.pow(10, parseInt(m[2], 10)) : 1);
@@ -604,7 +610,8 @@
       items = intro.concat(buildItems(node.skill.items, Math.max(4, LESSON_LEN - 2)));
       title = node.skill.title;
     } else if (kind === 'skill' || kind === 'redo') { items = buildItems(node.skill.items, LESSON_LEN); title = node.skill.title; }
-    else if (kind === 'review') { items = buildItems(allItems(node.unit.skills), REVIEW_LEN); title = 'Enhetsrepetisjon'; }
+    else if (kind === 'review') { items = buildItems(allItems(node.unit.skills.filter((sk) => !sk.optional)), REVIEW_LEN); title = 'Enhetsrepetisjon'; }
+    else if (kind === 'exam') { items = node.unit.exam.items.map(instantiate); title = node.unit.exam.title; }
     else if (kind === 'jump') {
       const skills = COURSE.units.slice(0, opts.unit.index).reduce((a, u) => a.concat(u.skills), []);
       items = buildItems(allItems(skills), JUMP_LEN); title = 'Hopp hit';
@@ -615,7 +622,8 @@
     LESSON = {
       kind, node, title, unit: opts.unit || (node && node.unit),
       queue: items, total: items.length, correct: 0, mistakes: 0, combo: 0, maxCombo: 0,
-      lives: JUMP_LIVES, cur: items[0], state: 'idle', start: Date.now(), flash: '',
+      lives: kind === 'exam' ? node.unit.exam.lives : JUMP_LIVES, maxLives: kind === 'exam' ? node.unit.exam.lives : JUMP_LIVES, answered: 0,
+      cur: items[0], state: 'idle', start: Date.now(), flash: '',
       tally: {}, calc: { open: false, expr: '' },
     };
     UI.open = -1;
@@ -656,7 +664,7 @@
     } else {
       L.mistakes++; L.combo = 0;
       if (usesHearts(L)) loseHeart();
-      if (L.kind === 'jump') L.lives--;
+      if (L.kind === 'jump' || L.kind === 'exam') L.lives--;
       sfx.wrong();
     }
     save();
@@ -667,7 +675,8 @@
     const L = LESSON;
     if (L.state === 'idle') return;
     const x = L.queue.shift();
-    if (!L.ok) {
+    L.answered++;
+    if (!L.ok && L.kind !== 'exam') {
       // samme oppgave kommer igjen senere, nullstilt
       if (x.t === 'mc') x.sel = -1;
       if (x.t === 'num') x.input = '';
@@ -676,6 +685,7 @@
     }
     if (usesHearts(L) && hearts() <= 0) { L.screen = 'noHearts'; return render(); }
     if (L.kind === 'jump' && L.lives <= 0) { L.screen = 'jumpFail'; return render(); }
+    if (L.kind === 'exam' && L.lives <= 0) { L.screen = 'examFail'; return render(); }
     if (!L.queue.length) return finish();
     L.cur = L.queue[0];
     L.state = 'idle';
@@ -686,8 +696,8 @@
   function finish() {
     const L = LESSON;
     const secs = Math.round((Date.now() - L.start) / 1000);
-    const acc = Math.round((100 * L.total) / (L.total + L.mistakes));
-    let base = { skill: 10, redo: 5, review: 15, jump: 15, practice: 10 }[L.kind];
+    const acc = L.kind === 'exam' ? Math.round((100 * L.correct) / L.total) : Math.round((100 * L.total) / (L.total + L.mistakes));
+    let base = { skill: 10, redo: 5, review: 15, jump: 15, practice: 10, exam: 30 }[L.kind];
     if (L.mistakes === 0 && L.kind !== 'redo') base += 5;
     const xp = addXp(base);
     const t = today();
@@ -697,7 +707,7 @@
     S.stats.lessons++;
     S.stats.seconds += secs;
     if (L.kind === 'skill') S.prog[L.node.id] = Math.min(LEVELS, (S.prog[L.node.id] || 0) + 1);
-    if (L.kind === 'review') S.reviews[L.unit.id] = true;
+    if (L.kind === 'review' || L.kind === 'exam') S.reviews[L.unit.id] = true;
     if (L.kind === 'jump') {
       NODES.slice(0, L.unit.first).forEach((n) => {
         if (n.type === 'skill') S.prog[n.id] = LEVELS;
@@ -733,9 +743,9 @@
     const L = LESSON;
     if (L.screen) return renderLessonScreen();
     const x = L.cur;
-    const pct = Math.round((100 * L.correct) / L.total);
+    const pct = Math.round((100 * (L.kind === 'exam' ? L.answered : L.correct)) / L.total);
     let top;
-    if (L.kind === 'jump') top = `<div class="l-hearts">${[0, 1, 2].map((i) => I.heart(i < L.lives)).join('')}</div>`;
+    if (L.kind === 'jump' || L.kind === 'exam') top = `<div class="l-hearts">${Array.from({ length: L.maxLives }, (_, i) => I.heart(i < L.lives)).join('')}</div>`;
     else if (usesHearts(L)) top = `<div class="l-hearts">${I.heart()}<b class="red">${hearts()}</b></div>`;
     else top = `<div class="l-hearts"><span class="pill">${L.kind === 'practice' ? 'Styrk' : ''}</span></div>`;
 
@@ -746,13 +756,13 @@
           let cls = x.sel === i ? 'sel' : '';
           if (L.state !== 'idle' && i === x.correct) cls = 'good';
           if (L.state === 'wrong' && i === x.sel) cls = 'bad';
-          return `<button class="opt ${cls}" data-a="sel" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="k">${i + 1}</span><span>${esc(o)}</span></button>`;
+          return `<button class="opt ${cls}" data-a="sel" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="k">${i + 1}</span><span class="${x.monoOpts ? 'mono-opt' : ''}">${esc(o)}</span></button>`;
         }).join('')}</div>`;
     } else if (x.t === 'num') {
       body = `<div class="num-wrap"><input id="numIn" class="num-in ${L.state}" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Skriv svaret" value="${esc(x.input)}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="num-unit">${esc(x.u)}</span></div>
         <div class="num-tools"><p class="hint">Bruk komma eller punktum. Store og små tall kan skrives som 6,2e18 eller 6,2·10^18.</p>
-        ${L.state === 'idle' ? `<button class="calc-btn ${L.calc.open ? 'on' : ''}" data-a="calc" aria-label="Kalkulator">${I.calc()}<span>${L.calc.open ? 'Skjul' : 'Kalkulator'}</span></button>` : ''}</div>
-        ${L.state === 'idle' && L.calc.open ? calcPanel(L) : ''}`;
+        ${L.state === 'idle' && !x.noCalc ? `<button class="calc-btn ${L.calc.open ? 'on' : ''}" data-a="calc" aria-label="Kalkulator">${I.calc()}<span>${L.calc.open ? 'Skjul' : 'Kalkulator'}</span></button>` : ''}</div>
+        ${L.state === 'idle' && L.calc.open && !x.noCalc ? calcPanel(L) : ''}`;
     } else if (x.t === 'bank' && x.order) {
       body = `<ol class="order-list">${x.slots.map((id, i) => `<li><span class="ord-n">${i + 1}</span>${id === null ? '<span class="slot empty wide"></span>' : `<button class="tile in step" data-a="unslot" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}>${esc(x.tokens[id].text)}</button>`}</li>`).join('')}</ol>
         <div class="bank steps">${x.tokens.map((tk) => {
@@ -811,7 +821,7 @@
           <div class="ic-term ${x.term.length > 18 ? 'long' : ''}">${esc(x.term)}</div>
           <div class="ic-name">${esc(x.name)}</div>
           <p class="ic-d">${gloss(x.d)}</p></div>` : `
-        <div class="l-type">${x.t === 'bank' && x.order ? TYPE_LABEL.order : TYPE_LABEL[x.t]}</div>
+        <div class="l-type">${x.t === 'bank' && x.order ? TYPE_LABEL.order : TYPE_LABEL[x.t]}${x.src ? ` · ${/^\d/.test(x.src) ? 'Oppgave ' : ''}${esc(x.src)}` : ''}${x.noCalc ? ' <span class="nocalc">Uten hjelpemidler</span>' : ''}</div>
         <h2 class="l-q">${gloss(x.q)}</h2>
         ${body}`}
       </div></div>
@@ -847,6 +857,7 @@
         ${mascot('happy')}
         <h1 class="gold-t">${L.mistakes === 0 ? 'Perfekt leksjon!' : 'Leksjon fullført!'}</h1>
         ${L.kind === 'jump' ? '<p>Du hoppet videre! Alle tidligere enheter er låst opp.</p>' : ''}
+        ${L.kind === 'exam' ? `<p>Prøven er bestått med ${L.mistakes} ${L.mistakes === 1 ? 'feil' : 'feil'}!</p>` : ''}
         ${L.heartGained ? `<p>Du tjente ett hjerte ${I.heart()}</p>` : ''}${L.kind === 'practice' ? '<p class="muted">De svake emnene dine er styrket.</p>' : ''}
         <div class="stat-cards">
           <div class="sc gold"><div class="sc-h">Total XP</div><div class="sc-b">${I.bolt()} ${r.xp}</div></div>
@@ -876,6 +887,9 @@
         <button class="btn link wide" data-a="exit">Avslutt</button>
       </div>`;
       return (app.innerHTML = `<div class="lesson screen">${html}</div>`);
+    } else if (L.screen === 'examFail') {
+      html = `<div class="center-screen">${mascot('sad')}<h1>Ikke bestått</h1><p>Du gjorde for mange feil på prøven. Repeter oppgavene og veiledningen, og prøv igjen. Prøven må bestås før du kommer videre.</p></div>`;
+      return (app.innerHTML = `<div class="lesson screen">${html}<div class="l-foot"><div class="foot-in end"><button class="btn green" data-a="exit" id="contBtn">Fortsett</button></div></div></div>`);
     } else if (L.screen === 'jumpFail') {
       html = `<div class="center-screen">${mascot('sad')}<h1>Ikke helt ennå!</h1><p>Du brukte opp alle forsøkene. Øv litt mer og prøv igjen senere.</p></div>`;
       return (app.innerHTML = `<div class="lesson screen">${html}<div class="l-foot"><div class="foot-in end"><button class="btn green" data-a="exit" id="contBtn">Fortsett</button></div></div></div>`);
@@ -899,17 +913,18 @@
       const banner = `<div class="unit-banner" style="--c:${u.color};--cd:${u.dark}">
           <div><div class="u-sub">ENHET ${u.index + 1}</div><div class="u-title">${esc(u.title)}</div></div>
           <div class="u-actions">
-            ${locked && u.index > curUnit ? `<button class="u-btn" data-a="jump" data-u="${u.index}">Hopp hit?</button>` : ''}
+            ${locked && u.index > curUnit && !COURSE.handDone ? `<button class="u-btn" data-a="jump" data-u="${u.index}">Hopp hit?</button>` : ''}
             <button class="u-btn" data-a="guide" data-u="${u.index}" aria-label="Veiledning">${I.book()}<span class="hide-s">Veiledning</span></button>
           </div>
         </div>`;
       const path = nodes.map((n, k) => {
         const done = nodeDone(n), isCur = n.i === cur, isLocked = n.i > cur;
-        const state = done ? 'done' : isCur ? 'cur' : 'locked';
+        const state = done ? 'done' : isCur ? 'cur' : n.i < cur ? 'open' : 'locked';
         const weak = n.type === 'skill' && isWeak(n.id);
         let icon;
         if (n.type === 'chest') icon = I.chest(done);
         else if (n.type === 'review') icon = I.trophy();
+        else if (n.type === 'exam') icon = I.exam();
         else icon = done ? I.check() : isLocked ? I.lock() : I.star();
         const lv = S.prog[n.id] || 0;
         const ring = n.type === 'skill' && isCur
@@ -917,7 +932,7 @@
         const pop = UI.open === n.i ? popover(n, state) : '';
         return `<div class="node-wrap ${UI.open === n.i ? 'open' : ''} ${isCur && UI.open !== n.i ? 'has-bubble' : ''}" style="--x:${OFFSETS[(k + u.index * 3) % OFFSETS.length]}px">
           ${isCur && UI.open !== n.i ? `<div class="start-bubble">${n.type === 'chest' ? 'ÅPNE' : 'START'}</div>` : ''}
-          <button class="node ${state} ${n.type} ${weak ? 'weak' : ''}" data-a="node" data-n="${n.i}" ${isCur ? 'id="curNode"' : ''} aria-label="${esc(n.title)}">${ring}<span class="node-face">${icon}</span>${weak ? I.crack() : ''}</button>
+          <button class="node ${state} ${n.type} ${weak ? 'weak' : ''} ${n.optional ? 'optional' : ''}" data-a="node" data-n="${n.i}" ${isCur ? 'id="curNode"' : ''} aria-label="${esc(n.title)}">${ring}<span class="node-face">${icon}</span>${weak ? I.crack() : ''}</button>
           ${pop}
         </div>`;
       }).join('');
@@ -927,11 +942,23 @@
 
   function popover(n, state) {
     let inner;
+    const hand = COURSE.handDone && n.type === 'skill' && state !== 'done' && state !== 'locked'
+      ? `<button class="btn link hand-b" data-a="handDone" data-n="${n.i}">Gjort for hånd – hopp over</button>` : '';
+    if (n.type === 'exam') {
+      if (state === 'locked') inner = `<h4>${esc(n.title)}</h4><p>Fullfør alle nivåene over for å låse opp prøven.</p><button class="btn locked-b" disabled>Låst</button>`;
+      else inner = `<h4>${esc(n.title)}</h4><p>${n.unit.exam.items.length} oppgaver. Du har ${n.unit.exam.lives} liv, og prøven må bestås for å komme videre.</p><button class="btn white" data-a="go" data-n="${n.i}">${state === 'done' ? 'Ta prøven igjen +30 XP' : 'Start prøven +30 XP'}</button>`;
+      return `<div class="popover ${state === 'open' ? 'cur' : state}" data-stop>${inner}</div>`;
+    }
+    if (n.type === 'skill' && n.optional && state !== 'done' && state !== 'locked') {
+      const lv = S.prog[n.id] || 0;
+      inner = `<h4>${esc(n.title)}</h4><p>Valgfrie ekstraoppgaver. Leksjon ${lv + 1} av ${LEVELS}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
+      return `<div class="popover cur" data-stop>${inner}</div>`;
+    }
     if (n.type === 'skill') {
       const lv = S.prog[n.id] || 0;
       if (state === 'done' && isWeak(n.id)) inner = `<h4>${esc(n.title)}</h4><p>Det er en stund siden du øvde på dette. Styrk kunnskapen før den blekner!</p><button class="btn white" data-a="go" data-n="${n.i}">Styrk +5 XP</button>`;
       else if (state === 'done') inner = `<h4>${esc(n.title)}</h4><p>Fullført! Styrke: ${Math.round(100 * strength(n.id))} %. Repeter for å holde kunnskapen ved like.</p><button class="btn white" data-a="go" data-n="${n.i}">Øv +5 XP</button>`;
-      else if (state === 'cur') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}${lv === 0 && n.skill.intro ? ' · Nye begreper' : ''}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>`;
+      else if (state === 'cur') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}${lv === 0 && n.skill.intro ? ' · Nye begreper' : ''}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
       else inner = `<h4>${esc(n.title)}</h4><p>Fullfør alle nivåene over for å låse opp denne.</p><button class="btn locked-b" disabled>Låst</button>`;
     } else if (n.type === 'review') {
       if (state === 'locked') inner = `<h4>Enhetsrepetisjon</h4><p>Fullfør alle nivåene over for å låse opp denne.</p><button class="btn locked-b" disabled>Låst</button>`;
@@ -1218,6 +1245,7 @@
   function goNode(i) {
     const n = NODES[i];
     const done = nodeDone(n);
+    if (n.type === 'exam') return startLesson('exam', n);
     if ((n.type === 'skill' || n.type === 'review') && hearts() <= 0) { UI.modal = { type: 'hearts' }; UI.open = -1; return render(); }
     if (n.type === 'skill') startLesson(done ? 'redo' : 'skill', n);
     else if (n.type === 'review') startLesson(done ? 'redo' : 'review', done ? { ...n, skill: { items: allItems(n.unit.skills), title: n.unit.title } } : n);
@@ -1238,6 +1266,15 @@
       case 'tab': UI.tab = el.dataset.t; UI.open = -1; UI.modal = null; if (UI.tab === 'learn') UI.scrollToCurrent = true; window.scrollTo(0, 0); render(); break;
       case 'node': ev.stopPropagation(); onNode(+el.dataset.n); break;
       case 'go': goNode(+el.dataset.n); break;
+      case 'handDone': {
+        const n = NODES[+el.dataset.n];
+        if (!n || n.type !== 'skill') break;
+        S.prog[n.id] = LEVELS;
+        S.mem[n.id] = { t: Date.now(), h: 2 };
+        save(); UI.open = -1; UI.scrollToCurrent = true;
+        toast('Markert som gjort for hånd. Oppgavene dukker opp igjen i repetisjonen.');
+        render(); break;
+      }
       case 'guide': UI.modal = { type: 'guide', u: +el.dataset.u }; render(); break;
       case 'jump': UI.modal = { type: 'jump', u: +el.dataset.u }; render(); break;
       case 'jumpGo': startLesson('jump', null, { unit: COURSE.units[+el.dataset.u] }); break;
@@ -1316,7 +1353,7 @@
     L.ok = false; L.state = 'wrong'; L.mistakes++; L.combo = 0;
     recordAnswer(L.cur, false);
     if (usesHearts(L)) loseHeart();
-    if (L.kind === 'jump') L.lives--;
+    if (L.kind === 'jump' || L.kind === 'exam') L.lives--;
     S.stats.answered++;
     sfx.wrong(); save(); render();
   }
@@ -1384,7 +1421,7 @@
   }
 
   // Til testing
-  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, NODES };
+  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; } };
 
   render();
 })();

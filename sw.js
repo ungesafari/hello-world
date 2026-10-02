@@ -1,12 +1,13 @@
 // Nettverk først, med hurtigbuffer som reserve, slik at appen virker offline
 // og samtidig alltid får siste versjon når du er på nett.
-const CACHE = 'fysikkling-v3';
+const CACHE = 'fysikkling-v4';
 const CORE = [
   './',
   'index.html',
   'css/style.css',
   'js/course-fysikk1.js',
   'js/course-basket.js',
+  'js/course-r1.js',
   'js/app.js',
   'manifest.webmanifest',
   'icons/icon.svg',

@@ -460,3 +460,15 @@ p { line-height: 1.5; }
 .order-list .tile.step { flex: 1; }
 .bank.steps { flex-direction: column; align-items: stretch; }
 .bank.steps .tile.used { display: none; }
+
+/* ---------- R1: prøver, valgfrie oppgaver og merking ---------- */
+.nocalc { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 8px; background: #fff0d6; color: #b36b00; font-size: 11px; letter-spacing: .3px; }
+:root[data-theme="dark"] .nocalc { background: #3d2f17; color: #ffc46b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .nocalc { background: #3d2f17; color: #ffc46b; } }
+.mono-opt { font-family: ui-monospace, 'Cascadia Code', Consolas, Menlo, monospace; white-space: pre-wrap; font-size: 14px; font-weight: 600; }
+.node.optional:not(.done) { outline: 3px dashed var(--c); outline-offset: 6px; }
+.node.optional.locked { outline-color: var(--locked-d); }
+.node.exam { background: transparent; box-shadow: none; width: 80px; height: 72px; }
+.node.exam.locked { filter: grayscale(1) opacity(.45); }
+.btn.link.hand-b { width: 100%; margin-top: 8px; color: #fff; text-transform: none; letter-spacing: 0; text-decoration: underline; min-height: 36px; }
+.learn { padding-bottom: 200px; }
