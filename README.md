@@ -28,7 +28,11 @@ New terms, symbols and formulas are introduced gradually: each node on the path 
 
 Every topic can be started directly from the path without testing your way there. Progress percentages (per unit and per course) only count lessons you have actually completed, so topics you have not been through stay at 0 %.
 
-The Repetisjon tab offers a mixed review built from two or three related topics (a weak unit and the unit before it), worked through one topic at a time; a drill of all formulas and terms you have learned; the questions you have answered wrong; and a review of any single unit. Faded skills show as cracked on the path, and "Styrk svake emner" builds a review lesson from your weakest skills.
+The Repetisjon tab offers a mixed review built from two or three related topics (a weak unit and the unit before it), worked through one topic at a time; a drill of all formulas and terms you have learned; the questions you have answered wrong; and a review of any single unit. Faded skills show as cracked on the path, and "Styrk svake emner" (also used to earn hearts) builds a review lesson from your three weakest skills, weakest first, one topic at a time, choosing the most overdue questions and formulas within each.
+
+Repetition is scheduled per question and per formula with an Anki-style SM-2 algorithm. A correct answer on a new card schedules it for 1 day; each later correct review multiplies the interval by the card's ease (starting at 2.5, with partial credit for early reviews and a bonus for late ones). A wrong answer lowers the ease by 0.2, brings the card back after 10 minutes, and once relearned it restarts at half its old interval. A topic's strength is the average predicted recall of its cards (90 % when a card is due), and a topic counts as weak below 80 %.
+
+You have five hearts; a wrong answer in a lesson costs one, and one heart comes back every five minutes.
 
 Any question can be bookmarked with the button next to the question type. A bookmark can mark the question for extra repetition (it then comes up more often in lessons and in Repetisjon, and the bookmarked questions can be practised on their own), and it can carry feedback on what should be improved, using quick categories such as "Feil fasit" or "Uklar oppgavetekst" plus free text. All bookmarks are listed in the Repetisjon tab, where "Kopier tilbakemeldinger" copies the feedback as plain text with the course, topic, task number, question, options and the answer the app expects, ready to paste into a message.
 

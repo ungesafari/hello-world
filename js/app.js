@@ -13,7 +13,7 @@
   const JUMP_LEN = 12;
   const JUMP_LIVES = 3;
   const MAX_HEARTS = 5;
-  const HEART_MS = 4 * 3600 * 1000;
+  const HEART_MS = 5 * 60 * 1000; // ett nytt hjerte hvert femte minutt
   const BOOST_MS = 15 * 60 * 1000;
   const DAY_MS = 86400000;
   const KEY = 'fysikkling-v1';
@@ -272,7 +272,7 @@
       today: null, quests: null, boost: 0,
       league: null, leagueBest: 0,
       sound: true, theme: 'auto', name: '',
-      course: 'fysikk1', mem: {}, wrong: {}, marks: {},
+      course: 'fysikk1', mem: {}, wrong: {}, marks: {}, srs: {},
     };
   }
   function load() {
@@ -284,6 +284,7 @@
   }
   let S = load();
   S.marks = S.marks || {};
+  S.srs = S.srs || {};
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (err) { /* ignorer */ } }
 
   // UI-tilstand som ikke lagres
@@ -374,16 +375,67 @@
   function currentIndex(nodes = NODES) { const i = nodes.findIndex((n) => !n.optional && !nodeDone(n)); return i < 0 ? nodes.length : i; }
 
   // ------------------------------------------------------------------
-  // Styrke per ferdighet (repetisjon over tid)
-  // Styrken halveres etter h dager. Gode økter dobler h, svake økter halverer den.
+  // Repetisjon med mellomrom (spaced repetition), etter mønster av Anki (SM-2)
+  // Hver oppgave og hver formel er et «kort» med lettindeks (ef), intervall (ivl, dager)
+  // og forfallstid (due). Riktig svar gir lengre intervall, feil svar starter kortet på nytt.
   // ------------------------------------------------------------------
-  function strength(id) {
-    const m = S.mem[id];
-    if (!m) return 1;
-    return Math.pow(2, -(Date.now() - m.t) / (m.h * DAY_MS));
+  const SRS = {
+    startEase: 2.5, minEase: 1.3,
+    firstIvl: 1,          // dager etter første riktige svar (Ankis «graduating interval»)
+    relearnMs: 10 * 60 * 1000, // et kort du bommer på, kommer tilbake etter 10 minutter
+    lapseFactor: 0.5,     // nytt intervall etter feil er halvparten av det gamle (minst 1 dag)
+    maxIvl: 365,
+  };
+  const WEAK_R = 0.8; // et tema regnes som svakt når husket andel faller under 80 %
+  let srsVer = 0;
+  // Sannsynligheten for å huske kortet nå: 90 % ved forfall, lavere jo lenger over forfall.
+  function recall(card, now = Date.now()) {
+    const ivl = card.ivl > 0 ? card.ivl : SRS.relearnMs / DAY_MS;
+    return Math.pow(0.9, (now - card.last) / DAY_MS / ivl);
   }
+  function review(id, skill, ok, now = Date.now()) {
+    let c = S.srs[id];
+    if (!c) c = S.srs[id] = { ef: SRS.startEase, ivl: 0, reps: 0, lapses: 0, last: now, due: now, sk: skill || null };
+    const elapsed = (now - c.last) / DAY_MS;
+    if (!ok) {
+      // «Igjen»: lettindeksen synker, og kortet må læres på nytt
+      if (c.reps > 0) { c.lapses++; c.ef = Math.max(SRS.minEase, c.ef - 0.2); c.relearn = Math.max(1, Math.round(c.ivl * SRS.lapseFactor)); }
+      c.reps = 0; c.ivl = 0; c.due = now + SRS.relearnMs;
+    } else if (c.reps === 0) {
+      // nytt eller gjenlært kort
+      c.ivl = c.relearn || SRS.firstIvl; delete c.relearn;
+      c.reps = 1; c.due = now + c.ivl * DAY_MS;
+    } else {
+      let ivl;
+      if (elapsed < c.ivl) ivl = c.ivl + c.ivl * (c.ef - 1) * (elapsed / c.ivl); // repetert før forfall: delvis uttelling
+      else { ivl = (c.ivl + (elapsed - c.ivl) / 2) * c.ef; c.ef = Math.min(3, c.ef + 0.05); } // på tid eller sent: bonus
+      ivl = Math.min(SRS.maxIvl, Math.max(c.ivl + (elapsed >= c.ivl ? 1 : 0), ivl * (0.95 + Math.random() * 0.1)));
+      c.ivl = Math.round(ivl * 10) / 10; c.reps++; c.due = now + c.ivl * DAY_MS;
+    }
+    c.last = now;
+    if (skill) c.sk = skill;
+    srsVer++;
+  }
+  // Kortene gruppert per ferdighet (bygges på nytt bare når noe er endret).
+  let bySkillCache = { v: -1, map: {} };
+  function cardsBySkill() {
+    if (bySkillCache.v === srsVer) return bySkillCache.map;
+    const map = {};
+    for (const [id, c] of Object.entries(S.srs)) if (c.sk) (map[c.sk] = map[c.sk] || []).push([id, c]);
+    bySkillCache = { v: srsVer, map };
+    return map;
+  }
+  // Styrken til en ferdighet er gjennomsnittlig husket andel for kortene du har sett.
+  function strength(id) {
+    const cards = cardsBySkill()[id];
+    if (cards && cards.length) { const now = Date.now(); return cards.reduce((a, [, c]) => a + recall(c, now), 0) / cards.length; }
+    const m = S.mem[id]; // ferdigheter merket «gjort for hånd» uten egne kort
+    if (!m) return 1;
+    return Math.pow(0.9, (Date.now() - m.t) / (m.h * DAY_MS));
+  }
+  const dueCards = (id) => (cardsBySkill()[id] || []).filter(([, c]) => c.due <= Date.now());
   const practiced = (id) => (S.prog[id] || 0) > 0;
-  const isWeak = (id) => practiced(id) && strength(id) < 0.5;
+  const isWeak = (id) => practiced(id) && strength(id) < WEAK_R;
   function updateMem(id, acc) {
     const m = S.mem[id];
     const good = acc >= 0.8;
@@ -777,7 +829,7 @@
   }
   // Velger begreper å repetere: de du har bommet på kommer oftere.
   function drillsFor(cs, n) {
-    const picked = cs.map((c) => ({ c, w: ['f', 'n', 't'].reduce((a, k) => a + (S.wrong[c.id + k] || 0), 0) * 2 + Math.random() * 1.5 }))
+    const picked = cs.map((c) => ({ c, w: Math.max(...['f', 'n', 't'].map((k) => cardPriority(c.id + k))) + ['f', 'n', 't'].reduce((a, k) => a + (S.wrong[c.id + k] || 0), 0) + Math.random() }))
       .sort((x, y) => y.w - x.w).slice(0, n).map(({ c }) => c);
     return picked.map((c) => makeDrill(c)).filter(Boolean);
   }
@@ -857,19 +909,31 @@
     list = list.filter((it) => !it.id || it.t === 'num' && !it.fixed || (seen.has(it.id) ? false : seen.add(it.id)));
     return list.slice(0, LESSON_LEN + 2);
   }
-  // Øving på svake emner: oppgaver du har svart feil på før kommer oftere.
+  // Øving på svake emner (også når du øver for å få hjerter):
+  // de svakeste temaene velges først, og innenfor hvert tema kommer kortene som er
+  // mest over forfall. Feilsvar og bokmerker teller ekstra. Oppgavene samles tema for tema.
+  function cardPriority(id, skill) {
+    const c = S.srs[id];
+    let w = c ? (Date.now() - c.last) / DAY_MS / Math.max(c.ivl, SRS.relearnMs / DAY_MS) : 0.6; // >1 betyr forfalt
+    if (c && c.due <= Date.now()) w += 1;
+    w += (S.wrong[id] || 0) * 0.3 + (S.marks[id] && S.marks[id].rep ? 1 : 0);
+    return w + Math.random() * 0.3;
+  }
   function buildWeakItems(skills, n) {
-    const scored = allItems(skills).map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + (repMarked(it) ? 3 : 0) + Math.random() * 1.5 }));
-    scored.sort((a, b) => b.w - a.w);
-    let seenMatch = false;
-    const list = [];
-    for (const { it } of scored) {
-      if (list.length >= n) break;
-      if (it.t === 'match') { if (seenMatch) continue; seenMatch = true; }
-      list.push(it);
-    }
-    const cs = skills.flatMap((sk) => (sk.concepts.length ? sk.concepts : sk.active));
-    return shuffle(list).concat(drillsFor([...new Set(cs)], 2));
+    const share = [0.5, 0.3, 0.2];
+    const out = [];
+    skills.forEach((sk, k) => {
+      const want = k === skills.length - 1 ? n - out.length : Math.max(2, Math.round(n * (skills.length === 1 ? 1 : share[k] || 0.2)));
+      const cands = sk.items.filter((it) => it.t !== 'match').map((it) => ({ w: cardPriority(it.id, sk.id), get: () => it }));
+      for (const c of (sk.concepts.length ? sk.concepts : [])) for (const L of ['n', 't'].concat(c.kind === 'f' ? ['f'] : [])) {
+        cands.push({ w: cardPriority(c.id + L, sk.id), get: () => makeDrill(c, DRILL_TYPE[L]) });
+      }
+      cands.sort((a, b) => b.w - a.w);
+      const block = [];
+      for (const c of cands) { if (block.length >= want) break; const it = c.get(); if (it && !block.some((b) => b.id === it.id)) block.push(it); }
+      out.push(...block);
+    });
+    return out.slice(0, n);
   }
 
   function startLesson(kind, node, opts = {}) {
@@ -886,8 +950,9 @@
       const skills = COURSE.units.slice(0, opts.unit.index).reduce((a, u) => a.concat(u.skills), []);
       items = buildItems(allItems(skills), JUMP_LEN); title = 'Hopp hit';
     } else {
+      // svakeste tema først, ett tema om gangen
       const weak = weakest(3);
-      items = buildWeakItems(weak.length ? weak : [NODES[0].skill], LESSON_LEN - 2); title = 'Styrk svake emner';
+      items = buildWeakItems(weak.length ? weak : [NODES[0].skill], LESSON_LEN + 2); title = 'Styrk svake emner';
     }
     items = items.map((it) => (it.t === 'card' ? it : instantiate(it))).filter(Boolean);
     LESSON = {
@@ -906,6 +971,7 @@
 
   // Husker hvilke oppgaver og ferdigheter du får til, for repetisjon senere.
   function recordAnswer(x, ok) {
+    if (x.id) review(x.id, x.skill, ok);
     if (x.id) {
       if (ok) { if (S.wrong[x.id]) { S.wrong[x.id]--; if (!S.wrong[x.id]) delete S.wrong[x.id]; } }
       else S.wrong[x.id] = Math.min(5, (S.wrong[x.id] || 0) + 1);
@@ -1313,7 +1379,7 @@
         <button class="btn green" data-a="practice">Øv +10 XP</button></div></div>`;
     }
     return `<div class="card practice"><div class="card-h"><h3>Styrk svake emner</h3></div>
-      ${list.map((sk) => { const st = strength(sk.id); return `<div class="pr-skill"><span>${esc(sk.title)}</span><div class="q-bar"><div class="q-fill ${st < 0.5 ? 'red-f' : st < 0.75 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div></div>`; }).join('')}
+      ${list.map((sk) => { const st = strength(sk.id); return `<div class="pr-skill"><span>${esc(sk.title)}</span><div class="q-bar"><div class="q-fill ${st < WEAK_R ? 'red-f' : st < 0.9 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div></div>`; }).join('')}
       <p class="muted small">Styrken synker over tid. Oppgaver du har svart feil på kommer oftere.</p>
       <button class="btn green wide" data-a="practice">Øv +10 XP</button></div>`;
   }
@@ -1343,7 +1409,7 @@
   function repItems(nodes, per = 3) {
     const blocks = nodes.map((n) => {
       const sk = n.skill;
-      const items = sk.items.filter((it) => it.t !== 'match').map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + (repMarked(it) ? 3 : 0) + Math.random() * 1.5 })).sort((x, y) => y.w - x.w).map(({ it }) => it);
+      const items = sk.items.filter((it) => it.t !== 'match').map((it) => ({ it, w: cardPriority(it.id) + Math.random() })).sort((x, y) => y.w - x.w).map(({ it }) => it);
       const own = items.slice(0, per);
       const d = drillsFor(sk.concepts.length ? sk.concepts : sk.active, sk.concepts.length ? 2 : 1);
       return { d, own, rest: items.slice(per) };
@@ -1471,12 +1537,13 @@
         <div class="card"><p>Fullfør den første leksjonen i ${esc(COURSE.title)}, så dukker repetisjonen opp her.</p></div>${marksCard()}</div>`;
     }
     const plan = repPlan();
+    const dueN = nodes.reduce((a, n) => a + dueCards(n.id).length, 0);
     const conceptsN = nodes.reduce((a, n) => a + n.skill.concepts.length, 0);
     const wrongN = wrongList().length;
     const units = COURSE.units.filter((u) => nodes.some((n) => n.unit === u));
-    const bar = (st) => `<div class="q-bar"><div class="q-fill ${st < 0.5 ? 'red-f' : st < 0.75 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div>`;
+    const bar = (st) => `<div class="q-bar"><div class="q-fill ${st < WEAK_R ? 'red-f' : st < 0.9 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div>`;
     return `<div class="page rep">
-      <div class="hero-band"><div><h2>Repetisjon</h2><p>Blandet øving på det du allerede har lært. Temaene velges slik at de henger sammen.</p></div>${mascot('happy')}</div>
+      <div class="hero-band"><div><h2>Repetisjon</h2><p>Blandet øving på det du allerede har lært. Temaene velges slik at de henger sammen.</p>${dueN ? `<p class="due-n">${dueN} ${dueN === 1 ? 'oppgave' : 'oppgaver'} er klare for repetisjon nå.</p>` : ''}</div>${mascot('happy')}</div>
       <div class="card rep-main">
         <div class="card-h"><h3>Blandet repetisjon</h3><button class="link-b" data-a="repNew">Bytt temaer</button></div>
         <p class="muted">Denne runden: ${plan.map((n) => `<b>${esc(n.title)}</b>`).join(', ')}</p>
@@ -1900,7 +1967,7 @@
   }
 
   // Til testing
-  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), repItems, repPlan, conceptReview, makeDrill };
+  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), review, hearts, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
 
   render();
 })();

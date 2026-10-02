@@ -542,3 +542,4 @@ sub { vertical-align: -.25em; }
 .mark-text { font-weight: 700; }
 .mark-note { color: var(--muted); font-weight: 600; font-style: italic; }
 .modal-bg.still { animation: none; }
+.hero-band .due-n { background: rgba(255,255,255,.22); border-radius: 10px; padding: 6px 10px; display: inline-block; }
