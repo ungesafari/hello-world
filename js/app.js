@@ -1224,6 +1224,7 @@
       cur: items[0], state: 'idle', start: Date.now(), flash: '',
       tally: {}, calc: { open: false, expr: '' },
     };
+    if (!LESSON || !UI.returnY) UI.returnY = window.scrollY;
     UI.open = -1;
     UI.modal = null;
     window.scrollTo(0, 0);
@@ -1338,7 +1339,13 @@
   function exitLesson() {
     const n = LESSON && LESSON.node;
     UI.lastNode = n && NODES[n.i] && NODES[n.i].id === n.id ? n.i : null;
-    LESSON = null; UI.scrollToCurrent = true; render();
+    LESSON = null;
+    if (UI.pendingReload) { location.reload(); return; }
+    // fra en node: tilbake til noden. Ellers (repetisjon og øving): tilbake dit du var.
+    if (UI.lastNode != null && UI.tab === 'learn') UI.scrollToCurrent = true;
+    else { UI.scrollToCurrent = false; render(); window.scrollTo(0, UI.returnY || 0); UI.returnY = 0; return; }
+    UI.returnY = 0;
+    render();
   }
 
   // ------------------------------------------------------------------
@@ -1996,9 +2003,11 @@
   function render() {
     closeTip();
     applyTheme();
-    if (LESSON) renderLesson();
-    else renderMain();
+    if (LESSON) { renderLesson(); applyGloss(app); return; }
+    const y = window.scrollY;
+    renderMain();
     applyGloss(app);
+    if (!UI.scrollToCurrent && window.scrollY !== y) window.scrollTo(0, y);
   }
 
   function toast(msg) {
@@ -2040,6 +2049,13 @@
     UI.open = UI.open === i ? -1 : i;
     sfx.tap();
     render();
+    const pop = UI.open >= 0 && document.querySelector('.node-wrap.open .popover');
+    if (pop) {
+      const r = pop.getBoundingClientRect();
+      const nav = document.querySelector('nav.bottom');
+      const bottom = window.innerHeight - (nav && nav.offsetHeight ? nav.offsetHeight : 0) - 12;
+      if (r.bottom > bottom) window.scrollBy({ top: r.bottom - bottom, behavior: 'smooth' });
+    }
   }
   function goNode(i) {
     const n = NODES[i];
@@ -2232,8 +2248,16 @@
   setInterval(() => { if (!LESSON && !UI.modal) { const y = window.scrollY; render(); window.scrollTo(0, y); } }, 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && !LESSON) render(); });
 
+  // Ny versjon av appen tas i bruk automatisk, men aldri midt i en leksjon.
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController) return;
+      if (LESSON) UI.pendingReload = true; else location.reload();
+    });
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').then((reg) => {
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+    }).catch(() => {}));
   }
 
   // Til testing
