@@ -37,7 +37,7 @@
       ['n-terøtter', 'ⁿ√a er tallet som opphøyd i n blir a: (ⁿ√a)ⁿ = a.\nHvis n er et partall, skal både a og ⁿ√a være positive. Eksempel: ⁴√16 = 2.\nHvis n er et oddetall, kan a være negativ: ∛−8 = −2.\nGeoGebra: nrot(x, n).'],
       ['Definisjoner for potenser', 'aⁿ = a · a · … · a (n faktorer)\na⁰ = 1 (a ≠ 0)\na⁻ⁿ = 1/aⁿ (a ≠ 0)'],
       ['Potensreglene', 'aᵖ · a^q = a^(p+q)\naᵖ / a^q = a^(p−q)\n(a · b)ᵖ = aᵖ · bᵖ\n(a/b)ᵖ = aᵖ / bᵖ\n(aᵖ)^q = a^(p·q)'],
-      ['Brøkeksponenter', 'a^(t/n) = ⁿ√(aᵗ) = (ⁿ√a)ᵗ, der t er et helt tall, n et positivt helt tall og a > 0.\nEksempel: 8^(2/3) = (∛8)² = 4.'],
+      ['Brøkeksponenter', 'a^(t/n) = ⁿ√(aᵗ) = (ⁿ√a)ᵗ\nder t er et helt tall, n et positivt helt tall og a > 0.\nEksempel: 8^(2/3) = (∛8)² = 4.'],
       ['Regning med røtter', 'ⁿ√(ab) = ⁿ√a · ⁿ√b\nⁿ√(a/b) = ⁿ√a / ⁿ√b\nEksempel: √75 = √(25 · 3) = 5√3.'],
     ],
     skills: [
@@ -45,7 +45,7 @@
         id: 'r1a0', title: 'Formler: røtter og potenser',
         intro: [
           ['ⁿ√a', 'n-teroten av a', 'Tallet som opphøyd i n blir a: (ⁿ√a)ⁿ = a. Er n et partall, må a og ⁿ√a være positive.', 's'],
-          ['a⁰ = 1   a⁻ⁿ = 1/aⁿ', 'Definisjonene', 'Gjelder for alle a ≠ 0.', 'f'],
+          ['a⁰ = 1\na⁻ⁿ = 1/aⁿ', 'Definisjonene', 'Gjelder for alle a ≠ 0.', 'f'],
           ['aᵖ · a^q = a^(p+q)', 'Like grunntall ganges', 'Eksponentene legges sammen.', 'f'],
           ['aᵖ / a^q = a^(p−q)', 'Like grunntall deles', 'Eksponentene trekkes fra hverandre.', 'f'],
           ['(aᵖ)^q = a^(p·q)', 'Potens av en potens', 'Eksponentene ganges.', 'f'],
@@ -167,10 +167,10 @@
     color: '#1cb0f6', dark: '#1899d6',
     goal: 'Forstå og bruke definisjonene av briggske (lg) og naturlige (ln) logaritmer. Uke 34.',
     guide: [
-      ['Briggske logaritmer (lg)', 'lg p er tallet vi må opphøye 10 i for å få p: 10^(lg p) = p.\nlg 10ᵏ = k, lg 10 = 1, lg 1 = 0.\nlg er bare definert for positive tall. Logaritmen kan likevel være negativ: lg 0,1 = −1.\nGeoGebra: lg(x). Python: log10(x) fra pylab.'],
+      ['Briggske logaritmer (lg)', 'lg p er tallet vi må opphøye 10 i for å få p: 10^(lg p) = p.\nlg 10ᵏ = k\nlg 10 = 1\nlg 1 = 0\nlg er bare definert for positive tall. Logaritmen kan likevel være negativ: lg 0,1 = −1.\nGeoGebra: lg(x). Python: log10(x) fra pylab.'],
       ['Eulertallet e', '(1 + 1/n)ⁿ nærmer seg e ≈ 2,718 281 828 459 … når n blir stor.'],
-      ['Naturlige logaritmer (ln)', 'ln p er tallet vi må opphøye e i for å få p: e^(ln p) = p.\nln eᵏ = k, ln e = 1, ln 1 = 0.\nGeoGebra: ln(x). Python: log(x) fra pylab.'],
-      ['Logaritmefunksjoner', 'f(x) = lg x har D_f = ⟨0, →⟩ og V_f = ℝ.\nGrafene til lg x og 10ˣ ligger symmetrisk om linja y = x.'],
+      ['Naturlige logaritmer (ln)', 'ln p er tallet vi må opphøye e i for å få p: e^(ln p) = p.\nln eᵏ = k\nln e = 1\nln 1 = 0\nGeoGebra: ln(x). Python: log(x) fra pylab.'],
+      ['Logaritmefunksjoner', 'f(x) = lg x har\nD_f = ⟨0, →⟩\nV_f = ℝ\nGrafene til lg x og 10ˣ ligger symmetrisk om linja y = x.'],
     ],
     skills: [
       {
@@ -181,7 +181,7 @@
           ['lg 10ᵏ = k', 'Logaritmen til en tierpotens', 'lg 0,01 = lg 10⁻² = −2.', 'f'],
           ['e ≈ 2,718', 'Eulertallet', 'Grunntallet for de naturlige logaritmene.', 's'],
           ['ln p', 'Naturlig logaritme', 'Tallet vi må opphøye e i for å få p.', 's'],
-          ['e^(ln p) = p   ln eᵏ = k', 'Definisjonen av ln', 'ln 1 = 0 og ln e = 1.', 'f'],
+          ['e^(ln p) = p\nln eᵏ = k', 'Definisjonen av ln', 'ln 1 = 0\nln e = 1', 'f'],
         ],
         items: [
           fx('Formel', 'Hva er lg 1?', ['0', '1', '10', 'Ikke definert'], '10⁰ = 1.'),
@@ -282,9 +282,9 @@
     color: '#ff9600', dark: '#cc7900',
     goal: 'Bruke de tre logaritmesetningene til å forenkle uttrykk og regne ut logaritmer, og bevise setningene. Uke 34.',
     guide: [
-      ['Første logaritmesetning', 'lg ab = lg a + lg b og ln ab = ln a + ln b, når a og b er positive.'],
-      ['Andre logaritmesetning', 'lg (a/b) = lg a − lg b og ln (a/b) = ln a − ln b.'],
-      ['Tredje logaritmesetning', 'lg aᵇ = b · lg a og ln aᵇ = b · ln a, når a er positiv.\nMerk: lg x² betyr lg (x²). (lg x)² betyr (lg x) · (lg x).'],
+      ['Første logaritmesetning', 'Når a og b er positive:\nlg ab = lg a + lg b\nln ab = ln a + ln b'],
+      ['Andre logaritmesetning', 'lg (a/b) = lg a − lg b\nln (a/b) = ln a − ln b'],
+      ['Tredje logaritmesetning', 'Når a er positiv:\nlg aᵇ = b · lg a\nln aᵇ = b · ln a\nMerk: lg x² betyr lg (x²). (lg x)² betyr (lg x) · (lg x).'],
       ['Sammenheng mellom lg og ln', 'lg x = ln x / ln 10.\nBevis: 10^(lg x) = x ⇒ ln 10^(lg x) = ln x ⇒ lg x · ln 10 = ln x.'],
       ['Vanlige feil', 'lg (a + b) er IKKE lg a + lg b.\nln (a² − b²) er IKKE ln a² − ln b², men ln (a + b) + ln (a − b).\nlg a / lg b er IKKE lg a − lg b.'],
     ],
@@ -347,12 +347,12 @@
           ord('1.50 a', 'Vis at 3 ln 5 + 2 ln 10 = ln 12 500.', ['3 ln 5 + 2 ln 10 = ln 5³ + ln 10²', '= ln 125 + ln 100', '= ln (125 · 100)', '= ln 12 500'], ['= ln 225'], '3. og så 1. logaritmesetning.', U),
           ord('1.50 b', 'Vis at lg (x + 2) + lg 2 = lg (2x + 4).', ['lg (x + 2) + lg 2', '= lg (2(x + 2))', '= lg (2x + 4)'], ['= lg (x + 4)'], '1. logaritmesetning.', U),
           ord('1.50 c', 'Vis at lg (x² − 9) − lg (x + 3) = lg (x − 3).', ['lg (x² − 9) − lg (x + 3)', '= lg ((x² − 9)/(x + 3))', '= lg ((x + 3)(x − 3)/(x + 3))', '= lg (x − 3)'], ['= lg x² − lg 9 − lg x − lg 3'], '2. logaritmesetning og konjugatsetningen.', U),
-          mc('1.51 a', 'Skal det stå = eller ≠?   ln (x − 4) + ln 4  □  ln x', ['≠', '='], 'ln (x − 4) + ln 4 = ln (4x − 16), ikke ln x.'),
-          mc('1.51 b', 'Skal det stå = eller ≠?   ln (6 · x) + ln 2  □  ln 12x', ['=', '≠'], 'ln (6x · 2) = ln 12x.'),
-          mc('1.51 c', 'Skal det stå = eller ≠?   lg (x + 1) − lg 9  □  lg (x − 8)', ['≠', '='], 'lg (x + 1) − lg 9 = lg ((x + 1)/9).'),
-          mc('1.51 d', 'Skal det stå = eller ≠?   ln x · ln 3  □  ln (x + 3)', ['≠', '='], 'Det finnes ingen regel for produktet av to logaritmer.'),
-          mc('1.51 e', 'Skal det stå = eller ≠?   lg (10x)  □  1 + lg x', ['=', '≠'], 'lg 10 + lg x = 1 + lg x.'),
-          mc('1.51 f', 'Skal det stå = eller ≠?   lg (10 + x)  □  1 + lg x', ['≠', '='], 'lg av en sum kan ikke deles opp.'),
+          mc('1.51 a', 'Skal det stå = eller ≠?\nln (x − 4) + ln 4  □  ln x', ['≠', '='], 'ln (x − 4) + ln 4 = ln (4x − 16), ikke ln x.'),
+          mc('1.51 b', 'Skal det stå = eller ≠?\nln (6 · x) + ln 2  □  ln 12x', ['=', '≠'], 'ln (6x · 2) = ln 12x.'),
+          mc('1.51 c', 'Skal det stå = eller ≠?\nlg (x + 1) − lg 9  □  lg (x − 8)', ['≠', '='], 'lg (x + 1) − lg 9 = lg ((x + 1)/9).'),
+          mc('1.51 d', 'Skal det stå = eller ≠?\nln x · ln 3  □  ln (x + 3)', ['≠', '='], 'Det finnes ingen regel for produktet av to logaritmer.'),
+          mc('1.51 e', 'Skal det stå = eller ≠?\nlg (10x)  □  1 + lg x', ['=', '≠'], 'lg 10 + lg x = 1 + lg x.'),
+          mc('1.51 f', 'Skal det stå = eller ≠?\nlg (10 + x)  □  1 + lg x', ['≠', '='], 'lg av en sum kan ikke deles opp.'),
         ],
       },
       {
@@ -395,7 +395,7 @@
     goal: 'Løse logaritmelikninger og eksponentiallikninger uten og med hjelpemidler, og bruke halveringsmetoden. Uke 35.',
     guide: [
       ['Logaritmelikninger', 'lg x = a ⇔ x = 10ᵃ\nln x = a ⇔ x = eᵃ\nlg x = lg a ⇔ x = a\nKontroller alltid at logaritmene er definert (argumentet må være positivt).'],
-      ['Andregradslikninger', '(lg x)² − 3 lg x + 2 = 0: bruk abc-formelen med lg x som ukjent, og løs lg x = 1 ∨ lg x = 2.\nTilsvarende med eˣ eller 10ˣ som ukjent. Husk at eˣ > 0 og 10ˣ > 0 for alle x.'],
+      ['Andregradslikninger', '(lg x)² − 3 lg x + 2 = 0\nBruk abc-formelen med lg x som ukjent:\nlg x = 1 ∨ lg x = 2\nTilsvarende med eˣ eller 10ˣ som ukjent. Husk at eˣ > 0 og 10ˣ > 0 for alle x.'],
       ['Eksponentiallikninger', 'Samme grunntall: aˣ = aᵇ ⇔ x = b.\n10ˣ = b ⇔ x = lg b\neˣ = b ⇔ x = ln b\naˣ = b ⇔ x = lg b / lg a = ln b / ln a'],
       ['Halveringsmetoden', 'Løser f(x) = 0 numerisk. Start med [a, b] der f(a) og f(b) har motsatt fortegn.\n1: m = (a + b)/2\n2: Er f(m) ≈ 0, er vi ferdige.\n3: Er f(a) · f(m) < 0, fortsett med [a, m], ellers med [m, b].'],
     ],
@@ -536,7 +536,7 @@
     color: '#00b8a9', dark: '#00897e',
     goal: 'Regne med logaritmer med vilkårlig grunntall, skifte grunntall og løse generelle logaritme- og eksponentiallikninger. Uke 35.',
     guide: [
-      ['Definisjon', 'log_n p er tallet vi må opphøye n i for å få p: n^(log_n p) = p.\nn og p er positive, og n ≠ 1.\nlog_n nᵏ = k, log_n n = 1, log_n 1 = 0.\nGeoGebra: log(n, p). Python: math.log(p, n).'],
+      ['Definisjon', 'log_n p er tallet vi må opphøye n i for å få p: n^(log_n p) = p.\nn og p er positive, og n ≠ 1.\nlog_n nᵏ = k\nlog_n n = 1\nlog_n 1 = 0\nGeoGebra: log(n, p). Python: math.log(p, n).'],
       ['Logaritmesetningene', 'log_n ab = log_n a + log_n b\nlog_n (a/b) = log_n a − log_n b\nlog_n aᵇ = b · log_n a'],
       ['Bytte grunntall', 'log_n x = lg x / lg n = ln x / ln n\nVi oppgir vanligvis svar med lg eller ln.'],
       ['Likninger', 'log_n x = a ⇔ x = nᵃ\nnˣ = b ⇔ x = log_n b'],
@@ -629,8 +629,8 @@
     color: '#2b70c9', dark: '#1f5aa3',
     goal: 'Repetisjon og eksamenstrening: Blandede oppgaver s. 54–59 (1.97–1.127). Uke 35.',
     guide: [
-      ['Sammendrag kap. 1', 'Røtter: (ⁿ√a)ⁿ = a, a^(t/n) = ⁿ√(aᵗ)\nLogaritmer: 10^(lg p) = p, e^(ln p) = p, n^(log_n p) = p\nSetningene: log ab = log a + log b, log (a/b) = log a − log b, log aᵇ = b log a\nlog_n x = lg x / lg n = ln x / ln n\nLikninger: log_n x = a ⇔ x = nᵃ, nˣ = b ⇔ x = log_n b'],
-      ['Eksponentiell vekst', 'f(x) = a · bˣ, der a er startverdien og b vekstfaktoren b = 1 + p/100.\nNy verdi = gammel verdi · vekstfaktorⁿ.'],
+      ['Sammendrag kap. 1', 'Røtter:\n(ⁿ√a)ⁿ = a\na^(t/n) = ⁿ√(aᵗ)\nLogaritmer:\n10^(lg p) = p\ne^(ln p) = p\nn^(log_n p) = p\nSetningene:\nlog ab = log a + log b\nlog (a/b) = log a − log b\nlog aᵇ = b log a\nlog_n x = lg x / lg n = ln x / ln n\nLikninger:\nlog_n x = a ⇔ x = nᵃ\nnˣ = b ⇔ x = log_n b'],
+      ['Eksponentiell vekst', 'f(x) = a · bˣ\na er startverdien\nb = 1 + p/100 er vekstfaktoren\nNy verdi = gammel verdi · vekstfaktorⁿ.'],
     ],
     skills: [
       {

@@ -472,3 +472,16 @@ p { line-height: 1.5; }
 .node.exam.locked { filter: grayscale(1) opacity(.45); }
 .btn.link.hand-b { width: 100%; margin-top: 8px; color: #fff; text-transform: none; letter-spacing: 0; text-decoration: underline; min-height: 36px; }
 .learn { padding-bottom: 200px; }
+
+/* ---------- brøker med vannrett brøkstrek, hevet og senket skrift ---------- */
+.frac { display: inline-flex; flex-direction: column; align-items: stretch; vertical-align: middle; text-align: center; margin: 0 .12em; font-size: .92em; line-height: 1.2; }
+.frac > .fn { border-bottom: max(1.5px, .08em) solid currentColor; padding: 0 .2em .06em; white-space: nowrap; }
+.frac > .fd { padding: .06em .2em 0; white-space: nowrap; }
+.frac .frac { font-size: .9em; }
+sup, sub { font-size: .68em; line-height: 0; }
+sup .frac { vertical-align: baseline; font-size: 1em; }
+sup { vertical-align: .55em; }
+sub { vertical-align: -.25em; }
+.bank-line .lb { flex-basis: 100%; height: 0; }
+.l-q, .fb-exp, .fb-ans, .g-sec p, .kmal p, .ic-d, .ic-term, .opt, .tile, .mtile { line-height: 1.6; }
+.ic-term .frac { font-size: .8em; }

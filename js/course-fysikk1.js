@@ -71,7 +71,7 @@
     skills: [
       {
         id: 'u1s1', title: 'Fart og akselerasjon',
-        intro: [["s", "Posisjon / strekning", "Hvor langt legemet er fra et valgt nullpunkt, eller hvor langt det har beveget seg. Enhet: meter (m).", "s"], ["v", "Fart / hastighet", "Hvor fort (og i hvilken retning) legemet beveger seg. Enhet: m/s.", "s"], ["Δ", "Delta: «endring i»", "Δv = v − v₀ betyr endringen i fart. Δt betyr et tidsrom.", "s"], ["v̄ = Δs/Δt", "Gjennomsnittsfart", "Strekning delt på tid. Momentanfarten er stigningstallet til tangenten i s-t-grafen.", "f"], ["a = (v − v₀)/t", "Formel 1: akselerasjon", "Endring i fart per tid. Enhet: m/s².", "f"]],
+        intro: [["s", "Posisjon eller strekning", "Hvor langt legemet er fra et valgt nullpunkt, eller hvor langt det har beveget seg. Enhet: meter (m).", "s"], ["v", "Fart eller hastighet", "Hvor fort (og i hvilken retning) legemet beveger seg. Enhet: m/s.", "s"], ["Δ", "Delta: «endring i»", "Δv = v − v₀ betyr endringen i fart. Δt betyr et tidsrom.", "s"], ["v̄ = Δs/Δt", "Gjennomsnittsfart", "Strekning delt på tid. Momentanfarten er stigningstallet til tangenten i s-t-grafen.", "f"], ["a = (v − v₀)/t", "Formel 1: akselerasjon", "Endring i fart per tid. Enhet: m/s².", "f"]],
         items: [
           mc('Hva er SI-enheten for akselerasjon?', ['m/s²', 'm/s', 'N', 'km/h'], 'Akselerasjon er endring i hastighet per tid: (m/s)/s = m/s².'),
           mc('Hva er forskjellen på fart og hastighet?', ['Hastighet har retning, fart har bare størrelse', 'Fart har retning, hastighet har bare størrelse', 'Det er ingen forskjell i fysikk', 'Fart måles i m/s², hastighet i m/s'], 'Hastighet er en vektor (størrelse og retning). Fart er bare størrelsen.'),
@@ -128,7 +128,7 @@
           bank('Fullfør steget i utledningen av formel 6', 's = (v₀ + ▢)/2 · t', ['v₀ + at'], ['v − at', 'at', 'v'], 'Vi setter inn v = v₀ + at i formel 5.'),
           bank('Løs formel 1 for tiden', 't = (▢ − ▢)/a', ['v', 'v₀'], ['s', 'a', 't'], 'Fra a = (v − v₀)/t: t = (v − v₀)/a.'),
           bank('Fullfør det siste steget mot formel 7', '2as = (v + v₀)(▢)', ['v − v₀'], ['v + v₀', 'v₀ − v', 'at'], 'Konjugatsetningen gir (v + v₀)(v − v₀) = v² − v₀².'),
-          bank('Fullfør formel 4 og 3', 's = ▢ · t,   v̄ = (v₀ + ▢)/2', ['v̄', 'v'], ['a', 's', 'v₀'], 's = v̄t, og ved konstant a er v̄ = (v₀ + v)/2.'),
+          bank('Fullfør formel 4 og 3', 's = ▢ · t\nv̄ = (v₀ + ▢)/2', ['v̄', 'v'], ['a', 's', 'v₀'], 's = v̄t, og ved konstant a er v̄ = (v₀ + v)/2.'),
           mc('Hvilken formel får du når du setter v = v₀ + at inn i s = (v₀ + v)/2 · t?', ['s = v₀t + ½at²', '2as = v² − v₀²', 's = v̄t', 'v̄ = (v₀ + v)/2'], 'Dette er formel 6.'),
           mc('Hva gjør du for å utlede den tidløse formelen 2as = v² − v₀²?', ['Løser formel 1 for t og setter inn i formel 5', 'Deriverer formel 6', 'Setter v₀ = 0', 'Ganger formel 2 med seg selv'], 'Da forsvinner t fra formelen.'),
           mc('Hvorfor gjelder v̄ = (v₀ + v)/2 bare når akselerasjonen er konstant?', ['Bare da øker farten lineært, så gjennomsnittet ligger midt mellom start og slutt', 'Fordi v₀ alltid er null', 'Fordi strekningen da er null', 'Den gjelder alltid'], 'Øker farten ujevnt, kan gjennomsnittsfarten ligge hvor som helst mellom v₀ og v.'),
@@ -144,7 +144,7 @@
           mc('Hvordan finner du v(t) når posisjonen s(t) er gitt?', ['Deriverer s(t)', 'Integrerer s(t)', 'Deler s(t) på t', 'Setter t = 0'], 'v(t) = s′(t).'),
           mc('Hvordan finner du tidspunktet der legemet snur?', ['Løser v(t) = 0', 'Løser s(t) = 0', 'Løser a(t) = 0', 'Setter t = 0'], 'I snupunktet er farten null.'),
           mc('Posisjonen er s(t) = 3t − 0,5t². Hva er akselerasjonen?', ['−1 m/s², konstant', '3 m/s²', '−0,5 m/s²', 'Den endrer seg med tiden'], 'v(t) = 3 − t og a(t) = −1.'),
-          bank('Deriver posisjonen', 's(t) = 3t − 0,5t²   ⇒   v(t) = ▢ − ▢', ['3', 't'], ['0,5t', '1,5', 't²'], 'Den deriverte av 3t er 3, og av 0,5t² er t.'),
+          bank('Deriver posisjonen', 's(t) = 3t − 0,5t²\nv(t) = ▢ − ▢', ['3', 't'], ['0,5t', '1,5', 't²'], 'Den deriverte av 3t er 3, og av 0,5t² er t.'),
           tf('Er s(t) et andregradspolynom i t, er akselerasjonen konstant.', true, 'Den andrederiverte av et andregradspolynom er en konstant.'),
           mc('Tea løper etter en buss som akselererer fra ro. Hvordan finner du ut om hun tar den igjen?', ['Setter s_T(t) = s_B(t) og sjekker om likningen har løsning', 'Sammenlikner startfartene', 'Setter v_B(t) = 0', 'Regner ut bussens akselerasjon'], 'Hun tar bussen igjen hvis posisjonene blir like for en verdi av t.'),
           num(() => { const b = ri(2, 8), c = pick([0.5, 1, 2]); return { q: `Posisjonen er s(t) = ${f(b)}t − ${f(c)}t² (s i m, t i s). Når snur legemet?`, a: b / (2 * c), u: 's', e: `v(t) = ${f(b)} − ${f(2 * c)}t = 0 ⇒ t = ${f(b / (2 * c))} s` }; }),
@@ -186,8 +186,8 @@
       ['Newtons tre lover', '1. lov: Er ΣF = 0, er legemet i ro eller beveger seg med konstant hastighet.\n2. lov: ΣF = m·a\n3. lov: Når A virker på B med en kraft, virker B på A med en like stor, motsatt rettet kraft. Kraft og motkraft virker på hvert sitt legeme.'],
       ['Vanlige krefter', 'Tyngde: G = m·g\nNormalkraft N: står vinkelrett på underlaget.\nFriksjon: R = μ·N\nLuftmotstand: L = k·v (lav fart) eller L = k·v² (høy fart)\nSnordrag S: virker langs snora.'],
       ['Heis', 'Akselerasjon oppover: N = m(g + a)\nAkselerasjon nedover: N = m(g − a)\nKonstant fart: N = mg'],
-      ['Skråplan', 'Tyngden deles i to komponenter:\nG∥ = mg·sin α (nedover langs planet)\nG⊥ = mg·cos α (inn mot planet), så N = mg·cos α\nUten friksjon: a = g·sin α'],
-      ['Terminalfart', 'Når luftmotstanden blir like stor som tyngden, er ΣF = 0 og farten konstant. Med L = kv² blir v_t = √(mg/k).'],
+      ['Skråplan', 'Tyngden deles i to komponenter:\nG∥ = mg·sin α (nedover langs planet)\nG⊥ = mg·cos α (inn mot planet)\nN = mg·cos α\nUten friksjon: a = g·sin α'],
+      ['Terminalfart', 'Når luftmotstanden blir like stor som tyngden, er ΣF = 0 og farten konstant.\nMed L = kv²:\nv_t = √(mg/k)'],
     ],
     skills: [
       {
@@ -338,7 +338,7 @@
     guide: [
       ['Bevegelsesmengde og impuls', 'Bevegelsesmengde: p = m·v (kg·m/s), en vektor.\nImpuls: I = F·Δt = Δp (N·s)\nSamme Δp over lengre tid gir mindre kraft (kollisjonspute, knebøy ved landing).'],
       ['Bevaring', 'I et isolert system (summen av ytre krefter er null) er den totale bevegelsesmengden bevart:\nm₁v₁ + m₂v₂ = m₁v₁′ + m₂v₂′\nHusk fortegn. Velg en positiv retning.'],
-      ['Støt', 'Elastisk støt: både p og E_k er bevart.\nUelastisk støt: p er bevart, men noe E_k blir til varme, lyd og deformasjon.\nFullstendig uelastisk: legemene henger sammen etterpå: m₁v₁ + m₂v₂ = (m₁ + m₂)v′\nRekyl/eksplosjon: total p før = 0, så m₁v₁′ = −m₂v₂′.'],
+      ['Støt', 'Elastisk støt: både p og E_k er bevart.\nUelastisk støt: p er bevart, men noe E_k blir til varme, lyd og deformasjon.\nFullstendig uelastisk: legemene henger sammen etterpå: m₁v₁ + m₂v₂ = (m₁ + m₂)v′\nRekyl eller eksplosjon: total p før = 0\nm₁v₁′ = −m₂v₂′'],
     ],
     skills: [
       {
@@ -397,7 +397,7 @@
     guide: [
       ['Ladning og strøm', 'Elementærladningen: e = 1,60 · 10⁻¹⁹ C\nStrøm: I = Q/t (A = C/s)\nStrømretningen er definert fra + til − utenfor spenningskilden (motsatt av elektronene).'],
       ['Spenning og resistans', 'Spenning er energi per ladning: U = W/Q (V = J/C)\nOhms lov: U = R·I\nResistans i en ledning: R = ρ·L/A'],
-      ['Kretser', 'Serie: R = R₁ + R₂ + … (samme strøm gjennom alle)\nParallell: 1/R = 1/R₁ + 1/R₂ + … (samme spenning over alle)\nKirchhoffs 1. lov: strøm inn i et punkt = strøm ut.\nKirchhoffs 2. lov: summen av spenningene rundt en lukket sløyfe er null.\nEms og indre resistans: U_pol = ε − R_i·I, og I = ε/(R + R_i)'],
+      ['Kretser', 'Serie: R = R₁ + R₂ + … (samme strøm gjennom alle)\nParallell: 1/R = 1/R₁ + 1/R₂ + … (samme spenning over alle)\nKirchhoffs 1. lov: strøm inn i et punkt = strøm ut.\nKirchhoffs 2. lov: summen av spenningene rundt en lukket sløyfe er null.\nEms og indre resistans:\nU_pol = ε − R_i·I\nI = ε/(R + R_i)'],
       ['Effekt og energi', 'P = U·I = R·I² = U²/R\nE = P·t\nStrøm overføres med høy spenning fordi lavere strøm gir mindre varmetap (R·I²).'],
     ],
     skills: [
@@ -666,7 +666,7 @@
     guide: [
       ['Atomkjernen', 'Protontall Z, nøytrontall N og nukleontall A = Z + N.\nIsotoper: samme Z, ulikt N.\nDen sterke kjernekraften holder nukleonene sammen og er mye sterkere enn den elektriske frastøtningen på korte avstander.'],
       ['Masse og energi', 'E = m·c²\nMassedefekt: en kjerne veier mindre enn summen av nukleonene. Forskjellen tilsvarer bindingsenergien.\n1 u = 1,66 · 10⁻²⁷ kg, som tilsvarer 931,5 MeV.'],
-      ['Fusjon', 'Lette kjerner smelter sammen til tyngre og frigjør energi, fordi produktet er sterkere bundet (opp til jern/nikkel).\nKrever svært høy temperatur og tetthet for å overvinne den elektriske frastøtningen.\nI sola: 4 ¹H → ⁴He + 2e⁺ + 2ν, ca. 26,7 MeV per heliumkjerne.\nFisjon er det motsatte: tunge kjerner deles.'],
+      ['Fusjon', 'Lette kjerner smelter sammen til tyngre og frigjør energi, fordi produktet er sterkere bundet (opp til jern og nikkel).\nKrever svært høy temperatur og tetthet for å overvinne den elektriske frastøtningen.\nI sola: 4 ¹H → ⁴He + 2e⁺ + 2ν, ca. 26,7 MeV per heliumkjerne.\nFisjon er det motsatte: tunge kjerner deles.'],
     ],
     skills: [
       {

@@ -384,8 +384,8 @@
     goal: 'De nye kategoriene for tekniske og usportslige fouls fra 2026, straffene, bortvisning og slagsmål (§ 36–40).',
     guide: [
       ['Teknisk foul (§ 36)', 'Nytt i 2026: to kategorier.\nKategori 1 (oppførsel, teller mot bortvisning): respektløs oppførsel, gester mot publikum, provosering, vifting foran øynene til en motspiller, albuesving uten kontakt, skuespill.\nKategori 2 (teller ikke): forsinke spillet, henge i ringen, goaltending på siste straffekast (1 poeng + teknisk foul).\nStraff: 1 straffekast, deretter innkast til laget som hadde ballen.'],
-      ['Usportslig foul kategori 2 – «disruptive» (§ 37)', 'Kontakt som stopper en kontring uten forsøk på å spille ballen, eller kontakt bakfra/fra siden på en spiller på vei mot kurven uten motspillere foran seg.\nTeller IKKE mot bortvisning.'],
-      ['Usportslig foul kategori 1 – «flagrant» (§ 38)', 'Ikke legitim basketballhandling, hensynsløs/voldsom/farlig handling, eller unødvendig hard kontakt.\nTeller mot bortvisning.'],
+      ['Usportslig foul kategori 2 – «disruptive» (§ 37)', 'Kontakt som stopper en kontring uten forsøk på å spille ballen, eller kontakt bakfra eller fra siden på en spiller på vei mot kurven uten motspillere foran seg.\nTeller IKKE mot bortvisning.'],
+      ['Usportslig foul kategori 1 – «flagrant» (§ 38)', 'Ikke legitim basketballhandling, hensynsløs, voldsom eller farlig handling, eller unødvendig hard kontakt.\nTeller mot bortvisning.'],
       ['Straff for usportslige fouls', '2 straffekast (eller scoring + 1, eller 2/3 ved bom), deretter innkast fra innkastlinjen i angrepsfeltet. Skuddklokke 14.'],
       ['Bortvisning', 'Spiller: to tekniske kat. 1, to usportslige kat. 1, eller én av hver.\nLagleder: to tekniske for egen oppførsel («L»), eller tre der noen skyldes benken («B»).\nSlagsmål: innbyttere som forlater benkområdet, bortvises.'],
     ],

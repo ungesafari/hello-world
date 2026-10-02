@@ -50,8 +50,104 @@
   const pickR = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
   // ------------------------------------------------------------------
+  // Matematikk-visning: a/b blir en brøk med vannrett brøkstrek, x^(…) blir
+  // hevet skrift og log_n blir senket skrift. Nye linjer (\n) blir linjebytte.
+  // ------------------------------------------------------------------
+  const FUNC_RE = /^(ln|lg|log\S*|sin|cos|tan)$/;
+  const STOP_WORDS = new Set(['er', 'og', 'eller', 'men', 'der', 'når', 'som', 'gir', 'så', 'for', 'av', 'med', 'ved', 'ikke', 'i', 'på', 'til', 'fra', 'blir', 'betyr', 'altså', 'hvis', 'fordi', 'om']);
+  const DELIMS = new Set(['=', '≈', '⇔', '⇒', '→', ',', ';', ':', '+', '−', '-', '<', '>', '≤', '≥', '∨', '∧', '≠', '±', '|', '?', '!']);
+  const isAtomCh = (ch) => /[\p{L}\p{N}\p{M}√∛∜π′″°%▢∞⁺⁻⁼₊₋ʹ']/u.test(ch);
+  function matchParen(str, i) {
+    let d = 0;
+    for (let j = i; j < str.length; j++) { if (str[j] === '(') d++; else if (str[j] === ')') { d--; if (!d) return j; } }
+    return -1;
+  }
+  function readRun(str, i, allowSign) {
+    let j = i;
+    if (allowSign && /[−\-+]/.test(str[j] || '')) j++;
+    for (; j < str.length; j++) {
+      const ch = str[j];
+      if (isAtomCh(ch)) continue;
+      if ((ch === ',' || ch === '.') && /\d/.test(str[j - 1] || '') && /\d/.test(str[j + 1] || '')) continue;
+      // tusenskille: «10 000» er ett tall
+      if ((ch === ' ' || ch === '\u00a0') && /\d/.test(str[j - 1] || '') && /^\d{3}(?!\d)/.test(str.slice(j + 1))) continue;
+      break;
+    }
+    return j;
+  }
+  function parsePieces(str) {
+    const P = [];
+    const lastAtom = () => (P.length && P[P.length - 1].k === 'atom' ? P[P.length - 1] : null);
+    for (let i = 0; i < str.length;) {
+      const ch = str[i];
+      if (ch === ' ' || ch === ' ') { P.push({ k: 'sp', h: ch }); i++; continue; }
+      if (ch === '(') {
+        const j = matchParen(str, i);
+        if (j > 0) { const inner = str.slice(i + 1, j); P.push({ k: 'atom', grp: inner, h: '(' + renderSeq(inner) + ')' }); i = j + 1; continue; }
+      }
+      if (ch === '^' || ch === '_') {
+        const tag = ch === '^' ? 'sup' : 'sub';
+        let html, j;
+        if (str[i + 1] === '(' && matchParen(str, i + 1) > 0) { j = matchParen(str, i + 1); html = renderSeq(str.slice(i + 2, j)); j++; }
+        else { j = readRun(str, i + 1, ch === '^'); html = esc(str.slice(i + 1, j)); }
+        if (j > i + 1) {
+          const a = lastAtom();
+          if (a) a.h += `<${tag}>${html}</${tag}>`; else P.push({ k: 'atom', h: `<${tag}>${html}</${tag}>` });
+          i = j; continue;
+        }
+      }
+      if (ch === '/') { P.push({ k: 'slash', spaced: str[i - 1] === ' ' || str[i + 1] === ' ' }); i++; continue; }
+      if (isAtomCh(ch)) { const j = readRun(str, i, false); const w = str.slice(i, j); P.push({ k: 'atom', h: esc(w), w }); i = j; continue; }
+      P.push({ k: 'op', h: esc(ch), raw: ch }); i++;
+    }
+    // funksjonsnavn hører sammen med argumentet sitt: «ln (7/3)», «lg 5», «log₂ x»
+    for (let k = 0; k < P.length - 1; k++) {
+      const a = P[k];
+      if (a.k !== 'atom' || !a.w || !FUNC_RE.test(a.w)) continue;
+      let n = k + 1;
+      if (P[n] && P[n].k === 'sp' && P[n + 1] && P[n + 1].k === 'atom') n++;
+      if (P[n] && P[n].k === 'atom') { a.h += (n > k + 1 ? ' ' : '') + P[n].h; a.w = null; P.splice(k + 1, n - k); k--; }
+    }
+    return P;
+  }
+  const isStop = (p) => p.k === 'slash' || (p.k === 'op' && DELIMS.has(p.raw)) || (p.k === 'atom' && p.w && STOP_WORDS.has(p.w.toLowerCase()));
+  const fracPart = (arr) => (arr.length === 1 && arr[0].grp !== undefined ? renderSeq(arr[0].grp) : arr.map((x) => x.h).join(''));
+  function renderSeq(str) {
+    const P = parsePieces(str);
+    const out = [];
+    for (let i = 0; i < P.length; i++) {
+      const p = P[i];
+      if (p.k !== 'slash') { out.push(p); continue; }
+      let num = [], den = [], j = i + 1, trail = [];
+      if (!p.spaced) {
+        while (out.length && out[out.length - 1].k === 'atom') num.unshift(out.pop());
+        while (j < P.length && P[j].k === 'atom') den.push(P[j++]);
+      } else {
+        const lead = [];
+        while (out.length && out[out.length - 1].k === 'sp') out.pop();
+        while (out.length && !isStop(out[out.length - 1])) num.unshift(out.pop());
+        while (num.length && num[0].k === 'sp') lead.push(num.shift());
+        out.push(...lead);
+        while (j < P.length && P[j].k === 'sp') j++;
+        if (P[j] && P[j].k === 'op' && (P[j].raw === '−' || P[j].raw === '-')) den.push(P[j++]);
+        while (j < P.length && !isStop(P[j]) && !(P[j].k === 'op' && (P[j].raw === '·' || P[j].raw === '.'))) den.push(P[j++]);
+        while (den.length && den[den.length - 1].k === 'sp') trail.unshift(den.pop());
+      }
+      if (!num.length || !den.length) { out.push(...num, { k: 'op', h: '/' }, ...den, ...trail); i = j - 1; continue; }
+      out.push({ k: 'atom', h: `<span class="frac"><span class="fn">${fracPart(num)}</span><span class="fd">${fracPart(den)}</span></span>` }, ...trail);
+      i = j - 1;
+    }
+    return out.map((x) => x.h).join('');
+  }
+  function mathHTML(text) {
+    if (text === undefined || text === null) return '';
+    return String(text).split('\n').map(renderSeq).join('<br>');
+  }
+
+  // ------------------------------------------------------------------
   // Ordliste: nøkkelord og symboler i teksten kan trykkes på for en kort forklaring.
   // Hver oppføring har et regex-mønster (m) og en forklaring (d).
+  // Teksten tegnes først med mathHTML, deretter lenkes ordene i tekstnodene.
   // ------------------------------------------------------------------
   function glossRe(c) {
     if (c._gre !== undefined) return c._gre;
@@ -62,21 +158,40 @@
     return c._gre;
   }
   function gloss(text, c = COURSE) {
-    const re = glossRe(c);
-    if (!re || !text) return nl(text || '');
-    let out = '', last = 0, m;
-    const seen = new Set();
-    re.lastIndex = 0;
-    while ((m = re.exec(text))) {
-      if (!m[0]) { re.lastIndex++; continue; }
-      let gi = -1;
-      for (let k = 1; k < m.length; k++) if (m[k] !== undefined) { gi = k - 1; break; }
-      if (gi < 0 || seen.has(gi)) continue;
-      seen.add(gi);
-      out += nl(text.slice(last, m.index)) + `<button type="button" class="term" data-a="term" data-c="${c.id}" data-g="${gi}">${esc(m[0])}</button>`;
-      last = m.index + m[0].length;
-    }
-    return out + nl(text.slice(last));
+    return `<span class="gl" data-c="${c.id}">${mathHTML(text || '')}</span>`;
+  }
+  function applyGloss(root) {
+    root.querySelectorAll('.gl[data-c]').forEach((el) => {
+      const c = COURSES.find((cc) => cc.id === el.dataset.c);
+      const re = c && glossRe(c);
+      if (!re) return;
+      const seen = new Set();
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach((node) => {
+        const text = node.nodeValue;
+        re.lastIndex = 0;
+        let m, last = 0, changed = false;
+        const frag = document.createDocumentFragment();
+        while ((m = re.exec(text))) {
+          if (!m[0]) { re.lastIndex++; continue; }
+          let gi = -1;
+          for (let k = 1; k < m.length; k++) if (m[k] !== undefined) { gi = k - 1; break; }
+          if (gi < 0 || seen.has(gi)) continue;
+          seen.add(gi); changed = true;
+          frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'term'; b.dataset.a = 'term'; b.dataset.c = c.id; b.dataset.g = gi;
+          b.textContent = m[0];
+          frag.appendChild(b);
+          last = m.index + m[0].length;
+        }
+        if (!changed) return;
+        frag.appendChild(document.createTextNode(text.slice(last)));
+        node.parentNode.replaceChild(frag, node);
+      });
+    });
   }
   function closeTip() { const t = document.querySelector('.tip'); if (t) t.remove(); }
   function showTip(el) {
@@ -86,7 +201,7 @@
     if (!e) return;
     const tip = document.createElement('div');
     tip.className = 'tip';
-    tip.innerHTML = `<b>${esc(e.t)}</b><span>${esc(e.d)}</span>`;
+    tip.innerHTML = `<b>${esc(e.t)}</b><span>${mathHTML(e.d)}</span>`;
     document.body.appendChild(tip);
     const r = el.getBoundingClientRect();
     const w = Math.min(300, window.innerWidth - 24);
@@ -756,31 +871,32 @@
           let cls = x.sel === i ? 'sel' : '';
           if (L.state !== 'idle' && i === x.correct) cls = 'good';
           if (L.state === 'wrong' && i === x.sel) cls = 'bad';
-          return `<button class="opt ${cls}" data-a="sel" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="k">${i + 1}</span><span class="${x.monoOpts ? 'mono-opt' : ''}">${esc(o)}</span></button>`;
+          return `<button class="opt ${cls}" data-a="sel" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="k">${i + 1}</span><span class="${x.monoOpts ? 'mono-opt' : ''}">${x.monoOpts ? esc(o) : mathHTML(o)}</span></button>`;
         }).join('')}</div>`;
     } else if (x.t === 'num') {
-      body = `<div class="num-wrap"><input id="numIn" class="num-in ${L.state}" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Skriv svaret" value="${esc(x.input)}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="num-unit">${esc(x.u)}</span></div>
+      body = `<div class="num-wrap"><input id="numIn" class="num-in ${L.state}" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Skriv svaret" value="${esc(x.input)}" ${L.state !== 'idle' ? 'disabled' : ''}><span class="num-unit">${mathHTML(x.u)}</span></div>
         <div class="num-tools"><p class="hint">Bruk komma eller punktum. Store og små tall kan skrives som 6,2e18 eller 6,2·10^18.</p>
         ${L.state === 'idle' && !x.noCalc ? `<button class="calc-btn ${L.calc.open ? 'on' : ''}" data-a="calc" aria-label="Kalkulator">${I.calc()}<span>${L.calc.open ? 'Skjul' : 'Kalkulator'}</span></button>` : ''}</div>
         ${L.state === 'idle' && L.calc.open && !x.noCalc ? calcPanel(L) : ''}`;
     } else if (x.t === 'bank' && x.order) {
-      body = `<ol class="order-list">${x.slots.map((id, i) => `<li><span class="ord-n">${i + 1}</span>${id === null ? '<span class="slot empty wide"></span>' : `<button class="tile in step" data-a="unslot" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}>${esc(x.tokens[id].text)}</button>`}</li>`).join('')}</ol>
+      body = `<ol class="order-list">${x.slots.map((id, i) => `<li><span class="ord-n">${i + 1}</span>${id === null ? '<span class="slot empty wide"></span>' : `<button class="tile in step" data-a="unslot" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}>${mathHTML(x.tokens[id].text)}</button>`}</li>`).join('')}</ol>
         <div class="bank steps">${x.tokens.map((tk) => {
           const used = x.slots.includes(tk.id);
-          return `<button class="tile step ${used ? 'used' : ''}" data-a="tile" data-i="${tk.id}" ${used || L.state !== 'idle' ? 'disabled' : ''}>${esc(tk.text)}</button>`;
+          return `<button class="tile step ${used ? 'used' : ''}" data-a="tile" data-i="${tk.id}" ${used || L.state !== 'idle' ? 'disabled' : ''}>${mathHTML(tk.text)}</button>`;
         }).join('')}</div>`;
     } else if (x.t === 'card') {
       body = '';
     } else if (x.t === 'bank') {
       let k = 0;
-      const line = esc(x.tpl).replace(/▢/g, () => {
+      const show = (t) => (x.code ? esc(t) : mathHTML(t));
+      const line = (x.code ? esc(x.tpl).replace(/\n/g, '<br>') : mathHTML(x.tpl)).replace(/<br>/g, '<span class="lb"></span>').replace(/▢/g, () => {
         const i = k++, id = x.slots[i];
-        return id === null ? `<span class="slot empty"></span>` : `<button class="tile in" data-a="unslot" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}>${esc(x.tokens[id].text)}</button>`;
+        return id === null ? `<span class="slot empty"></span>` : `<button class="tile in" data-a="unslot" data-i="${i}" ${L.state !== 'idle' ? 'disabled' : ''}>${show(x.tokens[id].text)}</button>`;
       });
       body = `<div class="bank-line ${x.code ? 'mono' : ''}">${line}</div>
         <div class="bank">${x.tokens.map((tk) => {
           const used = x.slots.includes(tk.id);
-          return `<button class="tile ${used ? 'used' : ''}" data-a="tile" data-i="${tk.id}" ${used || L.state !== 'idle' ? 'disabled' : ''}>${esc(tk.text)}</button>`;
+          return `<button class="tile ${used ? 'used' : ''}" data-a="tile" data-i="${tk.id}" ${used || L.state !== 'idle' ? 'disabled' : ''}>${x.code ? esc(tk.text) : mathHTML(tk.text)}</button>`;
         }).join('')}</div>`;
     } else if (x.t === 'match') {
       const col = (side, arr) => arr.map((it) => {
@@ -788,7 +904,7 @@
         const done = x.done.includes(it.i) && !flashOk;
         const sel = (side === 'L' ? x.selL : x.selR) === it.i;
         const bad = x.bad && x.bad[side] === it.i;
-        return `<button class="mtile ${done ? 'done' : ''} ${flashOk ? 'good' : ''} ${sel ? 'sel' : ''} ${bad ? 'bad' : ''}" data-a="m${side}" data-i="${it.i}" ${done || flashOk ? 'disabled' : ''}>${esc(it.text)}</button>`;
+        return `<button class="mtile ${done ? 'done' : ''} ${flashOk ? 'good' : ''} ${sel ? 'sel' : ''} ${bad ? 'bad' : ''}" data-a="m${side}" data-i="${it.i}" ${done || flashOk ? 'disabled' : ''}>${mathHTML(it.text)}</button>`;
       }).join('');
       body = `<div class="match"><div class="mcol">${col('L', x.left)}</div><div class="mcol">${col('R', x.right)}</div></div>`;
     }
@@ -806,7 +922,7 @@
       foot = `<div class="l-foot ${ok ? 'ok' : 'no'}"><div class="foot-in">
         <div class="fb">
           <div class="fb-title">${ok ? esc(L.praise || 'Riktig!') : 'Riktig svar:'}</div>
-          ${ok ? '' : `<div class="fb-ans">${nl(correctText(x))}</div>`}
+          ${ok ? '' : `<div class="fb-ans">${x.t === 'bank' && x.code ? nl(correctText(x)) : mathHTML(correctText(x))}</div>`}
           ${x.e ? `<div class="fb-exp">${gloss(x.e)}</div>` : ''}
         </div>
         <button class="btn ${ok ? 'green' : 'red'}" data-a="cont" id="contBtn">Fortsett</button>
@@ -818,8 +934,8 @@
         <div class="bar"><div class="fill" style="width:${pct}%"></div>${L.flash ? `<span class="combo">${esc(L.flash)}</span>` : ''}</div>${top}</div>
       <div class="l-body"><div class="l-inner">
         ${x.t === 'card' ? `<div class="intro-card"><div class="ic-badge">${esc(x.kind)}</div>
-          <div class="ic-term ${x.term.length > 18 ? 'long' : ''}">${esc(x.term)}</div>
-          <div class="ic-name">${esc(x.name)}</div>
+          <div class="ic-term ${x.term.length > 18 ? 'long' : ''}">${mathHTML(x.term)}</div>
+          <div class="ic-name">${mathHTML(x.name)}</div>
           <p class="ic-d">${gloss(x.d)}</p></div>` : `
         <div class="l-type">${x.t === 'bank' && x.order ? TYPE_LABEL.order : TYPE_LABEL[x.t]}${x.src ? ` · ${/^\d/.test(x.src) ? 'Oppgave ' : ''}${esc(x.src)}` : ''}${x.noCalc ? ' <span class="nocalc">Uten hjelpemidler</span>' : ''}</div>
         <h2 class="l-q">${gloss(x.q)}</h2>
@@ -1200,6 +1316,7 @@
     applyTheme();
     if (LESSON) renderLesson();
     else renderMain();
+    applyGloss(app);
   }
 
   function toast(msg) {
