@@ -1334,7 +1334,12 @@
     if ((L.screen === 'done' || L.screen === 'streak') && L.result.goalHit) { L.screen = 'goal'; return render(); }
     exitLesson();
   }
-  function exitLesson() { LESSON = null; UI.scrollToCurrent = true; render(); }
+  // Etter en leksjon går stien tilbake til noden du nettopp øvde på, ikke til starten.
+  function exitLesson() {
+    const n = LESSON && LESSON.node;
+    UI.lastNode = n && NODES[n.i] && NODES[n.i].id === n.id ? n.i : null;
+    LESSON = null; UI.scrollToCurrent = true; render();
+  }
 
   // ------------------------------------------------------------------
   // Visning: leksjon
@@ -1521,7 +1526,9 @@
         </div>`;
       const path = nodes.map((n, k) => {
         const done = nodeDone(n), isCur = n.i === cur;
-        const state = done ? 'done' : isCur ? 'cur' : n.i < cur ? 'open' : 'locked';
+        // et tema lenger fram som du har startet på, vises i farge med fremdriftsring
+        const started = n.type === 'skill' && !done && n.i > cur && (S.prog[n.id] || 0) > 0;
+        const state = done ? 'done' : isCur ? 'cur' : n.i < cur ? 'open' : started ? 'started' : 'locked';
         const weak = n.type === 'skill' && isWeak(n.id);
         let icon;
         if (n.type === 'chest') icon = I.chest(done);
@@ -1529,11 +1536,11 @@
         else if (n.type === 'exam') icon = I.exam();
         else icon = done ? I.check() : I.star();
         const lv = S.prog[n.id] || 0;
-        const ring = n.type === 'skill' && isCur
+        const ring = n.type === 'skill' && (isCur || started)
           ? `<svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="ring-bg"/><circle cx="50" cy="50" r="46" class="ring-fg" style="stroke-dasharray:${(289 * lv) / LEVELS} 289"/></svg>` : '';
         const pop = UI.open === n.i ? popover(n, state) : '';
-        return `<div class="node-wrap ${UI.open === n.i ? 'open' : ''} ${isCur && UI.open !== n.i ? 'has-bubble' : ''}" style="--x:${OFFSETS[(k + u.index * 3) % OFFSETS.length]}px">
-          ${isCur && UI.open !== n.i ? `<div class="start-bubble">${n.type === 'chest' ? 'ÅPNE' : 'START'}</div>` : ''}
+        return `<div class="node-wrap ${UI.open === n.i ? 'open' : ''} ${(isCur || (started && UI.lastNode === n.i)) && UI.open !== n.i ? 'has-bubble' : ''}" style="--x:${OFFSETS[(k + u.index * 3) % OFFSETS.length]}px">
+          ${isCur && UI.open !== n.i ? `<div class="start-bubble">${n.type === 'chest' ? 'ÅPNE' : 'START'}</div>` : started && UI.lastNode === n.i && UI.open !== n.i ? '<div class="start-bubble">FORTSETT</div>' : ''}
           <button class="node ${state} ${n.type} ${weak ? 'weak' : ''} ${n.optional ? 'optional' : ''}" data-a="node" data-n="${n.i}" ${isCur ? 'id="curNode"' : ''} aria-label="${esc(n.title)}">${ring}<span class="node-face">${icon}</span>${weak ? I.crack() : ''}</button>
           ${pop}
         </div>`;
@@ -1559,7 +1566,7 @@
       const lv = S.prog[n.id] || 0;
       if (state === 'done' && isWeak(n.id)) inner = `<h4>${esc(n.title)}</h4><p>Det er en stund siden du øvde på dette. Styrk kunnskapen før den blekner!</p><button class="btn white" data-a="go" data-n="${n.i}">Styrk +5 XP</button>`;
       else if (state === 'done') inner = `<h4>${esc(n.title)}</h4><p>Fullført! Styrke: ${Math.round(100 * strength(n.id))} %. Repeter for å holde kunnskapen ved like.</p><button class="btn white" data-a="go" data-n="${n.i}">Øv +5 XP</button>`;
-      else if (state === 'cur') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}${lv === 0 && n.skill.concepts.length ? ` · ${n.skill.concepts.length} ${n.skill.concepts.length === 1 ? 'nytt begrep' : 'nye begreper'}` : ''}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
+      else if (state === 'cur' || state === 'started') inner = `<h4>${esc(n.title)}</h4><p>Leksjon ${lv + 1} av ${LEVELS}${lv === 0 && n.skill.concepts.length ? ` · ${n.skill.concepts.length} ${n.skill.concepts.length === 1 ? 'nytt begrep' : 'nye begreper'}` : ''}</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
       else inner = `<h4>${esc(n.title)}</h4><p>${lv ? `Leksjon ${lv + 1} av ${LEVELS}` : 'Ikke startet ennå'}${lv === 0 && n.skill.concepts.length ? ` · ${n.skill.concepts.length} ${n.skill.concepts.length === 1 ? 'nytt begrep' : 'nye begreper'}` : ''}. Du kan starte her uten å ta temaene før.</p><button class="btn white" data-a="go" data-n="${n.i}">Start +10 XP</button>${hand}`;
     } else if (n.type === 'review') {
       inner = `<h4>Enhetsrepetisjon</h4><p>Repeter hele enhet ${n.unit.index + 1}: ${esc(n.unit.title)}</p><button class="btn white" data-a="go" data-n="${n.i}">${state === 'done' ? 'Øv +5 XP' : 'Start +15 XP'}</button>`;
@@ -1976,7 +1983,7 @@
 
     if (UI.tab === 'learn' && UI.scrollToCurrent) {
       UI.scrollToCurrent = false;
-      const el = document.getElementById('curNode');
+      const el = (UI.lastNode != null && document.querySelector(`.node[data-n="${UI.lastNode}"]`)) || document.getElementById('curNode');
       if (el) setTimeout(() => { const y = el.getBoundingClientRect().top + window.scrollY - window.innerHeight / 2; window.scrollTo(0, Math.max(0, y)); }, 20);
     }
   }
@@ -2071,7 +2078,7 @@
       case 'jump': UI.modal = { type: 'jump', u: +el.dataset.u }; render(); break;
       case 'jumpGo': startLesson('jump', null, { unit: COURSE.units[+el.dataset.u] }); break;
       case 'courses': UI.modal = { type: 'courses' }; UI.open = -1; render(); break;
-      case 'setCourse': setCourse(el.dataset.c); save(); UI.modal = null; UI.tab = 'learn'; UI.open = -1; UI.scrollToCurrent = true; window.scrollTo(0, 0); render(); break;
+      case 'setCourse': setCourse(el.dataset.c); save(); UI.lastNode = null; UI.modal = null; UI.tab = 'learn'; UI.open = -1; UI.scrollToCurrent = true; window.scrollTo(0, 0); render(); break;
       case 'heartsInfo': UI.modal = { type: 'hearts' }; render(); break;
       case 'streakInfo': UI.modal = { type: 'streak' }; render(); break;
       case 'closeModal':
