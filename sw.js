@@ -1,6 +1,6 @@
 // Nettverk først, med hurtigbuffer som reserve, slik at appen virker offline
 // og samtidig alltid får siste versjon når du er på nett.
-const CACHE = 'hugolingo-v7';
+const CACHE = 'hugolingo-v8';
 const CORE = [
   './',
   'index.html',

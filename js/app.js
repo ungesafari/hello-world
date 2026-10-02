@@ -247,6 +247,7 @@
     aim: () => `<svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="m8 12 3 3 5-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
     sigma: () => `<svg viewBox="0 0 64 64" class="logo-ic"><rect x="4" y="4" width="56" height="56" rx="14" fill="#ce82ff"/><path d="M44 16H20l14 16-14 16h24" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     exam: () => `<svg viewBox="0 0 48 48" class="nic big"><rect x="9" y="5" width="30" height="38" rx="4" fill="#fff" stroke="#ff4b4b" stroke-width="3"/><path d="M15 15h18M15 22h18M15 29h11" stroke="#afafaf" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="35" r="8" fill="#ff4b4b"/><path d="m30.5 35 2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    bookmark: (on) => `<svg viewBox="0 0 24 24" class="ic"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z" fill="${on ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>`,
     repeat: () => `<svg viewBox="0 0 24 24" class="ic"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 0 1 13.7-5.6M20 12a8 8 0 0 1-13.7 5.6"/><path fill="currentColor" d="M19.5 3v5.5H14zM4.5 21v-5.5H10z"/></svg>`,
     dumbbell: () => `<svg viewBox="0 0 24 24" class="ic"><g fill="currentColor"><rect x="1.5" y="9" width="3" height="6" rx="1"/><rect x="4.5" y="6.5" width="3.5" height="11" rx="1.2"/><rect x="8" y="10.8" width="8" height="2.4"/><rect x="16" y="6.5" width="3.5" height="11" rx="1.2"/><rect x="19.5" y="9" width="3" height="6" rx="1"/></g></svg>`,
     calc: () => `<svg viewBox="0 0 24 24" class="ic"><rect x="4" y="2" width="16" height="20" rx="3" fill="currentColor"/><rect x="7" y="5" width="10" height="4" rx="1" fill="#fff"/><g fill="#fff"><circle cx="8.5" cy="13" r="1.2"/><circle cx="12" cy="13" r="1.2"/><circle cx="15.5" cy="13" r="1.2"/><circle cx="8.5" cy="17" r="1.2"/><circle cx="12" cy="17" r="1.2"/><circle cx="15.5" cy="17" r="1.2"/></g></svg>`,
@@ -271,7 +272,7 @@
       today: null, quests: null, boost: 0,
       league: null, leagueBest: 0,
       sound: true, theme: 'auto', name: '',
-      course: 'fysikk1', mem: {}, wrong: {},
+      course: 'fysikk1', mem: {}, wrong: {}, marks: {},
     };
   }
   function load() {
@@ -282,6 +283,7 @@
     return fresh();
   }
   let S = load();
+  S.marks = S.marks || {};
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (err) { /* ignorer */ } }
 
   // UI-tilstand som ikke lagres
@@ -325,11 +327,14 @@
         nodes.push({ id: sk.id, type: 'skill', unit: u, skill: sk, title: sk.title, optional: !!sk.optional });
         if (si === 1 && u.skills.length > 2) nodes.push({ id: u.id + '-chest', type: 'chest', unit: u, title: 'Skattekiste' });
       });
+      if (u.exam) u.exam.items = u.exam.items.map((it, k) => ({ ...it, id: it.id || `${u.id}!${k}` }));
       if (u.exam) nodes.push({ id: u.id + '-review', type: 'exam', unit: u, title: u.exam.title });
       else nodes.push({ id: u.id + '-review', type: 'review', unit: u, title: 'Enhetsrepetisjon' });
     });
     nodes.forEach((n, i) => { n.i = i; });
     c.nodes = nodes;
+    c.itemById = {};
+    c.units.forEach((u) => { u.skills.forEach((sk) => sk.items.forEach((it) => { c.itemById[it.id] = it; })); if (u.exam) u.exam.items.forEach((it) => { c.itemById[it.id] = it; }); });
   });
   function setCourse(id) {
     COURSE = COURSES.find((c) => c.id === id) || COURSES[0];
@@ -582,9 +587,16 @@
     if (x.t === 'bank') return x.slots.every((s) => s !== null);
     return false;
   }
+  // Korte, eksakte svar (som 1,005 eller −1,811) vises som de er.
+  // Lange utregnede verdier avrundes til tre gjeldende siffer.
+  function fmtAns(a) {
+    const str = String(Math.abs(a));
+    if (!/e/.test(str) && str.replace('.', '').replace(/^0+/, '').length <= 5) return (a < 0 ? '−' : '') + str.replace('.', ',');
+    return fmt(a);
+  }
   function correctText(x) {
     if (x.t === 'mc') return x.opts[x.correct];
-    if (x.t === 'num') return `${fmt(x.a)} ${x.u}`;
+    if (x.t === 'num') return `${fmtAns(x.a)} ${x.u}`.trim();
     if (x.t === 'bank' && x.order) return x.ans.map((a, i) => `${i + 1}. ${a}`).join('\n');
     if (x.t === 'bank') { let k = 0; return x.tpl.replace(/▢/g, () => x.ans[k++]); }
     return '';
@@ -778,8 +790,10 @@
     return { t: 'match', pairs, q: 'Koble sammen det du har lært', skill: cs[0].skill };
   }
 
+  const repMarked = (it) => { const m = it && it.id && S.marks[it.id]; return !!(m && m.rep); };
   function buildItems(pool, n) {
-    let list = shuffle(pool);
+    // bokmerket for repetisjon kommer først i køen og blir dermed med oftere
+    let list = shuffle(pool).sort((a, b) => repMarked(b) - repMarked(a));
     // maks én koble-oppgave per leksjon
     let seenMatch = false;
     list = list.filter((it) => (it.t === 'match' ? (seenMatch ? false : (seenMatch = true)) : true));
@@ -809,7 +823,9 @@
     return ranked.map(({ m }) => {
       const cs = m.skill.concepts;
       if (cs.length && Math.random() < 0.4) { const d = makeDrill(pickR(cs)); if (d) return d; }
-      return pickR(m.skill.items.filter((it) => it.t !== 'match'));
+      const its = m.skill.items.filter((it) => it.t !== 'match');
+      const marked = its.filter(repMarked);
+      return pickR(marked.length && Math.random() < 0.7 ? marked : its);
     }).filter(Boolean);
   }
   // Setter inn elementer på tilfeldige plasser i siste halvdel av leksjonen.
@@ -843,7 +859,7 @@
   }
   // Øving på svake emner: oppgaver du har svart feil på før kommer oftere.
   function buildWeakItems(skills, n) {
-    const scored = allItems(skills).map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + Math.random() * 1.5 }));
+    const scored = allItems(skills).map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + (repMarked(it) ? 3 : 0) + Math.random() * 1.5 }));
     scored.sort((a, b) => b.w - a.w);
     let seenMatch = false;
     const list = [];
@@ -1079,12 +1095,14 @@
           <div class="ic-term ${x.term.length > 18 ? 'long' : ''}">${mathHTML(x.term)}</div>
           <div class="ic-name">${mathHTML(x.name)}</div>
           <p class="ic-d">${gloss(x.d)}</p></div>` : `
-        <div class="l-type">${x.t === 'bank' && x.order ? TYPE_LABEL.order : TYPE_LABEL[x.t]}${x.src ? ` · ${/^\d/.test(x.src) ? 'Oppgave ' : ''}${esc(x.src)}` : ''}${x.noCalc ? ' <span class="nocalc">Uten hjelpemidler</span>' : ''}</div>
+        <div class="l-type-row"><div class="l-type">${x.t === 'bank' && x.order ? TYPE_LABEL.order : TYPE_LABEL[x.t]}${x.src ? ` · ${/^\d/.test(x.src) ? 'Oppgave ' : ''}${esc(x.src)}` : ''}${x.noCalc ? ' <span class="nocalc">Uten hjelpemidler</span>' : ''}</div>
+          ${x.id ? `<button class="mark-btn ${S.marks[x.id] ? 'on' : ''}" data-a="mark" aria-label="Bokmerk oppgaven">${I.bookmark(!!S.marks[x.id])}<span>${S.marks[x.id] ? 'Bokmerket' : 'Bokmerk'}</span></button>` : ''}</div>
         <h2 class="l-q">${gloss(x.q)}</h2>
         ${body}`}
       </div></div>
       ${foot}
       ${UI.modal === 'quit' ? quitModal() : ''}
+      ${UI.modal && UI.modal.type === 'mark' ? markSheet() : ''}
     </div>`;
 
     const inp = document.getElementById('numIn');
@@ -1325,7 +1343,7 @@
   function repItems(nodes, per = 3) {
     const blocks = nodes.map((n) => {
       const sk = n.skill;
-      const items = sk.items.filter((it) => it.t !== 'match').map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + Math.random() * 1.5 })).sort((x, y) => y.w - x.w).map(({ it }) => it);
+      const items = sk.items.filter((it) => it.t !== 'match').map((it) => ({ it, w: (S.wrong[it.id] || 0) * 2 + (repMarked(it) ? 3 : 0) + Math.random() * 1.5 })).sort((x, y) => y.w - x.w).map(({ it }) => it);
       const own = items.slice(0, per);
       const d = drillsFor(sk.concepts.length ? sk.concepts : sk.active, sk.concepts.length ? 2 : 1);
       return { d, own, rest: items.slice(per) };
@@ -1344,11 +1362,104 @@
   function wrongList() {
     return NODES.filter((n) => n.type === 'skill').flatMap((n) => n.skill.items.filter((it) => S.wrong[it.id])).slice(0, 12);
   }
+  // ------------------------------------------------------------------
+  // Bokmerker: oppgaver du vil repetere oftere, eller gi tilbakemelding på
+  // ------------------------------------------------------------------
+  const DRILL_TYPE = { n: 'name', t: 'term', f: 'fill' };
+  // Finner oppgaven bak et bokmerke igjen, også formeloppgaver som lages automatisk.
+  function itemFromId(id, c = COURSE) {
+    if (c.itemById[id]) return c.itemById[id];
+    const m = /^(.*~\d+)([ntf])$/.exec(id);
+    const cc = m && c.concepts.find((o) => o.id === m[1]);
+    return cc ? makeDrill(cc, DRILL_TYPE[m[2]]) : null;
+  }
+  const FEEDBACK_TAGS = ['Feil fasit', 'Uklar oppgavetekst', 'Feil eller uklar forklaring', 'For lett', 'For vanskelig', 'Feil i svaralternativene'];
+  function markSnapshot(x) {
+    const sk = NODES.find((n) => n.type === 'skill' && n.id === x.skill);
+    return {
+      course: COURSE.id, skill: x.skill || null, where: sk ? sk.title : (LESSON && LESSON.title) || '',
+      src: x.src || '', q: x.q || '', ans: x.t === 'match' ? '' : correctText(x), opts: x.t === 'mc' && !x.tf ? x.opts.slice() : null,
+    };
+  }
+  function markSheet() {
+    const m = UI.modal;
+    const cur = S.marks[m.id];
+    const still = m.shown ? 'still' : '';
+    m.shown = true;
+    return `<div class="modal-bg ${still}" data-a="closeModal"><div class="modal mark-sheet" data-stop>
+      <h3>Bokmerk oppgaven</h3>
+      <p class="muted small mark-q">${m.src ? esc(m.src) + ' · ' : ''}${esc(String(m.q).replace(/\n/g, ' ').slice(0, 120))}</p>
+      <button class="mark-opt ${m.rep ? 'on' : ''}" data-a="markRep"><span class="mk-box">${m.rep ? '✓' : ''}</span><span><b>Repeter denne oftere</b><small>Oppgaven dukker opp oftere i leksjoner og i Repetisjon.</small></span></button>
+      <label class="mark-l" for="markNote">Tilbakemelding (valgfritt)</label>
+      <div class="chips">${FEEDBACK_TAGS.map((t) => `<button class="chip ${m.tags.includes(t) ? 'on' : ''}" data-a="markTag" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+      <textarea id="markNote" rows="3" placeholder="Skriv hva som kan forbedres med oppgaven.">${esc(m.text)}</textarea>
+      <button class="btn green wide" data-a="markSave">Lagre</button>
+      ${cur ? '<button class="btn link wide red-t" data-a="markDel">Fjern bokmerket</button>' : '<button class="btn link wide" data-a="closeModal">Avbryt</button>'}
+    </div></div>`;
+  }
+  // Åpner bokmerke-arket. Et nytt bokmerke er satt til «repeter oftere» fra start.
+  function openMark(id, x) {
+    const cur = S.marks[id];
+    UI.modal = cur
+      ? { type: 'mark', id, rep: cur.rep, tags: (cur.tags || []).slice(), text: cur.text !== undefined ? cur.text : cur.note || '', src: cur.src, q: cur.q }
+      : { type: 'mark', id, rep: true, tags: [], text: '', src: x.src, q: x.q, x };
+    render();
+  }
+  const keepText = () => { const t = document.getElementById('markNote'); if (t && UI.modal) UI.modal.text = t.value; };
+  function saveMark() {
+    keepText();
+    const m = UI.modal;
+    const text = m.text.trim();
+    const note = m.tags.map((t) => t + '.').concat(text ? [text] : []).join(' ');
+    if (!m.rep && !note) { delete S.marks[m.id]; save(); UI.modal = null; toast('Bokmerket er fjernet.'); return render(); }
+    const old = S.marks[m.id];
+    S.marks[m.id] = { ...(old || markSnapshot(m.x)), rep: m.rep, tags: m.tags, text, note, t: Date.now() };
+    save(); UI.modal = null;
+    toast(m.rep && note ? 'Lagret for repetisjon og med tilbakemelding.' : m.rep ? 'Lagret for repetisjon.' : 'Tilbakemeldingen er lagret.');
+    render();
+  }
+  const courseMarks = (c = COURSE) => Object.entries(S.marks).filter(([, m]) => m.course === c.id);
+  function markedRepItems() {
+    return courseMarks().filter(([, m]) => m.rep).map(([id]) => itemFromId(id)).filter(Boolean);
+  }
+  // Tilbakemeldingene som ren tekst, klar til å limes inn i en melding.
+  function feedbackText() {
+    const list = Object.values(S.marks).filter((m) => m.note);
+    const head = `Tilbakemeldinger på oppgaver i HugoLingo (${list.length})`;
+    return [head].concat(list.map((m) => {
+      const c = COURSES.find((cc) => cc.id === m.course);
+      return [
+        `${c ? c.title : m.course}, ${m.where}${m.src ? `, oppgave ${m.src}` : ''}`,
+        `Oppgave: ${m.q.replace(/\n/g, ' ')}`,
+        m.opts ? `Alternativer: ${m.opts.map((o) => o.replace(/\n/g, ' / ')).join(' | ')}` : '',
+        m.ans ? `Fasit i appen: ${String(m.ans).replace(/\n/g, ' ')}` : '',
+        `Tilbakemelding: ${m.note}`,
+      ].filter(Boolean).join('\n');
+    })).join('\n\n');
+  }
+  function marksCard() {
+    const list = courseMarks().sort((a, b) => b[1].t - a[1].t);
+    const repN = list.filter(([, m]) => m.rep).length;
+    const noteN = Object.values(S.marks).filter((m) => m.note).length;
+    if (!list.length && !noteN) {
+      return `<div class="card"><h3>Bokmerker</h3><p class="muted">Trykk på bokmerket ved en oppgave for å repetere den oftere eller skrive en tilbakemelding om den.</p></div>`;
+    }
+    return `<div class="card marks">
+      <div class="card-h"><h3>Bokmerker</h3>${noteN ? `<button class="link-b" data-a="copyFeedback">Kopier tilbakemeldinger (${noteN})</button>` : ''}</div>
+      ${repN ? `<button class="btn green wide" data-a="rep" data-k="marked">Øv ${repN} bokmerkede ${repN === 1 ? 'oppgave' : 'oppgaver'}</button>` : ''}
+      <ul class="mark-list">${list.map(([id, m]) => `<li><button class="mark-row" data-a="markEdit" data-id="${esc(id)}">
+        <span class="mark-tags">${m.rep ? '<span class="tag rep">Repeter</span>' : ''}${m.note ? '<span class="tag fb">Tilbakemelding</span>' : ''}<span class="muted small">${esc(m.where)}${m.src ? ' · ' + esc(m.src) : ''}</span></span>
+        <span class="mark-text">${mathHTML(m.q.split('\n')[0].slice(0, 140))}</span>
+        ${m.note ? `<span class="mark-note">${esc(m.note)}</span>` : ''}</button></li>`).join('')}</ul>
+    </div>`;
+  }
+
   function startRep(kind, arg) {
     let items = [], title = 'Repetisjon';
     if (kind === 'mix') { items = repItems(repPlan()); title = 'Blandet repetisjon'; UI.repPlan = null; }
     else if (kind === 'concepts') { items = conceptReview(arg != null ? COURSE.units[arg] : null); title = 'Formler og begreper'; }
     else if (kind === 'wrong') { items = wrongList(); title = 'Oppgaver du har bommet på'; }
+    else if (kind === 'marked') { items = shuffle(markedRepItems()).slice(0, 15); title = 'Bokmerkede oppgaver'; }
     else if (kind === 'unit') { const u = COURSE.units[arg]; items = repItems(repSkills().filter((n) => n.unit === u), 2).slice(0, 14); title = `Repeter: ${u.title}`; }
     if (!items.length) { toast('Du har ikke noe å repetere her ennå.'); return; }
     startLesson('practice', null, { items, title });
@@ -1356,8 +1467,8 @@
   function renderRep() {
     const nodes = repSkills();
     if (!nodes.length) {
-      return `<div class="page"><div class="hero-band"><div><h2>Repetisjon</h2><p>Her kan du repetere alt du har lært, blandet sammen tema for tema.</p></div>${mascot('happy')}</div>
-        <div class="card"><p>Fullfør den første leksjonen i ${esc(COURSE.title)}, så dukker repetisjonen opp her.</p></div></div>`;
+      return `<div class="page rep"><div class="hero-band"><div><h2>Repetisjon</h2><p>Her kan du repetere alt du har lært, blandet sammen tema for tema.</p></div>${mascot('happy')}</div>
+        <div class="card"><p>Fullfør den første leksjonen i ${esc(COURSE.title)}, så dukker repetisjonen opp her.</p></div>${marksCard()}</div>`;
     }
     const plan = repPlan();
     const conceptsN = nodes.reduce((a, n) => a + n.skill.concepts.length, 0);
@@ -1377,6 +1488,7 @@
         <div class="card"><h3>Oppgaver du har bommet på</h3><p class="muted">${wrongN ? `${wrongN} ${wrongN === 1 ? 'oppgave' : 'oppgaver'} å ta igjen.` : 'Ingen akkurat nå. Bra jobba!'}</p>
           <button class="btn ghost wide" data-a="rep" data-k="wrong" ${wrongN ? '' : 'disabled'}>Ta dem igjen</button></div>
       </div>
+      ${marksCard()}
       <h3 class="sec">Velg et tema</h3>
       <div class="card rep-units">${units.map((u) => {
         const ns = nodes.filter((n) => n.unit === u);
@@ -1457,6 +1569,7 @@
   function renderModal() {
     if (!UI.modal) return '';
     const m = UI.modal;
+    if (m.type === 'mark') return markSheet();
     if (m.type === 'guide') {
       const u = COURSE.units[m.u];
       return `<div class="modal-bg" data-a="closeModal"><div class="modal guide" data-stop style="--c:${u.color};--cd:${u.dark}">
@@ -1648,6 +1761,19 @@
       }
       case 'rep': LESSON = null; startRep(el.dataset.k, el.dataset.u != null ? +el.dataset.u : null); break;
       case 'repNew': repPlan(true); render(); break;
+      case 'mark': if (L && L.cur && L.cur.id) openMark(L.cur.id, L.cur); break;
+      case 'markEdit': if (S.marks[el.dataset.id]) openMark(el.dataset.id); break;
+      case 'markRep': keepText(); UI.modal.rep = !UI.modal.rep; render(); break;
+      case 'markTag': { keepText(); const tags = UI.modal.tags, t = el.dataset.t; if (tags.includes(t)) tags.splice(tags.indexOf(t), 1); else tags.push(t); render(); break; }
+      case 'markSave': saveMark(); break;
+      case 'markDel': delete S.marks[UI.modal.id]; save(); UI.modal = null; toast('Bokmerket er fjernet.'); render(); break;
+      case 'copyFeedback': {
+        const txt = feedbackText();
+        const done = () => toast('Tilbakemeldingene er kopiert. Lim dem inn i en melding til meg.');
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, () => prompt('Kopier teksten:', txt));
+        else prompt('Kopier teksten:', txt);
+        break;
+      }
       case 'board': UI.board = el.dataset.v; UI.boardAll = false; render(); break;
       case 'boardAll': UI.boardAll = !UI.boardAll; render(); break;
       case 'goal': S.goal = +el.dataset.v; save(); render(); break;
