@@ -272,7 +272,7 @@
       today: null, quests: null, boost: 0,
       league: null, leagueBest: 0,
       sound: true, theme: 'auto', name: '',
-      course: 'fysikk1', mem: {}, wrong: {}, marks: {}, srs: {}, cstage: {},
+      course: 'fysikk1', mem: {}, wrong: {}, marks: {}, srs: {}, cstage: {}, tests: [],
     };
   }
   function load() {
@@ -286,6 +286,7 @@
   S.marks = S.marks || {};
   S.srs = S.srs || {};
   S.cstage = S.cstage || {};
+  S.tests = S.tests || [];
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (err) { /* ignorer */ } }
 
   // UI-tilstand som ikke lagres
@@ -402,28 +403,60 @@
     const ivl = card.ivl > 0 ? card.ivl : SRS.relearnMs / DAY_MS;
     return Math.pow(0.9, (now - card.last) / DAY_MS / ivl);
   }
-  function review(id, skill, ok, now = Date.now()) {
-    let c = S.srs[id];
-    if (!c) c = S.srs[id] = { ef: SRS.startEase, ivl: 0, reps: 0, lapses: 0, last: now, due: now, sk: skill || null };
+  // Vurderinger som i Anki: 1 Igjen, 2 Vanskelig, 3 Bra, 4 Lett. Riktig/feil i vanlige oppgaver er 3 og 1.
+  // nextCard regner ut kortets nye tilstand uten å endre det, slik at knappene kan vise intervallet på forhånd.
+  function nextCard(old, grade, now = Date.now()) {
+    const c = { ...old };
     const elapsed = (now - c.last) / DAY_MS;
-    if (!ok) {
+    if (grade === 1) {
       // «Igjen»: lettindeksen synker, og kortet må læres på nytt
       if (c.reps > 0) { c.lapses++; c.ef = Math.max(SRS.minEase, c.ef - 0.2); c.relearn = Math.max(1, Math.round(c.ivl * SRS.lapseFactor)); }
       c.reps = 0; c.ivl = 0; c.due = now + SRS.relearnMs;
     } else if (c.reps === 0) {
-      // nytt eller gjenlært kort
-      c.ivl = c.relearn || SRS.firstIvl; delete c.relearn;
+      // nytt eller gjenlært kort: Vanskelig gir et halvt døgn, Bra 1 dag (eller gjenlæringsintervallet), Lett 4 dager
+      const base = c.relearn || SRS.firstIvl;
+      c.ivl = grade === 2 ? Math.max(0.5, base / 2) : grade === 4 ? Math.max(4, base * 1.5) : base;
+      if (grade === 4) c.ef = Math.min(3, c.ef + 0.15);
+      delete c.relearn;
       c.reps = 1; c.due = now + c.ivl * DAY_MS;
     } else {
       let ivl;
-      if (elapsed < c.ivl) ivl = c.ivl + c.ivl * (c.ef - 1) * (elapsed / c.ivl); // repetert før forfall: delvis uttelling
-      else { ivl = (c.ivl + (elapsed - c.ivl) / 2) * c.ef; c.ef = Math.min(3, c.ef + 0.05); } // på tid eller sent: bonus
-      ivl = Math.min(SRS.maxIvl, Math.max(c.ivl + (elapsed >= c.ivl ? 1 : 0), ivl * (0.95 + Math.random() * 0.1)));
-      c.ivl = Math.round(ivl * 10) / 10; c.reps++; c.due = now + c.ivl * DAY_MS;
+      if (grade === 2) { ivl = Math.max(c.ivl * 1.2, c.ivl + 0.5); c.ef = Math.max(SRS.minEase, c.ef - 0.15); }
+      else {
+        if (elapsed < c.ivl) ivl = c.ivl + c.ivl * (c.ef - 1) * (elapsed / c.ivl); // repetert før forfall: delvis uttelling
+        else ivl = (c.ivl + (elapsed - c.ivl) / 2) * c.ef; // på tid eller sent: bonus for sene repetisjoner
+        if (grade === 4) { ivl *= 1.3; c.ef = Math.min(3, c.ef + 0.15); }
+        else if (elapsed >= c.ivl) c.ef = Math.min(3, c.ef + 0.05);
+        ivl = Math.max(c.ivl + (elapsed >= c.ivl ? 1 : 0), ivl);
+      }
+      c.ivl = Math.round(Math.min(SRS.maxIvl, ivl) * 10) / 10; c.reps++; c.due = now + c.ivl * DAY_MS;
     }
     c.last = now;
+    return c;
+  }
+  function review(id, skill, grade, now = Date.now()) {
+    if (grade === true) grade = 3; else if (grade === false) grade = 1;
+    const old = S.srs[id] || { ef: SRS.startEase, ivl: 0, reps: 0, lapses: 0, last: now, due: now, sk: skill || null };
+    const c = nextCard(old, grade, now);
+    // litt tilfeldig spredning, så kort som læres samtidig ikke forfaller samme dag
+    if (c.ivl >= 2 && grade > 1) { c.ivl = Math.round(c.ivl * (0.95 + Math.random() * 0.1) * 10) / 10; c.due = now + c.ivl * DAY_MS; }
     if (skill) c.sk = skill;
+    S.srs[id] = c;
     srsVer++;
+  }
+  // «10 min», «12 t», «3 d», «2,5 mnd»
+  function fmtIvl(ms) {
+    const d = ms / DAY_MS;
+    if (d < 1 / 24) return `${Math.max(1, Math.round(ms / 60000))} min`;
+    if (d < 1) return `${Math.round(d * 24)} t`;
+    if (d < 30) return `${Math.round(d)} d`;
+    if (d < 365) return `${(d / 30).toFixed(1).replace('.', ',').replace(',0', '')} mnd`;
+    return `${(d / 365).toFixed(1).replace('.', ',').replace(',0', '')} år`;
+  }
+  function previewIvl(id, grade) {
+    const now = Date.now();
+    const old = S.srs[id] || { ef: SRS.startEase, ivl: 0, reps: 0, lapses: 0, last: now, due: now };
+    return fmtIvl(nextCard(old, grade, now).due - now);
   }
   // Kortene gruppert per ferdighet (bygges på nytt bare når noe er endret).
   let bySkillCache = { v: -1, map: {} };
@@ -602,6 +635,7 @@
     return x;
   }
   function makeInstance(item) {
+    if (item.t === 'flash') return { ...item, shown: false };
     if (item.t === 'num') {
       const g = item.gen();
       return { t: 'num', q: g.q, a: g.a, u: g.u, e: g.e, tol: g.tol, input: '' };
@@ -668,6 +702,7 @@
     return fmt(a);
   }
   function correctText(x) {
+    if (x.t === 'flash') return x.back;
     if (x.t === 'mc') return x.opts[x.correct];
     if (x.t === 'num') return `${fmtAns(x.a)} ${x.u}`.trim();
     if (x.t === 'bank' && x.order) return x.ans.map((a, i) => `${i + 1}. ${a}`).join('\n');
@@ -1031,6 +1066,20 @@
     const q = c.kind === 'f' ? `Hva sier denne formelen?\n${c.term}` : c.kind === 's' ? `Hva står dette symbolet for?\n${c.term}` : `Hva betyr «${c.term}»?`;
     return { ...base, id: `${c.id}n`, t: 'mc', q, opts: [c.name, ...dis], e };
   }
+  // Flashkort som i Anki. Retning a: term → betydning. Retning b: betydning → term.
+  // Du ser forsiden, tenker deg svaret, snur kortet og vurderer hvor sikker du var.
+  const FLASH_KIND = { f: 'Formel', s: 'Symbol', b: 'Begrep' };
+  function makeFlash(c, dir) {
+    const kind = FLASH_KIND[c.kind] || FLASH_KIND.b;
+    const base = { t: 'flash', id: `${c.id}${dir}`, skill: c.skill, kind, shown: false };
+    if (dir === 'a') {
+      const prompt = c.kind === 'f' ? 'Hva sier formelen?' : c.kind === 's' ? 'Hva står symbolet for?' : 'Hva betyr begrepet?';
+      return { ...base, prompt, front: c.term, frontBig: true, back: c.name, backBig: false, note: c.d };
+    }
+    if (c.kind === 'b') return { ...base, prompt: 'Hvilket begrep er dette?', front: c.d, frontBig: false, back: c.term, backBig: true, note: c.name };
+    const prompt = c.kind === 'f' ? 'Hvordan ser formelen ut?' : 'Hvilket symbol er dette?';
+    return { ...base, prompt, front: c.name, frontBig: false, back: c.term, backBig: true, note: c.d };
+  }
   // Gjenkalling: skriv formelen selv ved å fylle inn størrelsene i tomme felt.
   function makeRecall(c) {
     if (c.kind !== 'f') return null;
@@ -1062,6 +1111,7 @@
   const conceptById = (id) => COURSE.concepts.find((o) => o.id === id);
   const stageOf = (c) => (S.cstage[c.id] || { s: 0 }).s;
   function applyItem(c) {
+    if (COURSE.drill) return null;
     const sk = NODES.find((n) => n.type === 'skill' && n.id === c.skill);
     const pool = sk ? sk.skill.apply.filter((it) => it.t !== 'match') : [];
     if (!pool.length) return null;
@@ -1150,7 +1200,59 @@
     for (const it of extra) out.splice(Math.floor(out.length / 2) + Math.floor(Math.random() * (Math.ceil(out.length / 2) + 1)), 0, it);
     return out;
   }
+  // ------------------------------------------------------------------
+  // Pugg-modus (Fysikk 1): flashkort og pugg-oppgaver, med 10–40 % fra andre temaer
+  // ------------------------------------------------------------------
+  const DRILL_LEN = 12;
+  const flashCands = (cs) => cs.flatMap((c) => ['a', 'b'].map((d) => ({ c, d, id: c.id + d })));
+  // Velger flashkort: forfalte og svake kort først, deretter nye.
+  function pickFlash(cs, n) {
+    return flashCands(cs).map((k) => ({ k, w: cardPriority(k.id) + Math.random() * 0.4 }))
+      .sort((x, y) => y.w - x.w).slice(0, n).map(({ k }) => makeFlash(k.c, k.d));
+  }
+  // Kort og oppgaver fra andre temaer du har øvd på, helst forfalte og svake.
+  function otherTopics(node, n) {
+    if (n <= 0) return [];
+    const others = NODES.filter((m) => m.type === 'skill' && m !== node && !m.optional && practiced(m.id));
+    const cands = [];
+    for (const m of others) {
+      const weak = 1 - strength(m.id);
+      for (const k of flashCands(m.skill.concepts)) cands.push({ w: cardPriority(k.id) + weak, get: () => makeFlash(k.c, k.d), sk: m.id });
+      for (const it of m.skill.items) if (it.t !== 'match') cands.push({ w: 0.8 * cardPriority(it.id) + weak, get: () => it, sk: m.id });
+    }
+    cands.forEach((c) => { c.w += Math.random() * 0.8; });
+    cands.sort((a, b) => b.w - a.w);
+    // ikke for mange fra samme tema
+    const out = [], per = {};
+    for (const c of cands) { if (out.length >= n) break; if ((per[c.sk] || 0) >= 2) continue; per[c.sk] = (per[c.sk] || 0) + 1; out.push(c.get()); }
+    return out;
+  }
+  function drillLesson(node, first) {
+    const sk = node.skill;
+    const cs = sk.concepts.length ? sk.concepts : sk.active;
+    const nOther = Math.round(DRILL_LEN * (0.1 + Math.random() * 0.3));
+    let out = [];
+    if (first && sk.concepts.length) {
+      // nye begreper: kort, en rask kontroll, så flashkort på dem
+      sk.concepts.forEach((c, k) => { out.push(cardOf(c)); const d = makeDrill(c, k % 2 ? 'term' : 'name'); if (d) out.push(d); });
+      const m = sk.concepts.length >= 2 && conceptMatch(sk.concepts);
+      if (m) out.push(m);
+      const body = shuffle(flashCands(sk.concepts).map((k) => makeFlash(k.c, k.d))).concat(shuffle(sk.items.filter((it) => it.t !== 'match')).slice(0, 2));
+      out = out.concat(sprinkle(shuffle(body), otherTopics(node, Math.min(nOther, 3))));
+    } else {
+      const flash = pickFlash(cs, Math.min(6, cs.length * 2));
+      const drills = drillsFor(cs, Math.min(2, cs.length), true);
+      const own = buildItems(sk.items, 3);
+      const body = shuffle(flash.concat(drills, own)).slice(0, DRILL_LEN - nOther);
+      // andre temaer fyller opp økten, men utgjør aldri mer enn 40 %
+      const maxOther = Math.max(1, Math.floor((body.length * 0.4) / 0.6));
+      out = sprinkle(body, otherTopics(node, Math.min(DRILL_LEN - body.length, maxOther)));
+    }
+    const seen = new Set();
+    return out.filter((it) => it.t === 'card' || !it.id || (seen.has(it.id) ? false : seen.add(it.id)));
+  }
   function skillLesson(node, first) {
+    if (COURSE.drill) return drillLesson(node, first);
     const sk = node.skill;
     const cs = sk.concepts;
     if (first && cs.length) {
@@ -1190,6 +1292,7 @@
       const want = k === skills.length - 1 ? n - out.length : Math.max(2, Math.round(n * (skills.length === 1 ? 1 : share[k] || 0.2)));
       const cands = sk.items.filter((it) => it.t !== 'match').map((it) => ({ w: cardPriority(it.id, sk.id), get: () => it }));
       for (const c of sk.concepts) cands.push({ w: Math.max(...['n', 't', 'f', 'r'].map((L) => cardPriority(c.id + L))), get: () => conceptExercise(c) });
+      if (COURSE.drill) for (const k of flashCands(sk.concepts)) cands.push({ w: cardPriority(k.id, sk.id) + 0.2, get: () => makeFlash(k.c, k.d) });
       cands.sort((a, b) => b.w - a.w);
       const block = [];
       for (const c of cands) { if (block.length >= want) break; const it = c.get(); if (it && !block.some((b) => b.id === it.id)) block.push(it); }
@@ -1234,7 +1337,7 @@
 
   // Husker hvilke oppgaver og ferdigheter du får til, for repetisjon senere.
   function recordAnswer(x, ok) {
-    if (x.id) review(x.id, x.skill, ok);
+    if (x.id && x.t !== 'flash') review(x.id, x.skill, ok);
     if (x.drill) updateStage(x, ok);
     if (x.id) {
       if (ok) { if (S.wrong[x.id]) { S.wrong[x.id]--; if (!S.wrong[x.id]) delete S.wrong[x.id]; } }
@@ -1272,6 +1375,25 @@
     render();
   }
 
+  function flipFlash() {
+    const L = LESSON;
+    if (!L || L.cur.t !== 'flash' || L.state !== 'idle' || L.cur.shown) return;
+    L.cur.shown = true; sfx.tap(); render();
+  }
+  // Selvvurdering etter at svaret er vist. «Igjen» koster ikke hjerte, men kortet kommer igjen senere i økten.
+  function rateFlash(g) {
+    const L = LESSON, x = L && L.cur;
+    if (!x || x.t !== 'flash' || !x.shown || L.state !== 'idle') return;
+    const ok = g > 1;
+    review(x.id, x.skill, g);
+    recordAnswer(x, ok);
+    L.ok = ok; L.state = ok ? 'right' : 'wrong';
+    S.stats.answered++;
+    if (ok) { S.stats.correct++; L.correct++; L.combo++; L.maxCombo = Math.max(L.maxCombo, L.combo); S.stats.maxCombo = Math.max(S.stats.maxCombo, L.combo); today().combo = Math.max(today().combo, L.combo); sfx.right(); }
+    else { L.mistakes++; L.combo = 0; sfx.tap(); }
+    save();
+    cont();
+  }
   function cont() {
     const L = LESSON;
     if (L.state === 'idle') return;
@@ -1282,7 +1404,11 @@
       if (x.t === 'mc') x.sel = -1;
       if (x.t === 'num') x.input = '';
       if (x.t === 'bank') x.slots = x.slots.map(() => null);
-      L.queue.push(x);
+      if (x.t === 'flash') {
+        x.shown = false; x.again = (x.again || 0) + 1;
+        // kortet kommer igjen litt senere i økten, høyst to ganger
+        if (x.again <= 2) L.queue.splice(Math.min(L.queue.length, 3), 0, x);
+      } else L.queue.push(x);
     }
     if (usesHearts(L) && hearts() <= 0) { L.screen = 'noHearts'; return render(); }
     if (L.kind === 'jump' && L.lives <= 0) { L.screen = 'jumpFail'; return render(); }
@@ -1411,6 +1537,10 @@
     let foot;
     if (x.t === 'card') {
       foot = `<div class="l-foot"><div class="foot-in end"><button class="btn green" data-a="cardOk" id="contBtn">Fortsett</button></div></div>`;
+    } else if (x.t === 'flash') {
+      foot = !x.shown
+        ? `<div class="l-foot"><div class="foot-in end"><button class="btn blue wide-b" data-a="flip" id="flipBtn">Vis svar</button></div></div>`
+        : `<div class="l-foot"><div class="foot-in rate">${[[1, 'Igjen', 'red'], [2, 'Vanskelig', 'orange'], [3, 'Bra', 'green'], [4, 'Lett', 'blue']].map(([g, label, col]) => `<button class="rate-b ${col}" data-a="rate" data-g="${g}"><b>${label}</b><span>${previewIvl(x.id, g)}</span></button>`).join('')}</div></div>`;
     } else if (L.state === 'idle') {
       foot = `<div class="l-foot"><div class="foot-in">
         <button class="btn ghost" data-a="skip">Hopp over</button>
@@ -1432,7 +1562,14 @@
       <div class="l-top"><button class="icon-btn" data-a="quit" aria-label="Avslutt">${I.x()}</button>
         <div class="bar"><div class="fill" style="width:${pct}%"></div>${L.flash ? `<span class="combo">${esc(L.flash)}</span>` : ''}</div>${top}</div>
       <div class="l-body"><div class="l-inner">
-        ${x.t === 'card' ? `<div class="intro-card"><div class="ic-badge">${esc(x.kind)}</div>
+        ${x.t === 'flash' ? `<div class="l-type-row"><div class="l-type">Flashkort · ${esc(x.kind)}</div>
+          ${x.id ? `<button class="mark-btn ${S.marks[x.id] ? 'on' : ''}" data-a="mark" aria-label="Bokmerk kortet">${I.bookmark(!!S.marks[x.id])}<span>${S.marks[x.id] ? 'Bokmerket' : 'Bokmerk'}</span></button>` : ''}</div>
+          <div class="flash ${x.shown ? 'shown' : ''}">
+            <div class="fl-prompt">${esc(x.prompt)}</div>
+            <div class="fl-front ${x.frontBig ? 'big' : ''}">${gloss(x.front)}</div>
+            ${x.shown ? `<div class="fl-line"></div><div class="fl-back ${x.backBig ? 'big' : ''}">${gloss(x.back)}</div>${x.note ? `<p class="fl-note">${gloss(x.note)}</p>` : ''}` : ''}
+          </div>
+          ${x.shown ? '<p class="fl-help">Hvor sikker var du?</p>' : ''}` : x.t === 'card' ? `<div class="intro-card"><div class="ic-badge">${esc(x.kind)}</div>
           <div class="ic-term ${x.term.length > 18 ? 'long' : ''}">${mathHTML(x.term)}</div>
           <div class="ic-name">${mathHTML(x.name)}</div>
           <p class="ic-d">${gloss(x.d)}</p></div>` : `
@@ -1526,7 +1663,7 @@
     return COURSE.units.map((u) => {
       const nodes = NODES.filter((n) => n.unit === u);
       const banner = `<div class="unit-banner" style="--c:${u.color};--cd:${u.dark}">
-          <div><div class="u-sub">ENHET ${u.index + 1} · ${progressPct(nodes)} %</div><div class="u-title">${esc(u.title)}</div></div>
+          <div><div class="u-sub">ENHET ${u.index + 1} · ${progressPct(nodes)} %${(() => { const t = latestTest(u); return t ? ` · PRØVE ${String(t.score).replace('.', ',')}/${String(t.max).replace('.', ',')}${t.grade ? ` (${t.grade})` : ''}` : ''; })()}</div><div class="u-title">${esc(u.title)}</div></div>
           <div class="u-actions">
             <button class="u-btn" data-a="guide" data-u="${u.index}" aria-label="Veiledning">${I.book()}<span class="hide-s">Veiledning</span></button>
           </div>
@@ -1674,7 +1811,13 @@
     const nodes = repSkills();
     if (!nodes.length) return [];
     const units = [...new Set(nodes.map((n) => n.unit))];
-    const avg = (u) => { const ns = nodes.filter((n) => n.unit === u); return ns.reduce((a, n) => a + strength(n.id), 0) / ns.length; };
+    const avg = (u) => {
+      const ns = nodes.filter((n) => n.unit === u);
+      const t = latestTest(u);
+      // en svak prøve i kapitlet (under 75 %) gjør at det prioriteres i repetisjonen
+      const penalty = t ? Math.max(0, 0.75 - t.score / t.max) * 0.8 : 0;
+      return ns.reduce((a, n) => a + strength(n.id), 0) / ns.length - penalty;
+    };
     const anchor = units.map((u) => ({ u, w: avg(u) + Math.random() * 0.35 })).sort((x, y) => x.w - y.w)[0].u;
     const near = units.filter((u) => u === anchor || u.index === anchor.index - 1);
     const pool = nodes.filter((n) => near.includes(n.unit));
@@ -1687,8 +1830,9 @@
     const blocks = nodes.map((n) => {
       const sk = n.skill;
       const items = sk.items.filter((it) => it.t !== 'match').map((it) => ({ it, w: cardPriority(it.id) + Math.random() })).sort((x, y) => y.w - x.w).map(({ it }) => it);
-      const own = items.slice(0, per);
-      const d = drillsFor(sk.concepts.length ? sk.concepts : sk.active, sk.concepts.length ? 2 : 1);
+      const own = items.slice(0, COURSE.drill ? Math.min(per, 2) : per);
+      const cs = sk.concepts.length ? sk.concepts : sk.active;
+      const d = COURSE.drill ? pickFlash(cs, 2).concat(drillsFor(cs, 1, true)) : drillsFor(cs, sk.concepts.length ? 2 : 1);
       return { d, own, rest: items.slice(per) };
     });
     const out = blocks.flatMap((b) => b.d.slice(0, 1).concat(b.own, b.d.slice(1)));
@@ -1712,8 +1856,9 @@
   // Finner oppgaven bak et bokmerke igjen, også formeloppgaver som lages automatisk.
   function itemFromId(id, c = COURSE) {
     if (c.itemById[id]) return c.itemById[id];
-    const m = /^(.*~\d+)([ntfr])$/.exec(id);
+    const m = /^(.*~\d+)([ntfrab])$/.exec(id);
     const cc = m && c.concepts.find((o) => o.id === m[1]);
+    if (cc && (m[2] === 'a' || m[2] === 'b')) return makeFlash(cc, m[2]);
     return cc ? makeDrill(cc, DRILL_TYPE[m[2]]) : null;
   }
   const FEEDBACK_TAGS = ['Feil fasit', 'Uklar oppgavetekst', 'Feil eller uklar forklaring', 'For lett', 'For vanskelig', 'Feil i svaralternativene'];
@@ -1721,7 +1866,7 @@
     const sk = NODES.find((n) => n.type === 'skill' && n.id === x.skill);
     return {
       course: COURSE.id, skill: x.skill || null, where: sk ? sk.title : (LESSON && LESSON.title) || '',
-      src: x.src || '', q: x.q || '', ans: x.t === 'match' ? '' : x.svgOpts ? `alternativ ${'ABCD'[x.correct]} (graf)` : correctText(x), opts: x.t === 'mc' && !x.tf && !x.svgOpts ? x.opts.slice() : null,
+      src: x.src || '', q: x.q || (x.t === 'flash' ? `${x.prompt}\n${x.front}` : ''), ans: x.t === 'match' ? '' : x.svgOpts ? `alternativ ${'ABCD'[x.correct]} (graf)` : correctText(x), opts: x.t === 'mc' && !x.tf && !x.svgOpts ? x.opts.slice() : null,
     };
   }
   function markSheet() {
@@ -1745,7 +1890,7 @@
     const cur = S.marks[id];
     UI.modal = cur
       ? { type: 'mark', id, rep: cur.rep, tags: (cur.tags || []).slice(), text: cur.text !== undefined ? cur.text : cur.note || '', src: cur.src, q: cur.q }
-      : { type: 'mark', id, rep: true, tags: [], text: '', src: x.src, q: x.q, x };
+      : { type: 'mark', id, rep: true, tags: [], text: '', src: x.src, q: x.q || `${x.prompt || ''} ${x.front || ''}`.trim(), x };
     render();
   }
   const keepText = () => { const t = document.getElementById('markNote'); if (t && UI.modal) UI.modal.text = t.value; };
@@ -1797,9 +1942,27 @@
     </div>`;
   }
 
+  // Anki-økt: alle forfalte flashkort fra temaene du har øvd på, de mest forfalte først.
+  // Er det få forfalte kort, fylles økten opp med nye kort (høyst 10).
+  function flashStatus() {
+    const now = Date.now();
+    const cards = repSkills().flatMap((n) => flashCands(n.skill.concepts));
+    const due = cards.filter((k) => S.srs[k.id] && S.srs[k.id].due <= now);
+    const fresh = cards.filter((k) => !S.srs[k.id]);
+    return { due, fresh };
+  }
+  function flashSession() {
+    const now = Date.now();
+    const { due, fresh } = flashStatus();
+    const over = (k) => { const c = S.srs[k.id]; return (now - c.due) / DAY_MS / Math.max(c.ivl, 0.1); };
+    const list = due.sort((a, b) => over(b) - over(a)).slice(0, 30);
+    const extra = fresh.slice(0, Math.max(0, Math.min(10, 15 - list.length)));
+    return shuffle(list).concat(extra).map((k) => makeFlash(k.c, k.d));
+  }
   function startRep(kind, arg) {
     let items = [], title = 'Repetisjon';
-    if (kind === 'mix') { items = repItems(repPlan()); title = 'Blandet repetisjon'; UI.repPlan = null; }
+    if (kind === 'flash') { items = flashSession(); title = 'Flashkort'; }
+    else if (kind === 'mix') { items = repItems(repPlan()); title = 'Blandet repetisjon'; UI.repPlan = null; }
     else if (kind === 'concepts') { items = conceptReview(arg != null ? COURSE.units[arg] : null); title = 'Formler og begreper'; }
     else if (kind === 'wrong') { items = wrongList(); title = 'Oppgaver du har bommet på'; }
     else if (kind === 'marked') { items = shuffle(markedRepItems()).slice(0, 15); title = 'Bokmerkede oppgaver'; }
@@ -1821,6 +1984,11 @@
     const bar = (st) => `<div class="q-bar"><div class="q-fill ${st < WEAK_R ? 'red-f' : st < 0.9 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div>`;
     return `<div class="page rep">
       <div class="hero-band"><div><h2>Repetisjon</h2><p>Blandet øving på det du allerede har lært. Temaene velges slik at de henger sammen.</p>${dueN ? `<p class="due-n">${dueN} ${dueN === 1 ? 'oppgave' : 'oppgaver'} er klare for repetisjon nå.</p>` : ''}</div>${mascot('happy')}</div>
+      ${COURSE.drill ? (() => { const st = flashStatus(); return `<div class="card rep-main flash-card">
+        <div class="card-h"><h3>Flashkort</h3></div>
+        <p class="muted"><b>${st.due.length}</b> ${st.due.length === 1 ? 'kort' : 'kort'} forfaller nå${st.fresh.length ? ` · ${st.fresh.length} nye kort fra temaene du har startet på` : ''}.</p>
+        <button class="btn blue wide" data-a="rep" data-k="flash" ${st.due.length + st.fresh.length ? '' : 'disabled'}>${st.due.length ? 'Øv forfalte kort' : 'Lær nye kort'}</button>
+      </div>`; })() : ''}
       <div class="card rep-main">
         <div class="card-h"><h3>Blandet repetisjon</h3><button class="link-b" data-a="repNew">Bytt temaer</button></div>
         <p class="muted">Denne runden: ${plan.map((n) => `<b>${esc(n.title)}</b>`).join(', ')}</p>
@@ -1871,6 +2039,75 @@
       <p class="muted small">Lengste rekke: ${S.streak.best} dager</p></div>`;
   }
 
+  // ------------------------------------------------------------------
+  // Prøveresultater: kapittelprøver og eksamener du tar på papir
+  // ------------------------------------------------------------------
+  // Karakter etter poengtabellen fra kapitteltestene (1–3 → 1, 4–6 → 2, …, 16–18 → 6), skalert til maks poeng.
+  const suggestGrade = (score, max) => (max > 0 && score >= 0 ? Math.min(6, Math.max(1, Math.ceil((6 * score) / max - 1e-9))) : '');
+  const testLabel = (t) => (t.unit === 'eksamen' ? 'Eksamen' : t.unit === 'annet' ? (t.title || 'Annen prøve') : (() => { const u = (COURSES.find((c) => c.id === t.course) || COURSE).units.find((x) => x.id === t.unit); return `Kapittelprøve: ${u ? u.title : t.unit}`; })());
+  const courseTests = (c = COURSE) => S.tests.filter((t) => t.course === c.id).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const latestTest = (u) => courseTests().find((t) => t.unit === u.id);
+  function testModal() {
+    const m = UI.modal;
+    const t = m.id ? S.tests.find((x) => x.id === m.id) : { unit: COURSE.units[0].id, date: dayKey(), score: '', max: S.lastMax || 18, grade: '', note: '', title: '' };
+    const opts = COURSE.units.map((u) => [u.id, `Kapittelprøve: ${u.title}`]).concat([['eksamen', 'Eksamen'], ['annet', 'Annen prøve']]);
+    return `<div class="modal-bg" data-a="closeModal"><div class="modal test-sheet" data-stop>
+      <h3>${m.id ? 'Endre resultat' : 'Registrer resultat'}</h3>
+      <p class="muted small">${esc(COURSE.title)}</p>
+      <label>Prøve<select id="tUnit">${opts.map(([v, l]) => `<option value="${v}" ${t.unit === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+      <label id="tTitleL" ${t.unit === 'annet' ? '' : 'hidden'}>Navn på prøven<input id="tTitle" value="${esc(t.title || '')}" placeholder="F.eks. Halvårsprøve"></label>
+      <label>Dato<input id="tDate" type="date" value="${esc(t.date)}"></label>
+      <div class="t-row"><label>Poeng<input id="tScore" type="number" inputmode="decimal" min="0" step="0.5" value="${t.score}"></label>
+        <label>Maks poeng<input id="tMax" type="number" inputmode="decimal" min="1" step="0.5" value="${t.max}"></label></div>
+      <label>Karakter<select id="tGrade"><option value="">Ingen</option>${[1, 2, 3, 4, 5, 6].map((g) => `<option value="${g}" ${+t.grade === g ? 'selected' : ''}>${g}</option>`).join('')}</select></label>
+      <p class="muted small" id="tHint">${t.score !== '' ? `Foreslått etter poengtabellen: ${suggestGrade(+t.score, +t.max)}` : 'Karakteren foreslås ut fra poengene (samme tabell som kapitteltestene).'}</p>
+      <label>Notat (valgfritt)<textarea id="tNote" rows="2" placeholder="Hva gikk bra, hva bør du øve mer på?">${esc(t.note || '')}</textarea></label>
+      <button class="btn green wide" data-a="testSave">Lagre</button>
+      ${m.id ? '<button class="btn link wide red-t" data-a="testDel">Slett resultatet</button>' : '<button class="btn link wide" data-a="closeModal">Avbryt</button>'}
+    </div></div>`;
+  }
+  // Oppdaterer forslaget til karakter mens du skriver, uten å tegne hele skjemaet på nytt.
+  document.addEventListener('input', (ev) => {
+    if (!UI.modal || UI.modal.type !== 'test') return;
+    if (ev.target.id === 'tScore' || ev.target.id === 'tMax') {
+      const sc = parseFloat(document.getElementById('tScore').value), mx = parseFloat(document.getElementById('tMax').value);
+      const g = suggestGrade(sc, mx);
+      document.getElementById('tHint').textContent = g ? `Foreslått etter poengtabellen: ${g}` : 'Karakteren foreslås ut fra poengene.';
+      const sel = document.getElementById('tGrade');
+      if (g && !UI.modal.gradeTouched) sel.value = String(g);
+    }
+  });
+  document.addEventListener('change', (ev) => {
+    if (!UI.modal || UI.modal.type !== 'test') return;
+    if (ev.target.id === 'tGrade') UI.modal.gradeTouched = true;
+    if (ev.target.id === 'tUnit') document.getElementById('tTitleL').hidden = ev.target.value !== 'annet';
+  });
+  function saveTest() {
+    const v = (id) => document.getElementById(id).value;
+    const score = parseFloat(v('tScore')), max = parseFloat(v('tMax'));
+    if (!(max > 0) || !(score >= 0) || score > max) { toast('Fyll inn poeng mellom 0 og maks poeng.'); return; }
+    const rec = { course: COURSE.id, unit: v('tUnit'), title: v('tTitle').trim(), date: v('tDate') || dayKey(), score, max, grade: v('tGrade') ? +v('tGrade') : '', note: v('tNote').trim() };
+    const m = UI.modal;
+    if (m.id) Object.assign(S.tests.find((x) => x.id === m.id), rec);
+    else S.tests.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ...rec });
+    S.lastMax = max;
+    save(); UI.modal = null; toast('Resultatet er lagret.'); render();
+  }
+  function testsCard() {
+    const list = courseTests();
+    const fmtD = (d) => parseDay(d).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' });
+    const graded = list.filter((t) => t.grade);
+    const avg = graded.length ? (graded.reduce((a, t) => a + t.grade, 0) / graded.length).toFixed(1).replace('.', ',') : null;
+    return `<h3 class="sec">Prøver og eksamen</h3>
+      <div class="card tests">
+        <div class="card-h"><h3>${esc(COURSE.title)}</h3>${avg ? `<span class="muted">Snitt ${avg}</span>` : ''}</div>
+        ${list.length ? `<ul class="test-list">${list.map((t) => `<li><button class="test-row" data-a="testEdit" data-id="${t.id}">
+          <span class="t-main"><b>${esc(testLabel(t))}</b><span class="muted small">${esc(fmtD(t.date))} · ${String(t.score).replace('.', ',')} / ${String(t.max).replace('.', ',')} poeng (${Math.round((100 * t.score) / t.max)} %)</span>${t.note ? `<span class="t-note">${esc(t.note)}</span>` : ''}</span>
+          ${t.grade ? `<span class="t-grade g${t.grade}">${t.grade}</span>` : ''}</button></li>`).join('')}</ul>` : '<p class="muted">Registrer resultatene fra kapittelprøver og eksamener du tar på papir. Kapitler der det gikk dårlig, kommer oftere i blandet repetisjon.</p>'}
+        <button class="btn green wide" data-a="testNew">Registrer resultat</button>
+      </div>`;
+  }
+
   function renderProfile() {
     const joined = new Date(S.created).toLocaleDateString('nb-NO', { month: 'long', year: 'numeric' });
     const units = Object.keys(S.reviews).length;
@@ -1888,6 +2125,7 @@
         <div class="stat">${I.trophy()}<div><b>${units} / ${COURSE.units.length}</b><span>Enheter fullført</span></div></div>
         <div class="stat">${I.clock()}<div><b>${Math.round(S.stats.seconds / 60)} min</b><span>Tid brukt</span></div></div>
       </div>
+      ${testsCard()}
       ${calendar()}
       <h3 class="sec">Prestasjoner</h3>
       <div class="card ach-list">${ACH.map((a) => {
@@ -1914,6 +2152,7 @@
     if (!UI.modal) return '';
     const m = UI.modal;
     if (m.type === 'mark') return markSheet();
+    if (m.type === 'test') return testModal();
     if (m.type === 'guide') {
       const u = COURSE.units[m.u];
       return `<div class="modal-bg" data-a="closeModal"><div class="modal guide" data-stop style="--c:${u.color};--cd:${u.dark}">
@@ -2154,6 +2393,12 @@
       case 'mL': case 'mR': if (L && L.state === 'idle') matchTap(a === 'mL' ? 'L' : 'R', +el.dataset.i); break;
       case 'check': check(); break;
       case 'cardOk': cardOk(); break;
+      case 'flip': flipFlash(); break;
+      case 'testNew': UI.modal = { type: 'test' }; render(); break;
+      case 'testEdit': UI.modal = { type: 'test', id: el.dataset.id, gradeTouched: true }; render(); break;
+      case 'testSave': saveTest(); break;
+      case 'testDel': S.tests = S.tests.filter((t) => t.id !== UI.modal.id); save(); UI.modal = null; toast('Resultatet er slettet.'); render(); break;
+      case 'rate': rateFlash(+el.dataset.g); break;
       case 'calc': if (L && L.state === 'idle') { L.calc.open = !L.calc.open; render(); } break;
       case 'ck': if (L && L.state === 'idle') calcKey(el.dataset.k); break;
       case 'calcUse': if (L && L.state === 'idle' && L.calc.last !== undefined) {
@@ -2232,6 +2477,11 @@
   document.addEventListener('keydown', (ev) => {
     if (!LESSON || UI.modal) return;
     const L = LESSON;
+    if (!L.screen && L.cur.t === 'flash' && L.state === 'idle') {
+      if (!L.cur.shown && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); flipFlash(); return; }
+      if (L.cur.shown && /^[1-4]$/.test(ev.key)) { rateFlash(+ev.key); return; }
+      if (L.cur.shown && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); rateFlash(3); return; }
+    }
     if (ev.key === 'Enter') {
       ev.preventDefault();
       if (L.screen) { const b = document.getElementById('contBtn'); if (b) b.click(); return; }

@@ -553,3 +553,40 @@ sub { vertical-align: -.25em; }
 .opts.figs .opt .graph { max-width: none; }
 .fb-fig { max-width: 160px; color: inherit; }
 .fb-fig .graph path[stroke="#1cb0f6"] { stroke: currentColor; }
+
+/* ---------- flashkort ---------- */
+.flash { border: 2px solid var(--line); border-radius: 20px; padding: 26px 20px; margin-top: 14px; text-align: center; background: var(--card); box-shadow: 0 4px 0 var(--line); min-height: 180px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+.fl-prompt { color: var(--muted); font-weight: 800; text-transform: uppercase; font-size: 13px; letter-spacing: .5px; }
+.fl-front, .fl-back { font-size: 20px; font-weight: 800; line-height: 1.5; }
+.fl-front.big, .fl-back.big { font-size: 30px; color: var(--blue); }
+.fl-line { height: 2px; background: var(--line); margin: 6px 0; }
+.fl-note { color: var(--muted); font-weight: 600; margin: 0; line-height: 1.5; }
+.fl-help { text-align: center; color: var(--muted); font-weight: 700; margin: 14px 0 0; }
+.btn.wide-b { width: 100%; }
+.foot-in.rate { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rate-b { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 58px; border-radius: 14px; border: 2px solid transparent; color: #fff; font-weight: 800; }
+.rate-b b { font-size: 14px; }
+.rate-b span { font-size: 12px; opacity: .9; font-weight: 700; }
+.rate-b.red { background: var(--red); box-shadow: 0 4px 0 #c43b3b; }
+.rate-b.orange { background: #ff9600; box-shadow: 0 4px 0 #cc7800; }
+.rate-b.green { background: var(--green); box-shadow: 0 4px 0 var(--green-d); }
+.rate-b.blue { background: var(--blue); box-shadow: 0 4px 0 var(--blue-d); }
+.rate-b:active { transform: translateY(3px); box-shadow: none; }
+.flash-card { border-color: #84d8ff; }
+
+/* ---------- prøveresultater ---------- */
+.test-sheet { text-align: left; }
+.test-sheet label { display: flex; flex-direction: column; gap: 6px; font-weight: 800; margin-top: 12px; }
+.test-sheet label[hidden] { display: none; }
+.test-sheet input, .test-sheet select, .test-sheet textarea { font: inherit; font-weight: 600; padding: 10px; border: 2px solid var(--line); border-radius: 12px; background: var(--bg2); color: var(--text); width: 100%; box-sizing: border-box; }
+.t-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#tHint { margin: 6px 0 0; }
+.test-list { list-style: none; padding: 0; margin: 4px 0 0; }
+.test-list li + li { border-top: 2px solid var(--line); }
+.test-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 0; background: none; border: 0; color: var(--text); }
+.t-main { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.t-note { color: var(--muted); font-style: italic; font-weight: 600; }
+.t-grade { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: #fff; flex: none; background: var(--green); }
+.t-grade.g1, .t-grade.g2 { background: var(--red); }
+.t-grade.g3 { background: #ff9600; }
+.t-grade.g4 { background: #1cb0f6; }

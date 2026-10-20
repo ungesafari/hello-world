@@ -22,6 +22,14 @@ Open the link in Safari, tap the share button, then "Add to Home Screen". On Win
 
 Progress is saved locally on each device. Go to Profil, then "Kopier kode" on one device, and "Lim inn kode" on the other.
 
+### Fysikk 1: pugging med flashkort
+
+Fysikk 1 is set up for drilling formulas, terms, symbols and definitions on the phone, as a mix of Duolingo and Anki. The road map follows the chapters and theory videos on Flipclass (84 topics in 13 chapters, from scientific method to the maths needed for the course), and each topic introduces at most three new terms. Every term becomes two flashcards (term to meaning, and meaning to term): you see the front, tap "Vis svar", and rate how sure you were with Igjen, Vanskelig, Bra or Lett, as in Anki. The buttons show when the card will come back, and the rating sets the interval. "Igjen" never costs a heart; the card returns later in the same session. Lessons mix flashcards with multiple choice, matching and formula drills, and 10 to 40 % of each lesson comes from other topics you have practised, chosen by what is due or weak. The Repetisjon tab has an Anki-style session with all due flashcards. Calculation tasks have been taken out for now and are kept in `arkiv/course-fysikk1-med-regneoppgaver.js`.
+
+### Test results
+
+Results from chapter tests and exams taken on paper can be registered under Profil (test, date, points, maximum points, grade and a note). The grade is suggested from the points table used in the chapter tests (1–3 of 18 points gives 1, 16–18 gives 6), scaled to the maximum. The latest result is shown on the chapter banner on the path, and chapters with a weak result come up more often in mixed review.
+
 ### Study features
 
 New terms, symbols and formulas are introduced gradually: each node on the path brings at most three new ones. Every new card is followed straight away by a question on that exact term, and the terms come back as recall questions (name the formula, pick the formula, complete the formula) in the following lessons. Later lessons also mix in a little material from earlier nodes. Fractions are shown with a horizontal fraction bar everywhere, and formulas that belong on separate lines are shown on separate lines.
