@@ -4,7 +4,7 @@
  * begreper (intro), og de blir til flashkort som repeteres med mellomrom (som i Anki).
  * Regneoppgavene er tatt ut av appen for nå og ligger i arkiv/course-fysikk1-med-regneoppgaver.js.
  *
- * intro: [term, navn, forklaring, type]   type: 'f' formel, 's' symbol, 'b' begrep
+ * intro: [term, navn, forklaring, type]   type: 'f' formel, 's' symbol, 'e' måleenhet, 'b' begrep
  * Oppgavetyper:
  *   mc(spørsmål, [riktig, feil, feil, ...], forklaring, {code, fig, svgOpts, src})  – flervalg, første er riktig
  *   tf(påstand, sant?, forklaring)                                                 – sant/usant
@@ -171,7 +171,7 @@
         intro: [
           ['a = (v − v₀)/t', 'Formel 1: akselerasjon', 'Endring i fart per tid. Enhet: m/s².', 'f'],
           ['v-t-graf', 'Hastighet mot tid', 'Stigningstallet er akselerasjonen. Arealet under grafen er forflytningen.', 'b'],
-          ['m/s²', 'Enheten for akselerasjon', 'Meter per sekund per sekund: hvor mange m/s farten endrer seg med hvert sekund.', 's'],
+          ['m/s²', 'Enheten for akselerasjon', 'Meter per sekund per sekund: hvor mange m/s farten endrer seg med hvert sekund.', 'e'],
         ],
         items: [
           mc('Hva er SI-enheten for akselerasjon?', ['m/s²', 'm/s', 'N', 'km/h'], 'Akselerasjon er endring i hastighet per tid: (m/s)/s = m/s².'),
@@ -302,7 +302,7 @@
         intro: [
           ['F', 'Kraft', 'En påvirkning som kan endre bevegelsen. Enhet: newton (N).', 's'],
           ['ΣF', 'Kraftsum', 'Summen av alle kreftene som virker på legemet.', 's'],
-          ['1 N', 'Én newton', '1 kg·m/s²: kraften som gir 1 kg akselerasjonen 1 m/s².', 'b'],
+          ['1 N', 'Én newton', '1 kg·m/s²: kraften som gir 1 kg akselerasjonen 1 m/s².', 'e'],
         ],
         items: [
           mc('1 N er det samme som …', ['1 kg·m/s²', '1 kg·m/s', '1 kg·m²/s²', '1 J/s'], 'F = ma gir enheten kg · m/s².'),
@@ -406,7 +406,7 @@
         id: 'me-arbeid', title: 'Arbeid',
         intro: [
           ['W = F·s·cos α', 'Arbeid', 'Energien en kraft overfører. Enhet: joule (J).', 'f'],
-          ['J', 'Joule', 'Enheten for energi og arbeid. 1 J = 1 N·m.', 's'],
+          ['J', 'Joule', 'Enheten for energi og arbeid. 1 J = 1 N·m.', 'e'],
         ],
         items: [
           mc('Du bærer en sekk vannrett bortover med konstant fart. Hvor mye arbeid gjør du på sekken i fysisk forstand?', ['Null', 'Like mye som tyngden ganger strekningen', 'Det avhenger av farten', 'Negativt arbeid'], 'Kraften din er rettet oppover, vinkelrett på forflytningen. cos 90° = 0.'),
@@ -473,8 +473,8 @@
         id: 'me-effekt', title: 'Effekt',
         intro: [
           ['P = W/t', 'Effekt', 'Arbeid per tid. Enhet: watt (W).', 'f'],
-          ['kWh', 'Kilowattime', '1 kWh = 3,6 MJ. Brukes på strømregningen.', 's'],
-          ['W', 'Watt', 'Enheten for effekt. 1 W = 1 J/s.', 's'],
+          ['kWh', 'Kilowattime', '1 kWh = 3,6 MJ. Brukes på strømregningen.', 'e'],
+          ['W', 'Watt', 'Enheten for effekt. 1 W = 1 J/s.', 'e'],
         ],
         items: [
           match([['Arbeid', 'J'], ['Effekt', 'W'], ['Kraft', 'N'], ['1 kWh', '3,6 MJ']], 'Koble sammen parene'),
@@ -524,7 +524,7 @@
         id: 'bm-p', title: 'Bevegelsesmengde',
         intro: [
           ['p = m·v', 'Bevegelsesmengde', 'En vektor. Enhet: kg·m/s.', 'f'],
-          ['kg·m/s', 'Enheten for bevegelsesmengde', 'Samme enhet som N·s.', 's'],
+          ['kg·m/s', 'Enheten for bevegelsesmengde', 'Samme enhet som N·s.', 'e'],
         ],
         items: [
           tf('Bevegelsesmengde er en skalar, akkurat som kinetisk energi.', false, 'p = mv har samme retning som hastigheten, så bevegelsesmengde er en vektor. Kinetisk energi er en skalar.'),
@@ -615,7 +615,7 @@
         id: 'el-spenning', title: 'Spenning',
         intro: [
           ['U = W/Q', 'Spenning', 'Energi per ladning. Enhet: volt (V).', 'f'],
-          ['V', 'Volt', 'Enheten for spenning. 1 V = 1 J/C.', 's'],
+          ['V', 'Volt', 'Enheten for spenning. 1 V = 1 J/C.', 'e'],
         ],
         items: [
           mc('Hva er elektrisk spenning?', ['Energi per ladning', 'Ladning per tid', 'Kraft per ladning', 'Strøm per resistans'], 'U = W/Q. 1 V = 1 J/C.'),
@@ -625,7 +625,7 @@
         id: 'el-ohm', title: 'Ohms lov',
         intro: [
           ['U = R·I', 'Ohms lov', 'Spenning er resistans ganger strøm.', 'f'],
-          ['Ω', 'Ohm', 'Enheten for resistans. 1 Ω = 1 V/A.', 's'],
+          ['Ω', 'Ohm', 'Enheten for resistans. 1 Ω = 1 V/A.', 'e'],
           ['R = ρL/A', 'Resistans i en ledning', 'ρ er resistiviteten, L lengden og A tverrsnittsarealet.', 'f'],
         ],
         items: [
@@ -784,7 +784,7 @@
         id: 'tf-trykk', title: 'Trykk',
         intro: [
           ['p = F/A', 'Trykk', 'Kraft per areal. Enhet: pascal (Pa).', 'f'],
-          ['Pa', 'Pascal', '1 Pa = 1 N/m². Lufttrykket ved havnivå er ca. 101 kPa.', 's'],
+          ['Pa', 'Pascal', '1 Pa = 1 N/m². Lufttrykket ved havnivå er ca. 101 000 Pa.', 'e'],
           ['p = ρgh', 'Trykk i en væske', 'Trykket fra væsken øker med dybden h. ρ er tettheten til væsken.', 'f'],
         ],
         items: [
@@ -980,7 +980,7 @@
         intro: [
           ['E = h·f', 'Fotonenergi', 'Energien til ett foton.', 'f'],
           ['h', 'Plancks konstant', '6,63 · 10⁻³⁴ J·s.', 's'],
-          ['eV', 'Elektronvolt', '1 eV = 1,60 · 10⁻¹⁹ J.', 's'],
+          ['eV', 'Elektronvolt', '1 eV = 1,60 · 10⁻¹⁹ J.', 'e'],
         ],
         items: [
           mc('Hvilket foton har mest energi?', ['Et blått foton', 'Et rødt foton', 'De har like mye', 'Det avhenger av lysstyrken'], 'Blått lys har høyere frekvens (kortere bølgelengde), og E = hf.'),
@@ -1087,7 +1087,7 @@
         intro: [
           ['E = mc²', 'Masse og energi', 'Masse kan omdannes til energi.', 'f'],
           ['Massedefekt', 'Δm', 'Kjernen veier mindre enn delene.', 'b'],
-          ['u', 'Atommasseenhet', '1 u tilsvarer 931,5 MeV.', 's'],
+          ['u', 'Atommasseenhet', '1 u tilsvarer 931,5 MeV.', 'e'],
         ],
         items: [
           mc('Hva er massedefekten til en atomkjerne?', ['Summen av massene til nukleonene minus massen til kjernen', 'Massen til kjernen minus summen av massene til nukleonene', 'Summen av massene til elektronene minus massen til kjernen', 'Massen kjernen mister hver gang den sender ut stråling'], 'Kjernen veier mindre enn delene hver for seg. Forskjellen, Δm, tilsvarer bindingsenergien E = Δm·c².'),

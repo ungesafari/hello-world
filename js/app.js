@@ -153,7 +153,8 @@
     if (text === undefined || text === null) return '';
     return sentenceBreaks(String(text)).split('\n').map(renderSeq).join('<br>')
       // «s-t-grafen» og «v-t-graf» skal ikke deles over to linjer
-      .replace(/(?<![\p{L}<])(\p{L}-\p{L}-\p{L}+)/gu, '<span class="nw">$1</span>');
+      .replace(/(?<![\p{L}<])(\p{L}-\p{L}-\p{L}+)/gu, '<span class="nw">$1</span>')
+      .replace(/(<span class="frac"><span class="fn">(?:(?!<span class="frac">)[\s\S])*?<\/span><span class="fd">(?:(?!<span class="frac">)[\s\S])*?<\/span><\/span>)([.,:;!?»)]+)/g, '<span class="nw">$1$2</span>');
   }
 
   // ------------------------------------------------------------------
@@ -1008,7 +1009,7 @@
   // Nye begreper, symboler og formler kommer ett og ett, slik Duolingo introduserer nye ord:
   // først et kort, så en oppgave på akkurat det begrepet, før neste begrep kommer.
   // Hver node har høyst tre nye begreper, og de øves igjen i de neste leksjonene.
-  const KIND_LABEL = { f: 'Ny formel', s: 'Nytt symbol', b: 'Nytt begrep' };
+  const KIND_LABEL = { f: 'Ny formel', s: 'Nytt symbol', e: 'Ny enhet', b: 'Nytt begrep' };
   const cardOf = (c) => ({ t: 'card', term: c.term, name: c.name, d: c.d, kind: KIND_LABEL[c.kind] || KIND_LABEL.b, skill: c.skill });
   const normTxt = (t) => String(t).replace(/\s+/g, '').toLowerCase();
   function uniqueOpts(correct, pool, n = 3) {
@@ -1024,7 +1025,9 @@
   }
   // Andre begreper i samme kurs som feilalternativer: helst samme type og samme enhet.
   function distractorPool(c, key) {
-    const all = COURSE.concepts.filter((o) => o !== c);
+    let all = COURSE.concepts.filter((o) => o !== c);
+    // en enhet skal bare ha andre enheter som feilalternativer, så typen ikke avslører svaret
+    if (c.kind === 'e' && all.filter((o) => o.kind === 'e').length >= 3) all = all.filter((o) => o.kind === 'e');
     const at = COURSE.concepts.indexOf(c);
     // helst begreper du allerede har møtt, så feilalternativene ikke avslører det som kommer senere
     const score = (o) => (o.kind === c.kind ? 2 : 0) + (o.unit === c.unit ? 1 : 0) + (COURSE.concepts.indexOf(o) < at ? 1.5 : 0) + Math.random() * 1.5;
@@ -1069,20 +1072,27 @@
       const right = f ? f.line : c.term;
       const near = f ? pickN(mutateSide(f.rhs), 3).map((m) => `${f.lhs} ${f.op} ${m}`) : [];
       const dis = near.concat(near.length < 3 ? uniqueOpts(right, distractorPool(c, 'term').filter((o) => !near.includes(o)), 3 - near.length) : []);
-      const q = c.kind === 'f' ? `Hvilken formel er «${c.name}»?` : c.kind === 's' ? `Hvilket symbol står for «${c.name}»?` : `Hvilket begrep passer til «${c.name}»?`;
+      const q = c.kind === 'f' ? `Hvilken formel er «${c.name}»?` : c.kind === 's' ? `Hvilket symbol står for «${c.name}»?` : c.kind === 'e' ? `Hvilken enhet er «${c.name}»?` : `Hvilket begrep passer til «${c.name}»?`;
       if (dis.length >= 2) return { ...base, t: 'mc', q, opts: [right, ...dis], e };
     }
     const dis = uniqueOpts(c.name, distractorPool(c, 'name'));
     if (dis.length < 2) return null;
-    const q = c.kind === 'f' ? `Hva sier denne formelen?\n${c.term}` : c.kind === 's' ? `Hva står dette symbolet for?\n${c.term}` : `Hva betyr «${c.term}»?`;
+    const q = c.kind === 'f' ? `Hva sier denne formelen?\n${c.term}` : c.kind === 's' ? `Hva står dette symbolet for?\n${c.term}` : c.kind === 'e' ? `Hva er denne enheten?\n${c.term}` : `Hva betyr «${c.term}»?`;
     return { ...base, id: `${c.id}n`, t: 'mc', q, opts: [c.name, ...dis], e };
   }
   // Flashkort som i Anki. Retning a: term → betydning. Retning b: betydning → term.
   // Du ser forsiden, tenker deg svaret, snur kortet og vurderer hvor sikker du var.
-  const FLASH_KIND = { f: 'Formel', s: 'Symbol', b: 'Begrep' };
+  const FLASH_KIND = { f: 'Formel', s: 'Symbol', e: 'Enhet', b: 'Begrep' };
   function makeFlash(c, dir) {
     const kind = FLASH_KIND[c.kind] || FLASH_KIND.b;
     const base = { t: 'flash', id: `${c.id}${dir}`, skill: c.skill, kind, shown: false };
+    if (c.kind === 'e') {
+      if (dir === 'a') return { ...base, prompt: 'Hva er denne enheten?', front: c.term, frontBig: true, back: c.name, backBig: false, note: c.d };
+      // baksiden skal ikke avsløres: bruk «Enheten for …», eller forklaringen med enheten skjult
+      const re = new RegExp(`(?<![\\p{L}])${c.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}])`, 'gu');
+      const front = /^Enheten for/.test(c.name) ? c.name : c.d.replace(re, '?');
+      return { ...base, prompt: 'Hvilken enhet er dette?', front, frontBig: false, back: c.term, backBig: true, note: /^Enheten for/.test(c.name) ? c.d : c.name };
+    }
     if (dir === 'a') {
       const prompt = c.kind === 'f' ? 'Hva sier formelen?' : c.kind === 's' ? 'Hva står symbolet for?' : 'Hva betyr begrepet?';
       return { ...base, prompt, front: c.term, frontBig: true, back: c.name, backBig: false, note: c.d };
@@ -2522,7 +2532,7 @@
   }
 
   // Til testing
-  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), fEquiv, mutations, mutateSide, recordAnswerForTest: (x, ok) => recordAnswer(x, ok), nextCard, previewIvl, startForTest: (i) => startLesson('redo', NODES[i]), startItems: (items) => startLesson('practice', null, { items, title: 'Test' }), makeDrill, makeRecall, conceptExercise, review, hearts, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
+  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), fEquiv, mutations, mutateSide, recordAnswerForTest: (x, ok) => recordAnswer(x, ok), nextCard, previewIvl, startForTest: (i) => startLesson('redo', NODES[i]), startItems: (items) => startLesson('practice', null, { items, title: 'Test' }), makeDrill, makeFlash, makeRecall, conceptExercise, review, hearts, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
 
   render();
 })();
