@@ -420,15 +420,23 @@
       delete c.relearn;
       c.reps = 1; c.due = now + c.ivl * DAY_MS;
     } else {
-      let ivl;
-      if (grade === 2) { ivl = Math.max(c.ivl * 1.2, c.ivl + 0.5); c.ef = Math.max(SRS.minEase, c.ef - 0.15); }
-      else {
-        if (elapsed < c.ivl) ivl = c.ivl + c.ivl * (c.ef - 1) * (elapsed / c.ivl); // repetert før forfall: delvis uttelling
-        else ivl = (c.ivl + (elapsed - c.ivl) / 2) * c.ef; // på tid eller sent: bonus for sene repetisjoner
-        if (grade === 4) { ivl *= 1.3; c.ef = Math.min(3, c.ef + 0.15); }
-        else if (elapsed >= c.ivl) c.ef = Math.min(3, c.ef + 0.05);
-        ivl = Math.max(c.ivl + (elapsed >= c.ivl ? 1 : 0), ivl);
-      }
+      // Intervallene for Vanskelig, Bra og Lett regnes ut sammen, slik at de alltid er stigende:
+      // Vanskelig < Bra < Lett, med minst ett døgn (et halvt for korte intervaller) mellom hvert steg.
+      const cur = c.ivl, early = elapsed < cur;
+      const step = cur >= 1 ? 1 : 0.5;
+      // repetert før forfall gir delvis uttelling, sent gir bonus (som i Anki)
+      const hardRaw = early ? cur + cur * 0.2 * (elapsed / cur) : Math.max(cur * 1.2, elapsed * 1.2);
+      const goodRaw = early ? cur + cur * (c.ef - 1) * (elapsed / cur) : (cur + (elapsed - cur) / 2) * c.ef;
+      let hard = Math.max(hardRaw, cur * (early ? 1 : 1.2), 0.5);
+      let good = Math.max(goodRaw, hard + step);
+      // taket på intervallet brukes før avstanden mellom knappene, så rekkefølgen holder også der
+      const easy = Math.min(SRS.maxIvl, Math.max(good * 1.3, good + step));
+      good = Math.min(good, easy - step);
+      hard = Math.min(hard, good - step);
+      const ivl = grade === 2 ? hard : grade === 4 ? easy : good;
+      if (grade === 2) c.ef = Math.max(SRS.minEase, c.ef - 0.15);
+      else if (grade === 4) c.ef = Math.min(3, c.ef + 0.15);
+      else if (!early) c.ef = Math.min(3, c.ef + 0.05);
       c.ivl = Math.round(Math.min(SRS.maxIvl, ivl) * 10) / 10; c.reps++; c.due = now + c.ivl * DAY_MS;
     }
     c.last = now;
@@ -439,7 +447,8 @@
     const old = S.srs[id] || { ef: SRS.startEase, ivl: 0, reps: 0, lapses: 0, last: now, due: now, sk: skill || null };
     const c = nextCard(old, grade, now);
     // litt tilfeldig spredning, så kort som læres samtidig ikke forfaller samme dag
-    if (c.ivl >= 2 && grade > 1) { c.ivl = Math.round(c.ivl * (0.95 + Math.random() * 0.1) * 10) / 10; c.due = now + c.ivl * DAY_MS; }
+    // (høyst ±0,4 døgn, så rekkefølgen Vanskelig < Bra < Lett aldri snus)
+    if (c.ivl >= 2 && grade > 1) { const f = Math.min(0.4, c.ivl * 0.05); c.ivl = Math.round((c.ivl + (Math.random() * 2 - 1) * f) * 10) / 10; c.due = now + c.ivl * DAY_MS; }
     if (skill) c.sk = skill;
     S.srs[id] = c;
     srsVer++;
@@ -484,7 +493,9 @@
   }
   const dueCards = (id) => (cardsBySkill()[id] || []).filter(([, c]) => c.due <= Date.now());
   const practiced = (id) => (S.prog[id] || 0) > 0;
-  const isWeak = (id) => practiced(id) && strength(id) < WEAK_R;
+  // I pugg-modus (Fysikk 1) sprekker boblene først når husket andel er under 60 %, ikke 80 %.
+  const weakR = () => (COURSE && COURSE.drill ? 0.6 : WEAK_R);
+  const isWeak = (id) => practiced(id) && strength(id) < weakR();
   function updateMem(id, acc) {
     const m = S.mem[id];
     const good = acc >= 0.8;
@@ -1793,7 +1804,7 @@
         <button class="btn green" data-a="practice">Øv +10 XP</button></div></div>`;
     }
     return `<div class="card practice"><div class="card-h"><h3>Styrk svake emner</h3></div>
-      ${list.map((sk) => { const st = strength(sk.id); return `<div class="pr-skill"><span>${esc(sk.title)}</span><div class="q-bar"><div class="q-fill ${st < WEAK_R ? 'red-f' : st < 0.9 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div></div>`; }).join('')}
+      ${list.map((sk) => { const st = strength(sk.id); return `<div class="pr-skill"><span>${esc(sk.title)}</span><div class="q-bar"><div class="q-fill ${st < weakR() ? 'red-f' : st < 0.9 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div></div>`; }).join('')}
       <p class="muted small">Styrken synker over tid. Oppgaver du har svart feil på kommer oftere.</p>
       <button class="btn green wide" data-a="practice">Øv +10 XP</button></div>`;
   }
@@ -1981,7 +1992,7 @@
     const conceptsN = nodes.reduce((a, n) => a + n.skill.concepts.length, 0);
     const wrongN = wrongList().length;
     const units = COURSE.units.filter((u) => nodes.some((n) => n.unit === u));
-    const bar = (st) => `<div class="q-bar"><div class="q-fill ${st < WEAK_R ? 'red-f' : st < 0.9 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div>`;
+    const bar = (st) => `<div class="q-bar"><div class="q-fill ${st < weakR() ? 'red-f' : st < 0.9 ? 'gold' : 'green-f'}" style="width:${Math.max(4, Math.round(100 * st))}%"></div></div>`;
     return `<div class="page rep">
       <div class="hero-band"><div><h2>Repetisjon</h2><p>Blandet øving på det du allerede har lært. Temaene velges slik at de henger sammen.</p>${dueN ? `<p class="due-n">${dueN} ${dueN === 1 ? 'oppgave' : 'oppgaver'} er klare for repetisjon nå.</p>` : ''}</div>${mascot('happy')}</div>
       ${COURSE.drill ? (() => { const st = flashStatus(); return `<div class="card rep-main flash-card">
@@ -2511,7 +2522,7 @@
   }
 
   // Til testing
-  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), fEquiv, mutations, mutateSide, recordAnswerForTest: (x, ok) => recordAnswer(x, ok), startForTest: (i) => startLesson('redo', NODES[i]), startItems: (items) => startLesson('practice', null, { items, title: 'Test' }), makeDrill, makeRecall, conceptExercise, review, hearts, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
+  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), fEquiv, mutations, mutateSide, recordAnswerForTest: (x, ok) => recordAnswer(x, ok), nextCard, previewIvl, startForTest: (i) => startLesson('redo', NODES[i]), startItems: (items) => startLesson('practice', null, { items, title: 'Test' }), makeDrill, makeRecall, conceptExercise, review, hearts, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
 
   render();
 })();
