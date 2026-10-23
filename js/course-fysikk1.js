@@ -4,7 +4,7 @@
  * begreper (intro), og de blir til flashkort som repeteres med mellomrom (som i Anki).
  * Regneoppgavene er tatt ut av appen for nå og ligger i arkiv/course-fysikk1-med-regneoppgaver.js.
  *
- * intro: [term, navn, forklaring, type]   type: 'f' formel, 's' symbol, 'e' måleenhet, 'b' begrep
+ * intro: [term, navn, forklaring, type, eksempel]   type: 'f' formel, 's' symbol, 'e' måleenhet, 'b' begrep
  * Oppgavetyper:
  *   mc(spørsmål, [riktig, feil, feil, ...], forklaring, {code, fig, svgOpts, src})  – flervalg, første er riktig
  *   tf(påstand, sant?, forklaring)                                                 – sant/usant
@@ -90,9 +90,9 @@
       {
         id: 'vm-metode', title: 'Vitenskapelig metode',
         intro: [
-          ['Hypotese', 'Testbar antakelse', 'En antakelse som kan testes med forsøk eller observasjoner.', 'b'],
-          ['Modell', 'Forenklet beskrivelse', 'En forenklet beskrivelse av virkeligheten som gjør det mulig å forutsi resultater. Den gjelder bare innenfor forutsetningene sine.', 'b'],
-          ['Fagfellevurdering', 'Kontroll før publisering', 'Andre forskere går gjennom metode og resultater før en artikkel publiseres.', 'b'],
+          ['Hypotese', 'Testbar antakelse', 'En antakelse som kan testes med forsøk eller observasjoner.', 'b', 'Du tror at en tyngre ball faller fortere. Det kan du teste ved å slippe en tung og en lett ball samtidig.'],
+          ['Modell', 'Forenklet beskrivelse', 'En forenklet beskrivelse av virkeligheten som gjør det mulig å forutsi resultater. Den gjelder bare innenfor forutsetningene sine.', 'b', 'Når vi regner på et fall uten luftmotstand, bruker vi en modell. Den stemmer godt for en stein, men dårlig for et papirark.'],
+          ['Fagfellevurdering', 'Kontroll før publisering', 'Andre forskere går gjennom metode og resultater før en artikkel publiseres.', 'b', 'Før en studie om klima blir publisert i et tidsskrift, leser andre klimaforskere den og ser etter feil.'],
         ],
         items: [
           mc('Hva skiller en vitenskapelig hypotese fra en vanlig påstand?', ['Den kan testes med forsøk eller observasjoner', 'Den er skrevet av en forsker med doktorgrad', 'Den er allerede bevist gjennom mange forsøk', 'Den bygger på en modell som alltid gjelder'], 'En hypotese må kunne testes, og den kan vise seg å være feil. Et bevist resultat er ikke lenger bare en hypotese.'),
@@ -102,9 +102,9 @@
       {
         id: 'vm-usikkerhet', title: 'Måleusikkerhet',
         intro: [
-          ['± Δx', 'Absolutt usikkerhet', 'Hvor mye en måling kan avvike, i samme enhet som målingen: (2,50 ± 0,05) m.', 's'],
-          ['Δx / x', 'Relativ usikkerhet', 'Usikkerheten delt på måleverdien, ofte oppgitt i prosent.', 'f'],
-          ['Gjeldende siffer', 'Sifrene som sier noe', 'Alle sifre unntatt nuller foran. Svaret skal ikke ha flere gjeldende siffer enn den minst nøyaktige måleverdien.', 'b'],
+          ['± Δx', 'Absolutt usikkerhet', 'Hvor mye en måling kan avvike, i samme enhet som målingen: (2,50 ± 0,05) m.', 's', 'Du måler et bord med målebånd og får 1,20 m ± 0,005 m. Bordet er da mellom 1,195 m og 1,205 m langt.'],
+          ['Δx / x', 'Relativ usikkerhet', 'Usikkerheten delt på måleverdien, ofte oppgitt i prosent.', 'f', 'Usikkerhet 0,5 cm på 1 m er 0,5 %. Samme usikkerhet på 10 cm er 5 %, altså ti ganger dårligere.'],
+          ['Gjeldende siffer', 'Sifrene som sier noe', 'Alle sifre unntatt nuller foran. Svaret skal ikke ha flere gjeldende siffer enn den minst nøyaktige måleverdien.', 'b', '0,0450 har tre gjeldende siffer (4, 5 og 0). Måler du 2,3 m og 1,456 s, oppgir du svaret med to gjeldende siffer.'],
         ],
         items: [
           mc('Hvor mange gjeldende siffer har 0,0450 m?', ['3', '2', '4', '5'], 'Nullene foran teller ikke, men nullen til slutt gjør det: 4, 5 og 0.'),
@@ -134,9 +134,9 @@
       {
         id: 'rb-intro', title: 'Posisjon, fart og endring',
         intro: [
-          ['s', 'Posisjon eller strekning', 'Hvor langt legemet er fra et valgt nullpunkt, eller hvor langt det har beveget seg. Enhet: meter (m).', 's'],
-          ['v', 'Fart eller hastighet', 'Hvor fort (og i hvilken retning) legemet beveger seg. Enhet: m/s.', 's'],
-          ['Δ', 'Delta: «endring i»', 'Δv = v − v₀ betyr endringen i fart. Δt betyr et tidsrom.', 's'],
+          ['s', 'Posisjon eller strekning', 'Hvor langt legemet er fra et valgt nullpunkt, eller hvor langt det har beveget seg. Enhet: meter (m).', 's', 'Du står 3 m fra døra og går 5 m bort fra den. Nå er posisjonen s = 8 m målt fra døra.'],
+          ['v', 'Fart eller hastighet', 'Hvor fort (og i hvilken retning) legemet beveger seg. Enhet: m/s.', 's', 'To biler kjører i 50 km/t i hver sin retning. Farten er lik, men hastighetene er motsatte.'],
+          ['Δ', 'Delta: «endring i»', 'Δv = v − v₀ betyr endringen i fart. Δt betyr et tidsrom.', 's', 'Farten går fra 10 m/s til 25 m/s. Da er Δv = 25 m/s − 10 m/s = 15 m/s.'],
         ],
         items: [
           mc('Hva er forskjellen på fart og hastighet?', ['Hastighet har retning, fart har bare størrelse', 'Fart har retning, hastighet har bare størrelse', 'Det er ingen forskjell i fysikk', 'Fart måles i m/s², hastighet i m/s'], 'Hastighet er en vektor (størrelse og retning). Fart er bare størrelsen.'),
@@ -146,9 +146,9 @@
       {
         id: 'rb-gjfart', title: 'Gjennomsnittsfart',
         intro: [
-          ['v̄ = Δs/Δt', 'Gjennomsnittsfart', 'Strekning delt på tid. Momentanfarten er stigningstallet til tangenten i s-t-grafen.', 'f'],
-          ['s-t-graf', 'Posisjon mot tid', 'Stigningstallet er hastigheten.', 'b'],
-          ['Stigningstall', 'Hvor bratt grafen er', 'Δy/Δx. For en v-t-graf: Δv/Δt = a.', 'b'],
+          ['v̄ = Δs/Δt', 'Gjennomsnittsfart', 'Strekning delt på tid. Momentanfarten er stigningstallet til tangenten i s-t-grafen.', 'f', 'Du sykler 6 km på 20 minutter. Gjennomsnittsfarten er 6 km / (1/3 t) = 18 km/t, selv om du sto stille ved et lyskryss.'],
+          ['s-t-graf', 'Posisjon mot tid', 'Stigningstallet er hastigheten.', 'b', 'En s-t-graf for en buss som stopper på en holdeplass, blir en vannrett linje mens bussen står stille.'],
+          ['Stigningstall', 'Hvor bratt grafen er', 'Δy/Δx. For en v-t-graf: Δv/Δt = a.', 'b', 'En linje i en s-t-graf som stiger 10 m per sekund, har stigningstall 10 m/s. Det er farten.'],
         ],
         items: [
           tf('En s-t-graf som er en rett, skrå linje betyr konstant akselerasjon.', false, 'Rett skrå linje i s-t-graf betyr konstant hastighet (a = 0).'),
@@ -157,8 +157,8 @@
       {
         id: 'rb-momfart', title: 'Momentanfart',
         intro: [
-          ['Momentanfart', 'Farten i ett øyeblikk', 'Stigningstallet til tangenten i s-t-grafen i et bestemt punkt.', 'b'],
-          ['v(t) = s′(t)', 'Fart er den deriverte av posisjonen', 'Stigningstallet til s(t) i hvert punkt.', 'f'],
+          ['Momentanfart', 'Farten i ett øyeblikk', 'Stigningstallet til tangenten i s-t-grafen i et bestemt punkt.', 'b', 'Speedometeret i en bil viser momentanfarten: farten akkurat nå, ikke snittet for turen.'],
+          ['v(t) = s′(t)', 'Fart er den deriverte av posisjonen', 'Stigningstallet til s(t) i hvert punkt.', 'f', 'Er s(t) = 5t², blir v(t) = 10t. Etter 2 s er farten 20 m/s.'],
         ],
         items: [
           mc('Hva gir stigningstallet til tangenten i et punkt på en s-t-graf?', ['Momentanhastigheten', 'Akselerasjonen', 'Gjennomsnittsfarten fra start', 'Strekningen'], 'Δs / Δt i et punkt er hastigheten akkurat da (momentanhastigheten).'),
@@ -169,9 +169,9 @@
       {
         id: 'rb-gjaks', title: 'Gjennomsnittsakselerasjon',
         intro: [
-          ['a = (v − v₀)/t', 'Formel 1: akselerasjon', 'Endring i fart per tid. Enhet: m/s².', 'f'],
-          ['v-t-graf', 'Hastighet mot tid', 'Stigningstallet er akselerasjonen. Arealet under grafen er forflytningen.', 'b'],
-          ['m/s²', 'Enheten for akselerasjon', 'Meter per sekund per sekund: hvor mange m/s farten endrer seg med hvert sekund.', 'e'],
+          ['a = (v − v₀)/t', 'Formel 1: akselerasjon', 'Endring i fart per tid. Enhet: m/s².', 'f', 'En bil går fra 0 til 20 m/s på 5 s. Akselerasjonen er 20/5 = 4 m/s².'],
+          ['v-t-graf', 'Hastighet mot tid', 'Stigningstallet er akselerasjonen. Arealet under grafen er forflytningen.', 'b', 'En bil som bremser jevnt til stopp, får en v-t-graf som er en rett linje ned til t-aksen.'],
+          ['m/s²', 'Enheten for akselerasjon', 'Meter per sekund per sekund: hvor mange m/s farten endrer seg med hvert sekund.', 'e', 'En akselerasjon på 3 m/s² betyr at farten øker med 3 m/s hvert sekund: 3, 6, 9, 12 m/s …'],
         ],
         items: [
           mc('Hva er SI-enheten for akselerasjon?', ['m/s²', 'm/s', 'N', 'km/h'], 'Akselerasjon er endring i hastighet per tid: (m/s)/s = m/s².'),
@@ -184,8 +184,8 @@
       {
         id: 'rb-momaks', title: 'Momentan akselerasjon',
         intro: [
-          ['Momentan akselerasjon', 'Akselerasjonen i ett øyeblikk', 'Stigningstallet til tangenten i v-t-grafen i et bestemt punkt.', 'b'],
-          ['a(t) = v′(t)', 'Akselerasjon er den deriverte av farten', 'Stigningstallet til v(t) i hvert punkt.', 'f'],
+          ['Momentan akselerasjon', 'Akselerasjonen i ett øyeblikk', 'Stigningstallet til tangenten i v-t-grafen i et bestemt punkt.', 'b', 'I starten av en sprint akselererer løperen mye, mot slutten nesten ingenting. Akselerasjonen i ett bestemt øyeblikk er den momentane.'],
+          ['a(t) = v′(t)', 'Akselerasjon er den deriverte av farten', 'Stigningstallet til v(t) i hvert punkt.', 'f', 'Er v(t) = 3t² , blir a(t) = 6t. Akselerasjonen øker med tiden.'],
         ],
         items: [
           mc('En partikkel beveger seg rettlinjet. Grafen viser akselerasjonen a som funksjon av tiden t. I hvilket punkt er farten størst?', ['C', 'B', 'A', 'D'], 'a > 0 betyr at farten øker, og a < 0 betyr at den avtar. Farten øker helt fram til C og avtar etterpå. I B øker farten raskest, men den fortsetter å øke etter B.', { fig: '<svg class="graph wide" viewBox="0 0 220 120" role="img" aria-label="a-t-graf med punktene A, B, C og D"><g stroke="currentColor" fill="none" stroke-width="1.6">\n      <path d="M24 112 V6 M18 80 H210" stroke-opacity=".7"/><path d="M21 10 l3 -6 l3 6 M206 77 l6 3 l-6 3" stroke-opacity=".7"/>\n      <path d="M24 80 C40 20, 100 18, 128 80 C138 100, 156 100, 168 80" stroke="#1cb0f6" stroke-width="2.6"/></g>\n      <g fill="currentColor" font-size="12" font-family="inherit"><text x="29" y="12">a</text><text x="206" y="96">t</text>\n      <circle cx="24" cy="80" r="3"/><text x="10" y="96">A</text><circle cx="76" cy="35" r="3"/><text x="71" y="27">B</text>\n      <circle cx="128" cy="80" r="3"/><text x="132" y="97">C</text><circle cx="160" cy="94" r="3"/><text x="160" y="112">D</text></g></svg>', src: 'Kapitteltest 4' }),
@@ -194,8 +194,8 @@
       {
         id: 'rb-areal', title: 'Arealet under en v/t-graf',
         intro: [
-          ['Areal under grafen', 'Høyde ganger bredde', 'Under en v-t-graf har arealet enheten (m/s)·s = m, altså strekning.', 'b'],
-          ['Forflytning', 'Endring i posisjon', 'Arealet under v-t-grafen. Areal under t-aksen teller negativt.', 'b'],
+          ['Areal under grafen', 'Høyde ganger bredde', 'Under en v-t-graf har arealet enheten (m/s)·s = m, altså strekning.', 'b', 'Kjører du i 20 m/s i 10 s, er arealet under v-t-grafen et rektangel på 20 · 10 = 200. Du har kjørt 200 m.'],
+          ['Forflytning', 'Endring i posisjon', 'Arealet under v-t-grafen. Areal under t-aksen teller negativt.', 'b', 'Går du 5 m fram og 2 m tilbake, er forflytningen 3 m, selv om du har gått 7 m til sammen.'],
         ],
         items: [
           mc('Hva forteller arealet under en v-t-graf?', ['Forflytningen', 'Akselerasjonen', 'Farten', 'Kraften'], 'Areal = v · t, som har enheten m. Det er forflytningen.'),
@@ -205,9 +205,9 @@
       {
         id: 'rb-formel1', title: 'Bevegelsesformlene 2, 3 og 4',
         intro: [
-          ['v = v₀ + at', 'Formel 2: fart', 'Farten etter tiden t når akselerasjonen er konstant.', 'f'],
-          ['v̄ = (v₀ + v)/2', 'Formel 3: gjennomsnittsfart', 'Gjennomsnittsfarten ved konstant akselerasjon.', 'f'],
-          ['s = v̄·t', 'Formel 4: strekning', 'Strekning er gjennomsnittsfart ganger tid.', 'f'],
+          ['v = v₀ + at', 'Formel 2: fart', 'Farten etter tiden t når akselerasjonen er konstant.', 'f', 'En sykkel i 4 m/s akselererer med 1 m/s² i 3 s. Farten blir 4 + 1 · 3 = 7 m/s.'],
+          ['v̄ = (v₀ + v)/2', 'Formel 3: gjennomsnittsfart', 'Gjennomsnittsfarten ved konstant akselerasjon.', 'f', 'Farten øker jevnt fra 10 m/s til 20 m/s. Gjennomsnittsfarten er (10 + 20)/2 = 15 m/s.'],
+          ['s = v̄·t', 'Formel 4: strekning', 'Strekning er gjennomsnittsfart ganger tid.', 'f', 'Med gjennomsnittsfart 15 m/s i 4 s blir strekningen 15 · 4 = 60 m.'],
         ],
         items: [
           mc('Når gjelder bevegelseslikningene (som s = v₀t + ½at²)?', ['Bare når akselerasjonen er konstant', 'Bare når farten er konstant', 'Bare når legemet starter fra ro', 'Alltid'], 'Alle de fire bevegelseslikningene forutsetter konstant akselerasjon.'),
@@ -217,9 +217,9 @@
       {
         id: 'rb-formel2', title: 'Bevegelsesformlene 5, 6 og 7',
         intro: [
-          ['s = (v₀ + v)/2 · t', 'Formel 5: strekning uten a', 'Formel 3 satt inn i formel 4.', 'f'],
-          ['s = v₀t + ½at²', 'Formel 6: strekning uten v', 'Når du kjenner startfart, akselerasjon og tid.', 'f'],
-          ['2as = v² − v₀²', 'Formel 7: den tidløse', 'Kobler fart og strekning uten tiden t.', 'f'],
+          ['s = (v₀ + v)/2 · t', 'Formel 5: strekning uten a', 'Formel 3 satt inn i formel 4.', 'f', 'Et tog bremser jevnt fra 20 m/s til 0 på 10 s. Bremselengden er (20 + 0)/2 · 10 = 100 m.'],
+          ['s = v₀t + ½at²', 'Formel 6: strekning uten v', 'Når du kjenner startfart, akselerasjon og tid.', 'f', 'En stein slippes (v₀ = 0) og faller i 2 s med a = 10 m/s². Den faller ½ · 10 · 2² = 20 m.'],
+          ['2as = v² − v₀²', 'Formel 7: den tidløse', 'Kobler fart og strekning uten tiden t.', 'f', 'En bil i 20 m/s bremser med 5 m/s² til stopp: 2 · (−5) · s = 0 − 400, så s = 40 m.'],
         ],
         items: [
           mc('Du kjenner v₀, v og a, men ikke tiden. Hvilken likning bruker du for å finne strekningen?', ['2as = v² − v₀²', 'v = v₀ + at', 's = v₀t + ½at²', 's = ½(v₀ + v)t'], '2as = v² − v₀² er den eneste av likningene som ikke inneholder t.'),
@@ -232,8 +232,8 @@
       {
         id: 'rb-utled', title: 'Utled bevegelsesformlene',
         intro: [
-          ['Lineær fart', 'Farten øker jevnt', 'Ved konstant a er v-t-grafen en rett linje. Da er gjennomsnittsfarten midt mellom v₀ og v.', 'b'],
-          ['Innsetting', 'Sett en formel inn i en annen', 'Slik får vi formel 5, 6 og 7.', 'b'],
+          ['Lineær fart', 'Farten øker jevnt', 'Ved konstant a er v-t-grafen en rett linje. Da er gjennomsnittsfarten midt mellom v₀ og v.', 'b', 'En heis som akselererer jevnt, får en v-t-graf som er en rett linje. Derfor ligger snittfarten midt mellom start og slutt.'],
+          ['Innsetting', 'Sett en formel inn i en annen', 'Slik får vi formel 5, 6 og 7.', 'b', 'Setter du t = (v − v₀)/a fra formel 1 inn i formel 5, forsvinner t, og du får formel 7.'],
         ],
         items: [
           bank('Utled formel 2: v = v₀ + at', '▢\n▢\n▢', ['Start med formel 1: a = (v − v₀)/t', 'Gang begge sider med t: at = v − v₀', 'Legg v₀ til på begge sider: v = v₀ + at'], ['v = at − v₀'], 'Formel 2 er bare formel 1 løst for v.', { order: true }),
@@ -254,8 +254,8 @@
       {
         id: 'rb-param', title: 'Parameterfremstilling',
         intro: [
-          ['s(t)', 'Posisjon som funksjon av tid', 'En formel som gir posisjonen for hvert tidspunkt t.', 'f'],
-          ['v(t) = 0', 'Snupunktet', 'Legemet snur når farten skifter fortegn.', 'f'],
+          ['s(t)', 'Posisjon som funksjon av tid', 'En formel som gir posisjonen for hvert tidspunkt t.', 'f', 's(t) = 2 + 3t betyr at legemet starter 2 m fra nullpunktet og går 3 m for hvert sekund.'],
+          ['v(t) = 0', 'Snupunktet', 'Legemet snur når farten skifter fortegn.', 'f', 'En ball kastet rett opp har v = 0 på toppen. Der snur den og begynner å falle.'],
         ],
         items: [
           mc('Hvordan finner du tidspunktet der legemet snur?', ['Løser v(t) = 0', 'Løser s(t) = 0', 'Løser a(t) = 0', 'Setter t = 0'], 'I snupunktet er farten null.'),
@@ -268,8 +268,8 @@
       {
         id: 'rb-fritt', title: 'Fritt fall',
         intro: [
-          ['g', 'Tyngdeakselerasjonen', '9,81 m/s² nedover nær jordoverflaten.', 's'],
-          ['Fritt fall', 'Bare tyngden virker', 'Uten luftmotstand faller alle legemer med samme akselerasjon g.', 'b'],
+          ['g', 'Tyngdeakselerasjonen', '9,81 m/s² nedover nær jordoverflaten.', 's', 'Slipper du en ball, øker farten med ca. 9,8 m/s hvert sekund: 9,8, 19,6, 29,4 m/s …'],
+          ['Fritt fall', 'Bare tyngden virker', 'Uten luftmotstand faller alle legemer med samme akselerasjon g.', 'b', 'På månen, uten luft, faller en hammer og en fjær like fort. Det viste astronauten David Scott i 1971.'],
         ],
         items: [
           mc('Vi ser bort fra luftmotstand. En hammer og en fjær slippes samtidig fra samme høyde. Hva skjer?', ['De treffer bakken samtidig', 'Hammeren lander først', 'Fjæra lander først', 'Det avhenger av høyden'], 'I fritt fall har alle legemer samme akselerasjon g, uansett masse.'),
@@ -300,9 +300,9 @@
       {
         id: 'nl-kraft', title: 'Kraftbegrepet',
         intro: [
-          ['F', 'Kraft', 'En påvirkning som kan endre bevegelsen. Enhet: newton (N).', 's'],
-          ['ΣF', 'Kraftsum', 'Summen av alle kreftene som virker på legemet.', 's'],
-          ['1 N', 'Én newton', '1 kg·m/s²: kraften som gir 1 kg akselerasjonen 1 m/s².', 'e'],
+          ['F', 'Kraft', 'En påvirkning som kan endre bevegelsen. Enhet: newton (N).', 's', 'Når du dytter en handlevogn, virker du med en kraft på den. Kraften kan sette den i gang, bremse den eller endre retning.'],
+          ['ΣF', 'Kraftsum', 'Summen av alle kreftene som virker på legemet.', 's', 'To personer drar i et tau med 200 N hver vei. Kraftsummen er 0, og tauet står stille.'],
+          ['1 N', 'Én newton', '1 kg·m/s²: kraften som gir 1 kg akselerasjonen 1 m/s².', 'e', '1 N er omtrent tyngden av et lite eple (ca. 100 g).'],
         ],
         items: [
           mc('1 N er det samme som …', ['1 kg·m/s²', '1 kg·m/s', '1 kg·m²/s²', '1 J/s'], 'F = ma gir enheten kg · m/s².'),
@@ -311,8 +311,8 @@
       {
         id: 'nl-lover', title: 'Newtons 1. og 3. lov',
         intro: [
-          ['N1', 'Newtons 1. lov', 'ΣF = 0 betyr i ro eller konstant hastighet.', 'b'],
-          ['N3', 'Newtons 3. lov', 'Kraft og motkraft er like store, motsatt rettet og virker på hvert sitt legeme.', 'b'],
+          ['N1', 'Newtons 1. lov', 'ΣF = 0 betyr i ro eller konstant hastighet.', 'b', 'En hockeypuck på glatt is fortsetter nesten med samme fart, fordi nesten ingen krefter bremser den.'],
+          ['N3', 'Newtons 3. lov', 'Kraft og motkraft er like store, motsatt rettet og virker på hvert sitt legeme.', 'b', 'Når du skyver fra deg mot en vegg, skyver veggen like hardt tilbake på deg. Derfor triller du bakover på rulleskøyter.'],
         ],
         items: [
           mc('Hva sier Newtons 1. lov?', ['Er kraftsummen null, er legemet i ro eller har konstant hastighet', 'Er kraftsummen null, er legemet i ro, og det kan ikke bevege seg', 'Er kraftsummen konstant, har legemet konstant hastighet', 'Er legemet i bevegelse, må det virke en kraft i bevegelsesretningen'], 'Newtons 1. lov kalles også treghetsloven. Et legeme trenger ingen kraft for å holde farten, bare for å endre den. En konstant kraftsum gir konstant akselerasjon, ikke konstant hastighet.'),
@@ -327,9 +327,9 @@
       {
         id: 'nl-n2', title: 'Newtons 2. lov og tyngde',
         intro: [
-          ['ΣF = m·a', 'Newtons 2. lov', 'Kraftsummen er masse ganger akselerasjon.', 'f'],
-          ['m', 'Masse', 'Hvor mye stoff legemet har. Enhet: kg.', 's'],
-          ['G = m·g', 'Tyngde', 'Kraften fra jorda på et legeme.', 'f'],
+          ['ΣF = m·a', 'Newtons 2. lov', 'Kraftsummen er masse ganger akselerasjon.', 'f', 'Det trengs dobbelt så stor kraft for å gi en full handlevogn samme akselerasjon som en halvfull.'],
+          ['m', 'Masse', 'Hvor mye stoff legemet har. Enhet: kg.', 's', 'En person på 60 kg har massen 60 kg både på jorda og på månen, men veier mindre på månen.'],
+          ['G = m·g', 'Tyngde', 'Kraften fra jorda på et legeme.', 'f', 'En sekk på 10 kg har tyngden 10 · 9,81 ≈ 98 N.'],
         ],
         items: [
           bank('Fullfør Newtons 2. lov', 'ΣF = ▢ · ▢', ['m', 'a'], ['v', 'g', 's'], 'Kraftsummen er masse ganger akselerasjon.', { any: true }),
@@ -340,9 +340,9 @@
       {
         id: 'nl-friksjon', title: 'Friksjon og normalkraft',
         intro: [
-          ['N', 'Normalkraft', 'Kraft fra underlaget, vinkelrett ut fra det.', 's'],
-          ['R = μN', 'Friksjon', 'Friksjonskraften er friksjonstallet ganger normalkraften.', 'f'],
-          ['μ', 'Friksjonstall', 'Tall uten enhet som sier hvor «ru» flatene er.', 's'],
+          ['N', 'Normalkraft', 'Kraft fra underlaget, vinkelrett ut fra det.', 's', 'Når du står på gulvet, skyver gulvet deg opp med en normalkraft like stor som tyngden din.'],
+          ['R = μN', 'Friksjon', 'Friksjonskraften er friksjonstallet ganger normalkraften.', 'f', 'En kasse med normalkraft 400 N og μ = 0,3 får friksjon 0,3 · 400 = 120 N.'],
+          ['μ', 'Friksjonstall', 'Tall uten enhet som sier hvor «ru» flatene er.', 's', 'Gummi på tørr asfalt har μ ≈ 0,8, mens skøyter på is har μ ≈ 0,02. Derfor glir du på isen.'],
         ],
         items: [
           tf('Friksjonskraften virker motsatt vei av bevegelsen (eller tendensen til bevegelse) langs underlaget.', true, 'Friksjon motvirker den relative bevegelsen mellom flatene.'),
@@ -352,8 +352,8 @@
       {
         id: 'nl-luft', title: 'Luftmotstand',
         intro: [
-          ['L = kv²', 'Luftmotstand', 'Luftmotstanden øker med kvadratet av farten.', 'f'],
-          ['Terminalfart', 'Konstant sluttfart', 'Farten der luftmotstanden er like stor som tyngden, så ΣF = 0 og farten slutter å øke.', 'b'],
+          ['L = kv²', 'Luftmotstand', 'Luftmotstanden øker med kvadratet av farten.', 'f', 'Dobler du farten på sykkelen, blir luftmotstanden fire ganger så stor. Derfor er det tungt å sykle fort.'],
+          ['Terminalfart', 'Konstant sluttfart', 'Farten der luftmotstanden er like stor som tyngden, så ΣF = 0 og farten slutter å øke.', 'b', 'En fallskjermhopper når rundt 200 km/t før skjermen utløses. Da er luftmotstanden like stor som tyngden.'],
         ],
         items: [
           mc('Hva er terminalfarten til en fallskjermhopper?', ['Farten der luftmotstanden er like stor som tyngden, så farten er konstant', 'Farten der luftmotstanden er større enn tyngden, så farten synker', 'Farten der tyngden forsvinner, så bare luftmotstanden virker', 'Farten der akselerasjonen er størst, rett før skjermen åpnes'], 'Ved terminalfarten er ΣF = 0, så a = 0 og farten er konstant. Tyngden forsvinner ikke, den blir bare balansert av luftmotstanden.'),
@@ -363,9 +363,9 @@
       {
         id: 'nl-skraplan', title: 'Skråplan',
         intro: [
-          ['α', 'Helningsvinkel', 'Vinkelen mellom skråplanet og vannrett.', 's'],
-          ['G∥ = mg·sin α', 'Tyngden langs planet', 'Komponenten som drar legemet nedover skråplanet.', 'f'],
-          ['G⊥ = mg·cos α', 'Tyngden inn mot planet', 'Komponenten som presser mot underlaget. N = G⊥.', 'f'],
+          ['α', 'Helningsvinkel', 'Vinkelen mellom skråplanet og vannrett.', 's', 'En bakke med helningsvinkel 30° er ganske bratt. En rullestolrampe har gjerne bare rundt 5°.'],
+          ['G∥ = mg·sin α', 'Tyngden langs planet', 'Komponenten som drar legemet nedover skråplanet.', 'f', 'Jo brattere akebakken er, jo større blir sin α, og jo fortere akselererer kjelken.'],
+          ['G⊥ = mg·cos α', 'Tyngden inn mot planet', 'Komponenten som presser mot underlaget. N = G⊥.', 'f', 'På et helt flatt underlag er α = 0 og cos 0 = 1, så hele tyngden presser mot underlaget.'],
         ],
         items: [
           mc('En kloss glir på et friksjonsfritt skråplan. Hva er akselerasjonen uavhengig av?', ['Massen til klossen', 'Helningsvinkelen', 'Tyngdeakselerasjonen g', 'Ingen av delene'], 'a = g·sin α. Massen forkortes bort.'),
@@ -376,9 +376,9 @@
       {
         id: 'nl-system', title: 'Sammensatte systemer',
         intro: [
-          ['S', 'Snordrag', 'Kraften fra en snor, rettet langs snora.', 's'],
-          ['Indre krefter', 'Krefter mellom delene', 'Snordrag mellom to klosser er indre krefter for systemet. De faller bort når vi ser på systemet som helhet.', 'b'],
-          ['ΣF = (m₁ + m₂)·a', 'Newtons 2. lov for hele systemet', 'Når delene henger sammen og har samme akselerasjon, bruker vi den totale massen og bare de ytre kreftene.', 'f'],
+          ['S', 'Snordrag', 'Kraften fra en snor, rettet langs snora.', 's', 'Snora i en heis drar heisen opp med et snordrag. Står heisen i ro, er snordraget lik tyngden.'],
+          ['Indre krefter', 'Krefter mellom delene', 'Snordrag mellom to klosser er indre krefter for systemet. De faller bort når vi ser på systemet som helhet.', 'b', 'Et tog med to vogner: koblingen mellom vognene er en indre kraft. Ser vi på hele toget, trenger vi den ikke.'],
+          ['ΣF = (m₁ + m₂)·a', 'Newtons 2. lov for hele systemet', 'Når delene henger sammen og har samme akselerasjon, bruker vi den totale massen og bare de ytre kreftene.', 'f', 'En bil på 1000 kg drar en henger på 500 kg. Hele systemet har masse 1500 kg og samme akselerasjon.'],
         ],
         items: [
           mc('To klosser henger sammen med en snor og trekkes bortover. Hvilke krefter tar du med i ΣF når du ser på begge klossene som ett system?', ['Bare de ytre kreftene, ikke snordraget mellom klossene', 'Alle kreftene, også snordraget mellom klossene', 'Bare snordraget, fordi det holder systemet sammen', 'Bare tyngden og normalkraften på hver kloss'], 'Snordraget mellom klossene er en indre kraft. Det virker like mye på begge klossene i hver sin retning og faller bort for systemet som helhet.'),
@@ -405,8 +405,8 @@
       {
         id: 'me-arbeid', title: 'Arbeid',
         intro: [
-          ['W = F·s·cos α', 'Arbeid', 'Energien en kraft overfører. Enhet: joule (J).', 'f'],
-          ['J', 'Joule', 'Enheten for energi og arbeid. 1 J = 1 N·m.', 'e'],
+          ['W = F·s·cos α', 'Arbeid', 'Energien en kraft overfører. Enhet: joule (J).', 'f', 'Drar du en kjelke 10 m med 50 N rett framover, gjør du arbeidet 50 · 10 = 500 J.'],
+          ['J', 'Joule', 'Enheten for energi og arbeid. 1 J = 1 N·m.', 'e', '1 J er omtrent energien som trengs for å løfte et lite eple 1 m.'],
         ],
         items: [
           mc('Du bærer en sekk vannrett bortover med konstant fart. Hvor mye arbeid gjør du på sekken i fysisk forstand?', ['Null', 'Like mye som tyngden ganger strekningen', 'Det avhenger av farten', 'Negativt arbeid'], 'Kraften din er rettet oppover, vinkelrett på forflytningen. cos 90° = 0.'),
@@ -416,7 +416,7 @@
       {
         id: 'me-kin', title: 'Kinetisk energi',
         intro: [
-          ['E_k = ½mv²', 'Kinetisk energi', 'Bevegelsesenergi.', 'f'],
+          ['E_k = ½mv²', 'Kinetisk energi', 'Bevegelsesenergi.', 'f', 'En bil på 1000 kg i 20 m/s har E_k = ½ · 1000 · 20² = 200 000 J.'],
         ],
         items: [
           mc('Farten til en bil dobles. Hva skjer med den kinetiske energien?', ['Den blir 4 ganger så stor', 'Den blir 2 ganger så stor', 'Den blir 8 ganger så stor', 'Den blir √2 ganger så stor'], 'E_k = ½mv². Når v blir 2v, blir v² til 4v², så energien blir 4 ganger så stor. Derfor blir bremselengden også 4 ganger så lang.'),
@@ -426,7 +426,7 @@
       {
         id: 'me-totarb', title: 'Totalt arbeid',
         intro: [
-          ['W_tot = ΔE_k', 'Arbeid-energi-setningen', 'Det totale arbeidet fra alle kreftene er lik endringen i kinetisk energi.', 'f'],
+          ['W_tot = ΔE_k', 'Arbeid-energi-setningen', 'Det totale arbeidet fra alle kreftene er lik endringen i kinetisk energi.', 'f', 'Du dytter en ball som får 10 J mer bevegelsesenergi. Da har kreftene til sammen gjort 10 J arbeid på ballen.'],
         ],
         items: [
           bank('Utled uttrykket for kinetisk energi (arbeid-energi-setningen)', '▢\n▢\n▢\n▢\n▢', ['Arbeidet fra kraftsummen er W = F·s', 'Newtons 2. lov: F = m·a', 'W = m·a·s', 'Formel 7 gir a·s = (v² − v₀²)/2', 'W = ½mv² − ½mv₀² = ΔE_k'], ['W = m·v·s'], 'Arbeidet fra kraftsummen er lik endringen i kinetisk energi.', { order: true }),
@@ -435,9 +435,9 @@
       {
         id: 'me-pot', title: 'Potensiell energi',
         intro: [
-          ['E_p = mgh', 'Potensiell energi', 'Stillingsenergi i tyngdefeltet.', 'f'],
-          ['h', 'Høyde', 'Høyden over et nullnivå du velger selv.', 's'],
-          ['Nullnivå', 'Der h = 0', 'Kan velges fritt. Bare endringer i E_p betyr noe.', 'b'],
+          ['E_p = mgh', 'Potensiell energi', 'Stillingsenergi i tyngdefeltet.', 'f', 'Bærer du en sekk på 10 kg opp 3 m, øker den potensielle energien med 10 · 9,81 · 3 ≈ 290 J.'],
+          ['h', 'Høyde', 'Høyden over et nullnivå du velger selv.', 's', 'Står du på et bord, kan du velge gulvet som h = 0. Da er h lik bordhøyden.'],
+          ['Nullnivå', 'Der h = 0', 'Kan velges fritt. Bare endringer i E_p betyr noe.', 'b', 'Om du velger gulvet eller bakken utenfor som nullnivå, blir E_p forskjellig, men endringen i E_p blir den samme.'],
         ],
         items: [
           mc('Hvor må nullnivået for potensiell energi ligge?', ['Det kan velges fritt', 'Alltid ved havnivå', 'Alltid på bakken', 'Alltid i jordas sentrum'], 'Det er bare endringer i E_p som betyr noe fysisk.'),
@@ -447,9 +447,9 @@
       {
         id: 'me-bevaring', title: 'Bevaring av mekanisk energi',
         intro: [
-          ['E = E_k + E_p', 'Mekanisk energi', 'Summen av kinetisk og potensiell energi.', 'f'],
-          ['Energibevaring', 'E før = E etter', 'Når bare tyngden gjør arbeid, er mekanisk energi konstant.', 'b'],
-          ['v = √(2gh)', 'Fart etter fall', 'Følger av mgh = ½mv².', 'f'],
+          ['E = E_k + E_p', 'Mekanisk energi', 'Summen av kinetisk og potensiell energi.', 'f', 'En ball på toppen av et kast har mest E_p og minst E_k. Summen er den samme hele veien uten luftmotstand.'],
+          ['Energibevaring', 'E før = E etter', 'Når bare tyngden gjør arbeid, er mekanisk energi konstant.', 'b', 'En berg-og-dal-bane kan aldri komme høyere enn startpunktet, fordi den ikke får mer energi underveis.'],
+          ['v = √(2gh)', 'Fart etter fall', 'Følger av mgh = ½mv².', 'f', 'Faller du fra et 5 m høyt stupetårn, treffer du vannet med v = √(2 · 9,81 · 5) ≈ 10 m/s.'],
         ],
         items: [
           mc('Når er den mekaniske energien til et legeme bevart?', ['Når tyngden er den eneste kraften som gjør arbeid', 'Når tyngden er den eneste kraften som virker på legemet', 'Når farten til legemet er konstant hele tiden', 'Når legemet beveger seg uten å endre høyde'], 'Krefter som friksjon og luftmotstand endrer den mekaniske energien. Andre krefter kan godt virke, som normalkraften på et friksjonsfritt skråplan, så lenge de ikke gjør arbeid. Konstant fart er ikke nok: en heis med konstant fart oppover får mer potensiell energi.'),
@@ -461,8 +461,8 @@
       {
         id: 'me-ikke', title: 'Ikke-bevart mekanisk energi',
         intro: [
-          ['W_R = ΔE', 'Friksjonsarbeid', 'Arbeidet friksjonen gjør, er lik endringen i mekanisk energi. Det er negativt.', 'f'],
-          ['Varme', 'Tapt mekanisk energi', 'Mekanisk energi som går tapt på grunn av friksjon, blir til indre energi i legemet og omgivelsene.', 'b'],
+          ['W_R = ΔE', 'Friksjonsarbeid', 'Arbeidet friksjonen gjør, er lik endringen i mekanisk energi. Det er negativt.', 'f', 'En sykkel som triller til den stopper, mister all bevegelsesenergi. Friksjonen har gjort like mye negativt arbeid.'],
+          ['Varme', 'Tapt mekanisk energi', 'Mekanisk energi som går tapt på grunn av friksjon, blir til indre energi i legemet og omgivelsene.', 'b', 'Bremser du hardt på sykkelen, blir bremseskivene varme. Bevegelsesenergien er blitt til varme.'],
         ],
         items: [
           mc('Hvor stort er arbeidet friksjonen gjør på et legeme?', ['Like stort som endringen i mekanisk energi, og negativt', 'Like stort som endringen i kinetisk energi, og positivt', 'Like stort som endringen i potensiell energi, og negativt', 'Like stort som tyngden ganger strekningen, og positivt'], 'W_R = −R·s = ΔE, der ΔE er endringen i mekanisk energi. Arbeidet er negativt fordi friksjonen virker mot bevegelsen. Endringen i kinetisk energi alene er arbeidet fra alle kreftene til sammen.'),
@@ -472,9 +472,9 @@
       {
         id: 'me-effekt', title: 'Effekt',
         intro: [
-          ['P = W/t', 'Effekt', 'Arbeid per tid. Enhet: watt (W).', 'f'],
-          ['kWh', 'Kilowattime', '1 kWh = 3,6 MJ. Brukes på strømregningen.', 'e'],
-          ['W', 'Watt', 'Enheten for effekt. 1 W = 1 J/s.', 'e'],
+          ['P = W/t', 'Effekt', 'Arbeid per tid. Enhet: watt (W).', 'f', 'To personer bærer like tunge sekker opp samme trapp. Den som løper, har større effekt, selv om arbeidet er det samme.'],
+          ['kWh', 'Kilowattime', '1 kWh = 3,6 MJ. Brukes på strømregningen.', 'e', 'En panelovn på 1000 W som står på i én time, bruker 1 kWh.'],
+          ['W', 'Watt', 'Enheten for effekt. 1 W = 1 J/s.', 'e', 'En LED-pære på 10 W bruker 10 J hvert sekund.'],
         ],
         items: [
           match([['Arbeid', 'J'], ['Effekt', 'W'], ['Kraft', 'N'], ['1 kWh', '3,6 MJ']], 'Koble sammen parene'),
@@ -484,8 +484,8 @@
       {
         id: 'me-kvalitet', title: 'Energikvalitet',
         intro: [
-          ['Energikvalitet', 'Hvor nyttig energien er', 'Elektrisk energi har høy kvalitet. Lunken varme har lav.', 'b'],
-          ['Energiomforming', 'Energi skifter form', 'Energi går over fra én form til en annen, men den totale energien er bevart.', 'b'],
+          ['Energikvalitet', 'Hvor nyttig energien er', 'Elektrisk energi har høy kvalitet. Lunken varme har lav.', 'b', 'Strøm kan drive både en lampe, en motor og en ovn. Lunken luft i et rom kan du nesten ikke bruke til noe.'],
+          ['Energiomforming', 'Energi skifter form', 'Energi går over fra én form til en annen, men den totale energien er bevart.', 'b', 'I en vindmølle blir bevegelsesenergi i vinden til elektrisk energi, og i en lyspære blir den til lys og varme.'],
         ],
         items: [
           mc('Hvilken energiform har høyest energikvalitet?', ['Elektrisk energi', 'Varmt vann på 40 °C', 'Luft i romtemperatur', 'Spillvarme fra en bilmotor'], 'Elektrisk energi kan omformes til nesten alle andre former med høy virkningsgrad.'),
@@ -496,8 +496,8 @@
       {
         id: 'me-virk', title: 'Energi og virkningsgrad',
         intro: [
-          ['η', 'Virkningsgrad', 'Nyttig energi delt på tilført energi.', 's'],
-          ['η = E_nyttig / E_tilført', 'Formel for virkningsgrad', 'Alltid mellom 0 og 1 (0–100 %).', 'f'],
+          ['η', 'Virkningsgrad', 'Nyttig energi delt på tilført energi.', 's', 'En elmotor med η = 0,90 gjør 90 % av strømmen om til bevegelse. Resten blir varme.'],
+          ['η = E_nyttig / E_tilført', 'Formel for virkningsgrad', 'Alltid mellom 0 og 1 (0–100 %).', 'f', 'En lyspære får 100 J og gir 10 J lys. Virkningsgraden er 10/100 = 0,10 = 10 %.'],
         ],
         items: [
           mc('Hvorfor kan ikke virkningsgraden til en maskin være over 100 %?', ['Energi er bevart, så nyttig energi kan ikke bli større enn tilført', 'Energi går alltid tapt som varme, så den kan ikke engang nå 100 %', 'Effekt er bevart, så nyttig effekt må være lik tilført effekt', 'Virkningsgraden er definert som tilført delt på nyttig energi'], 'η = nyttig energi / tilført energi, og energi kan ikke skapes, så η ≤ 1. Det er energibevaringen som setter grensen. At det i praksis alltid blir noe varmetap, forklarer at η < 100 %, men ikke hvorfor den ikke kan bli større.'),
@@ -523,8 +523,8 @@
       {
         id: 'bm-p', title: 'Bevegelsesmengde',
         intro: [
-          ['p = m·v', 'Bevegelsesmengde', 'En vektor. Enhet: kg·m/s.', 'f'],
-          ['kg·m/s', 'Enheten for bevegelsesmengde', 'Samme enhet som N·s.', 'e'],
+          ['p = m·v', 'Bevegelsesmengde', 'En vektor. Enhet: kg·m/s.', 'f', 'En lastebil og en sykkel i samme fart: lastebilen har mye større bevegelsesmengde og er mye vanskeligere å stoppe.'],
+          ['kg·m/s', 'Enheten for bevegelsesmengde', 'Samme enhet som N·s.', 'e', 'En fotball på 0,4 kg i 20 m/s har bevegelsesmengde 0,4 · 20 = 8 kg·m/s.'],
         ],
         items: [
           tf('Bevegelsesmengde er en skalar, akkurat som kinetisk energi.', false, 'p = mv har samme retning som hastigheten, så bevegelsesmengde er en vektor. Kinetisk energi er en skalar.'),
@@ -534,8 +534,8 @@
       {
         id: 'bm-impuls', title: 'Impulsloven',
         intro: [
-          ['I = F·Δt', 'Impuls', 'Kraft ganger tiden den virker.', 'f'],
-          ['I = Δp', 'Impulsloven', 'Impulsen er lik endringen i bevegelsesmengde.', 'f'],
+          ['I = F·Δt', 'Impuls', 'Kraft ganger tiden den virker.', 'f', 'Når du tar imot en hard ball, trekker du hendene bakover. Da varer støtet lenger, og kraften blir mindre.'],
+          ['I = Δp', 'Impulsloven', 'Impulsen er lik endringen i bevegelsesmengde.', 'f', 'En fotball som går fra 0 til 8 kg·m/s når du sparker den, har fått en impuls på 8 N·s fra foten.'],
         ],
         items: [
           mc('Hvorfor reduserer en kollisjonspute skadene i en kollisjon?', ['Den forlenger tiden det tar å stoppe, så kraften blir mindre', 'Den reduserer endringen i bevegelsesmengde, så kraften blir mindre', 'Den forkorter tiden det tar å stoppe, så støtet blir over fortere', 'Den gjør støtet elastisk, så den kinetiske energien blir bevart'], 'Impulsen F·Δt = Δp er den samme med og uten pute, fordi du uansett går fra full fart til stillstand. Når Δt blir lengre, blir F = Δp/Δt mindre.'),
@@ -546,9 +546,9 @@
       {
         id: 'bm-bevaring', title: 'Bevaring av bevegelsesmengde',
         intro: [
-          ['Σp før = Σp etter', 'Bevaring av bevegelsesmengde', 'Gjelder når summen av ytre krefter er null.', 'f'],
-          ['Isolert system', 'Ingen ytre kraftsum', 'Bare indre krefter mellom legemene virker.', 'b'],
-          ['Rekyl', 'Bevegelse bakover', 'Når noe skytes ut forover, får resten fart bakover.', 'b'],
+          ['Σp før = Σp etter', 'Bevaring av bevegelsesmengde', 'Gjelder når summen av ytre krefter er null.', 'f', 'To skøyteløpere i ro dytter fra hverandre. Etterpå er bevegelsesmengdene like store og motsatt rettet, så summen er fortsatt 0.'],
+          ['Isolert system', 'Ingen ytre kraftsum', 'Bare indre krefter mellom legemene virker.', 'b', 'To biljardkuler som støter på et glatt bord, er nesten et isolert system, fordi friksjonen er liten i det korte støtet.'],
+          ['Rekyl', 'Bevegelse bakover', 'Når noe skytes ut forover, får resten fart bakover.', 'b', 'Når et gevær skyter ut en kule forover, slår kolben bakover i skulderen.'],
         ],
         items: [
           mc('Når er den totale bevegelsesmengden til et system bevart?', ['Når summen av ytre krefter på systemet er null', 'Bare i elastiske støt', 'Bare når legemene har lik masse', 'Når friksjonen mellom legemene er null'], 'Indre krefter (som kreftene i et støt) endrer ikke den totale bevegelsesmengden.'),
@@ -559,9 +559,9 @@
       {
         id: 'bm-stot', title: 'Elastiske og uelastiske støt',
         intro: [
-          ['Elastisk støt', 'p og E_k bevart', 'Ingen kinetisk energi går tapt.', 'b'],
-          ['Uelastisk støt', 'Bare p bevart', 'Noe E_k blir til varme, lyd og deformasjon.', 'b'],
-          ['Fullstendig uelastisk', 'Legemene henger sammen', 'm₁v₁ + m₂v₂ = (m₁ + m₂)v′', 'b'],
+          ['Elastisk støt', 'p og E_k bevart', 'Ingen kinetisk energi går tapt.', 'b', 'Biljardkuler som treffer hverandre, er nesten elastiske: de spretter fra hverandre uten å miste særlig fart.'],
+          ['Uelastisk støt', 'Bare p bevart', 'Noe E_k blir til varme, lyd og deformasjon.', 'b', 'En fotball som treffer en vegg, spretter tilbake med litt lavere fart. Noe energi er blitt til lyd og varme.'],
+          ['Fullstendig uelastisk', 'Legemene henger sammen', 'm₁v₁ + m₂v₂ = (m₁ + m₂)v′', 'b', 'To biler som krasjer og henger sammen etterpå, har et fullstendig uelastisk støt.'],
         ],
         items: [
           mc('Hva kjennetegner et elastisk støt?', ['Både bevegelsesmengde og kinetisk energi er bevart', 'Bevegelsesmengden er bevart, men ikke kinetisk energi', 'Kinetisk energi er bevart, men ikke bevegelsesmengde', 'Legemene henger sammen og har felles fart etterpå'], 'I alle støt uten ytre krefter er bevegelsesmengden bevart. I et elastisk støt går i tillegg ingen kinetisk energi over til andre former. Henger legemene sammen etterpå, er støtet fullstendig uelastisk.'),
@@ -573,8 +573,8 @@
       {
         id: 'bm-sentralt', title: 'Sentralt elastisk støt',
         intro: [
-          ['Sentralt støt', 'Langs samme linje', 'Legemene beveger seg langs samme linje før og etter støtet.', 'b'],
-          ['Like masser', 'Bytter fart', 'I et sentralt elastisk støt mellom to like tunge legemer bytter de hastighet.', 'b'],
+          ['Sentralt støt', 'Langs samme linje', 'Legemene beveger seg langs samme linje før og etter støtet.', 'b', 'To kuler som ruller rett mot hverandre og spretter rett tilbake, har et sentralt støt.'],
+          ['Like masser', 'Bytter fart', 'I et sentralt elastisk støt mellom to like tunge legemer bytter de hastighet.', 'b', 'I Newtons vugge stopper kula som treffer, og kula i andre enden fortsetter med samme fart.'],
         ],
         items: [
           mc('En biljardkule treffer en like tung kule som ligger i ro, rett forfra og helt elastisk. Hva skjer?', ['Den første stopper, og den andre fortsetter med samme fart', 'Begge fortsetter framover med halvparten av farten', 'Den første spretter tilbake, og den andre får dobbel fart', 'Begge fortsetter framover, den andre med litt større fart'], 'Med like masser i et elastisk sentralt støt bytter kulene hastighet. Halv fart til begge bevarer bevegelsesmengden, men bare halvparten av den kinetiske energien, så det passer et uelastisk støt.'),
@@ -601,9 +601,9 @@
       {
         id: 'el-ladning', title: 'Ladning og strøm',
         intro: [
-          ['Q', 'Ladning', 'Enhet: coulomb (C).', 's'],
-          ['I = Q/t', 'Strøm', 'Ladning per tid. Enhet: ampere (A).', 'f'],
-          ['e', 'Elementærladningen', '1,60 · 10⁻¹⁹ C, ladningen til ett elektron (med motsatt fortegn).', 's'],
+          ['Q', 'Ladning', 'Enhet: coulomb (C).', 's', 'Når du gnir en ballong mot håret, får ballongen negativ ladning og håret positiv ladning.'],
+          ['I = Q/t', 'Strøm', 'Ladning per tid. Enhet: ampere (A).', 'f', 'Går det 2 C gjennom en ledning hvert sekund, er strømmen 2 A.'],
+          ['e', 'Elementærladningen', '1,60 · 10⁻¹⁹ C, ladningen til ett elektron (med motsatt fortegn).', 's', 'Det trengs omtrent 6,2 milliarder milliarder elektroner for å få ladningen 1 C.'],
         ],
         items: [
           match([['Ladning', 'C'], ['Strøm', 'A'], ['Spenning', 'V'], ['Resistans', 'Ω']], 'Koble størrelsen med enheten'),
@@ -614,8 +614,8 @@
       {
         id: 'el-spenning', title: 'Spenning',
         intro: [
-          ['U = W/Q', 'Spenning', 'Energi per ladning. Enhet: volt (V).', 'f'],
-          ['V', 'Volt', 'Enheten for spenning. 1 V = 1 J/C.', 'e'],
+          ['U = W/Q', 'Spenning', 'Energi per ladning. Enhet: volt (V).', 'f', 'Et 9 V-batteri gir hver coulomb ladning 9 J energi på veien gjennom kretsen.'],
+          ['V', 'Volt', 'Enheten for spenning. 1 V = 1 J/C.', 'e', 'En stikkontakt i Norge har 230 V, mens et vanlig batteri har 1,5 V.'],
         ],
         items: [
           mc('Hva er elektrisk spenning?', ['Energi per ladning', 'Ladning per tid', 'Kraft per ladning', 'Strøm per resistans'], 'U = W/Q. 1 V = 1 J/C.'),
@@ -624,9 +624,9 @@
       {
         id: 'el-ohm', title: 'Ohms lov',
         intro: [
-          ['U = R·I', 'Ohms lov', 'Spenning er resistans ganger strøm.', 'f'],
-          ['Ω', 'Ohm', 'Enheten for resistans. 1 Ω = 1 V/A.', 'e'],
-          ['R = ρL/A', 'Resistans i en ledning', 'ρ er resistiviteten, L lengden og A tverrsnittsarealet.', 'f'],
+          ['U = R·I', 'Ohms lov', 'Spenning er resistans ganger strøm.', 'f', 'En motstand på 100 Ω med 0,05 A gjennom seg har spenningen 100 · 0,05 = 5 V over seg.'],
+          ['Ω', 'Ohm', 'Enheten for resistans. 1 Ω = 1 V/A.', 'e', 'Et ledningsstykke har nesten 0 Ω, mens en vanlig motstand i en krets kan være på 1000 Ω.'],
+          ['R = ρL/A', 'Resistans i en ledning', 'ρ er resistiviteten, L lengden og A tverrsnittsarealet.', 'f', 'En lang og tynn ledning har større resistans enn en kort og tykk. Derfor er skjøteledninger til store maskiner tykke.'],
         ],
         items: [
           bank('Fullfør Ohms lov', 'U = ▢ · ▢', ['R', 'I'], ['P', 'Q', 't'], 'Spenning = resistans · strøm', { any: true }),
@@ -638,8 +638,8 @@
       {
         id: 'el-serie', title: 'Seriekobling av motstander',
         intro: [
-          ['R = R₁ + R₂', 'Seriekobling', 'Resistansene legges sammen. Samme strøm overalt.', 'f'],
-          ['Seriekobling', 'Etter hverandre', 'Samme strøm går gjennom alle komponentene, og spenningene over dem legges sammen.', 'b'],
+          ['R = R₁ + R₂', 'Seriekobling', 'Resistansene legges sammen. Samme strøm overalt.', 'f', 'To motstander på 10 Ω og 20 Ω etter hverandre gir til sammen 30 Ω.'],
+          ['Seriekobling', 'Etter hverandre', 'Samme strøm går gjennom alle komponentene, og spenningene over dem legges sammen.', 'b', 'Gammeldagse julelys var seriekoblet: røk én pære, sluknet hele lenken.'],
         ],
         items: [
           mc('Hva er likt for alle komponentene i en seriekobling?', ['Strømmen', 'Spenningen', 'Resistansen', 'Effekten'], 'Det finnes bare én vei for strømmen.'),
@@ -649,8 +649,8 @@
       {
         id: 'el-parallell', title: 'Parallellkobling av motstander',
         intro: [
-          ['1/R = 1/R₁ + 1/R₂', 'Parallellkobling', 'Samme spenning over alle greinene.', 'f'],
-          ['Parallellkobling', 'I hver sin grein', 'Samme spenning over alle greinene, og strømmene i greinene legges sammen.', 'b'],
+          ['1/R = 1/R₁ + 1/R₂', 'Parallellkobling', 'Samme spenning over alle greinene.', 'f', 'To motstander på 10 Ω i parallell gir 1/R = 1/10 + 1/10, altså R = 5 Ω.'],
+          ['Parallellkobling', 'I hver sin grein', 'Samme spenning over alle greinene, og strømmene i greinene legges sammen.', 'b', 'Lampene i et hus er parallellkoblet. Slår du av én, lyser de andre fortsatt like sterkt.'],
         ],
         items: [
           mc('Hva er likt for alle greinene i en parallellkobling?', ['Spenningen', 'Strømmen', 'Resistansen', 'Effekten'], 'Alle greinene er koblet mellom de samme to punktene.'),
@@ -661,9 +661,9 @@
       {
         id: 'el-krets', title: 'Elektriske kretser',
         intro: [
-          ['ε', 'Ems', 'Spenningen kilden gir når det ikke går strøm.', 's'],
-          ['U = ε − R_i·I', 'Polspenning', 'Spenningen ut fra kilden når det går strøm.', 'f'],
-          ['Kirchhoffs 1. lov', 'Strømmen inn = strømmen ut', 'Summen av strømmene inn i et forgreiningspunkt er lik summen av strømmene ut.', 'b'],
+          ['ε', 'Ems', 'Spenningen kilden gir når det ikke går strøm.', 's', 'Et batteri merket 1,5 V har ems 1,5 V. Det er spenningen du måler når ingenting er koblet til.'],
+          ['U = ε − R_i·I', 'Polspenning', 'Spenningen ut fra kilden når det går strøm.', 'f', 'Starter du en bil med lysene på, blir lysene svakere, fordi den store strømmen gir spenningsfall i batteriet.'],
+          ['Kirchhoffs 1. lov', 'Strømmen inn = strømmen ut', 'Summen av strømmene inn i et forgreiningspunkt er lik summen av strømmene ut.', 'b', 'Går det 3 A inn i et forgreiningspunkt og 1 A ut i den ene greina, må det gå 2 A ut i den andre.'],
         ],
         items: [
           mc('Hva sier Kirchhoffs 1. lov?', ['Summen av strømmene inn i et forgreiningspunkt er lik summen ut', 'Summen av spenningene inn i et forgreiningspunkt er lik summen ut', 'Strømmen er like stor i alle greinene i en parallellkobling', 'Summen av spenningene rundt en lukket sløyfe er lik null'], 'Kirchhoffs 1. lov følger av at ladning er bevart. Strømmen deler seg i et forgreiningspunkt, men ikke nødvendigvis likt. At spenningene rundt en sløyfe summeres til null, er Kirchhoffs 2. lov.'),
@@ -672,9 +672,9 @@
       {
         id: 'el-effekt', title: 'Elektrisk energi og effekt',
         intro: [
-          ['P = U·I', 'Elektrisk effekt', 'Effekten i en komponent.', 'f'],
-          ['P = R·I²', 'Effekt og strøm', 'Viser at varmetap øker med kvadratet av strømmen.', 'f'],
-          ['E = P·t', 'Elektrisk energi', 'Effekt ganger tid.', 'f'],
+          ['P = U·I', 'Elektrisk effekt', 'Effekten i en komponent.', 'f', 'En vannkoker på 230 V som trekker 10 A, har effekten 230 · 10 = 2300 W.'],
+          ['P = R·I²', 'Effekt og strøm', 'Viser at varmetap øker med kvadratet av strømmen.', 'f', 'Dobler du strømmen i en ledning, blir varmetapet fire ganger så stort. Derfor brukes høy spenning og lav strøm i kraftlinjer.'],
+          ['E = P·t', 'Elektrisk energi', 'Effekt ganger tid.', 'f', 'En TV på 100 W som står på i 5 timer, bruker 0,1 kW · 5 t = 0,5 kWh.'],
         ],
         items: [
           mc('Hvorfor overføres elektrisk energi med svært høy spenning i kraftledninger?', ['Lavere strøm gir mindre varmetap i ledningene', 'Høy spenning går raskere', 'Det trengs for at strømmen skal komme fram', 'Det gir mindre resistans i ledningene'], 'Tapet er P = R·I². Ved samme effekt gir høy U lav I.'),
@@ -705,9 +705,9 @@
       {
         id: 'tf-temp', title: 'Temperatur',
         intro: [
-          ['T', 'Absolutt temperatur', 'Måles i kelvin (K).', 's'],
-          ['T = t + 273,15', 'Fra celsius til kelvin', '0 K er det absolutte nullpunktet.', 'f'],
-          ['Absolutt nullpunkt', '0 K = −273,15 °C', 'Den lavest mulige temperaturen. Der har partiklene minst mulig bevegelse.', 'b'],
+          ['T', 'Absolutt temperatur', 'Måles i kelvin (K).', 's', 'Romtemperatur på 20 °C er omtrent 293 K.'],
+          ['T = t + 273,15', 'Fra celsius til kelvin', '0 K er det absolutte nullpunktet.', 'f', 'Vann koker ved 100 °C, som er 373,15 K.'],
+          ['Absolutt nullpunkt', '0 K = −273,15 °C', 'Den lavest mulige temperaturen. Der har partiklene minst mulig bevegelse.', 'b', 'Ute i verdensrommet er det rundt 2,7 K, bare litt over det absolutte nullpunktet.'],
         ],
         items: [
           mc('Hva er temperatur et mål på?', ['Den gjennomsnittlige kinetiske energien til partiklene', 'Den samlede kinetiske energien til alle partiklene', 'Den gjennomsnittlige potensielle energien til partiklene', 'Den samlede indre energien i hele stoffet'], 'Høyere temperatur betyr at partiklene i gjennomsnitt beveger seg raskere. Den samlede energien avhenger også av hvor mye stoff det er: et stort basseng med lunkent vann har mer indre energi enn en kopp varm te.'),
@@ -717,9 +717,9 @@
       {
         id: 'tf-indre', title: 'Indre energi og varme',
         intro: [
-          ['Indre energi', 'U', 'Summen av energien til alle partiklene i stoffet.', 'b'],
-          ['Q', 'Varme', 'Energi som overføres fordi det er en temperaturforskjell. Varme er ikke det samme som temperatur.', 's'],
-          ['Varmetransport', 'Ledning, stråling og strømning', 'Varme overføres ved varmeledning, varmestråling og varmestrømning (konveksjon).', 'b'],
+          ['Indre energi', 'U', 'Summen av energien til alle partiklene i stoffet.', 'b', 'En stor gryte med lunkent vann kan ha mer indre energi enn en liten kopp kokende te.'],
+          ['Q', 'Varme', 'Energi som overføres fordi det er en temperaturforskjell. Varme er ikke det samme som temperatur.', 's', 'Når du holder en kald hånd rundt en varm kopp, går det varme fra koppen til hånden.'],
+          ['Varmetransport', 'Ledning, stråling og strømning', 'Varme overføres ved varmeledning, varmestråling og varmestrømning (konveksjon).', 'b', 'Ledning: en metallskje i varm te blir varm. Stråling: du kjenner varmen fra et bål. Strømning: varm luft stiger fra en ovn.'],
         ],
         items: [
           tf('Varme og temperatur er det samme.', false, 'Varme er energi som overføres. Temperatur er en tilstandsstørrelse.'),
@@ -729,9 +729,9 @@
       {
         id: 'tf-varmekap', title: 'Varmekapasitet',
         intro: [
-          ['Q = c·m·ΔT', 'Varme og temperaturendring', 'Energien som trengs for å endre temperaturen.', 'f'],
-          ['c', 'Spesifikk varmekapasitet', 'Energi per kg per kelvin. Vann: 4,18 kJ/(kg·K).', 's'],
-          ['ΔT', 'Temperaturendring', 'Like stor i kelvin som i grader celsius.', 's'],
+          ['Q = c·m·ΔT', 'Varme og temperaturendring', 'Energien som trengs for å endre temperaturen.', 'f', 'Å varme 1 kg vann fra 20 °C til 100 °C krever 4180 · 1 · 80 ≈ 330 000 J.'],
+          ['c', 'Spesifikk varmekapasitet', 'Energi per kg per kelvin. Vann: 4,18 kJ/(kg·K).', 's', 'Vann har høy spesifikk varmekapasitet. Derfor tar det lang tid å varme opp et basseng, og havet holder på varmen om høsten.'],
+          ['ΔT', 'Temperaturendring', 'Like stor i kelvin som i grader celsius.', 's', 'Fra 15 °C til 25 °C er ΔT = 10 °C, som er det samme som 10 K.'],
         ],
         items: [
           mc('Hvorfor holder havet på varmen lenge utover høsten?', ['Vann har høy spesifikk varmekapasitet', 'Vann har lav spesifikk varmekapasitet', 'Saltet i havet varmer opp vannet', 'Havet reflekterer sollys'], 'Det trengs mye energi for å endre temperaturen til vann, og vannet avgir mye energi når det avkjøles.'),
@@ -741,9 +741,9 @@
       {
         id: 'tf-fase', title: 'Aggregattilstander og faseoverganger',
         intro: [
-          ['Aggregattilstand', 'Fast stoff, væske eller gass', 'Formen et stoff er i. Under en faseovergang endres den uten at temperaturen endres.', 'b'],
-          ['Q = l·m', 'Faseovergang', 'Energien som trengs for å smelte eller fordampe massen m.', 'f'],
-          ['l_s', 'Spesifikk smeltevarme', 'Is: 334 kJ/kg.', 's'],
+          ['Aggregattilstand', 'Fast stoff, væske eller gass', 'Formen et stoff er i. Under en faseovergang endres den uten at temperaturen endres.', 'b', 'Vann finnes som is (fast stoff), vann (væske) og vanndamp (gass).'],
+          ['Q = l·m', 'Faseovergang', 'Energien som trengs for å smelte eller fordampe massen m.', 'f', 'Å smelte 2 kg is ved 0 °C krever 334 kJ/kg · 2 kg = 668 kJ.'],
+          ['l_s', 'Spesifikk smeltevarme', 'Is: 334 kJ/kg.', 's', 'Isbiter i et glass holder drinken på 0 °C lenge, fordi det trengs mye energi for å smelte isen.'],
         ],
         items: [
           mc('Hva skjer med temperaturen mens is smelter ved normalt trykk?', ['Den er konstant på 0 °C', 'Den stiger jevnt', 'Den synker', 'Den svinger opp og ned'], 'Energien går med til å bryte bindinger mellom molekylene.'),
@@ -753,8 +753,8 @@
       {
         id: 'tf-fordamp', title: 'Smeltevarme og fordampningsvarme',
         intro: [
-          ['l_f', 'Spesifikk fordampningsvarme', 'Vann: 2,26 MJ/kg, mye større enn smeltevarmen for is.', 's'],
-          ['Kondensasjon', 'Gass blir til væske', 'Stoffet gir fra seg like mye energi som trengs for å fordampe det.', 'b'],
+          ['l_f', 'Spesifikk fordampningsvarme', 'Vann: 2,26 MJ/kg, mye større enn smeltevarmen for is.', 's', 'Svette som fordamper fra huden, tar med seg mye varme. Derfor kjøler svette deg ned.'],
+          ['Kondensasjon', 'Gass blir til væske', 'Stoffet gir fra seg like mye energi som trengs for å fordampe det.', 'b', 'Duggen på et kaldt glass er vanndamp fra lufta som kondenserer og blir til vann.'],
         ],
         items: [
           tf('Det trengs mer energi for å fordampe 1 kg vann enn for å smelte 1 kg is.', true, 'Fordampningsvarmen for vann er 2,26 MJ/kg, mens smeltevarmen for is er 334 kJ/kg.'),
@@ -764,7 +764,7 @@
       {
         id: 'tf-1lov', title: 'Termodynamikkens 1. lov',
         intro: [
-          ['ΔU = Q + W', 'Termofysikkens 1. lov', 'Endring i indre energi = tilført varme + arbeid gjort på systemet.', 'f'],
+          ['ΔU = Q + W', 'Termofysikkens 1. lov', 'Endring i indre energi = tilført varme + arbeid gjort på systemet.', 'f', 'Pumper du en sykkelslange, gjør du arbeid på lufta, og pumpa blir varm.'],
         ],
         items: [
           mc('Hva sier termofysikkens 1. lov, ΔU = Q + W?', ['Endringen i indre energi er tilført varme pluss arbeid gjort på systemet', 'Endringen i indre energi er tilført varme minus arbeid gjort på systemet', 'Endringen i temperatur er tilført varme pluss arbeid gjort på systemet', 'Tilført varme er alltid lik arbeidet systemet gjør på omgivelsene'], 'Det er energibevaring anvendt på et system. Med fortegnsvalget i læreboka er W arbeid gjort på systemet, så det legges til. Gjør systemet arbeid på omgivelsene, er W negativ.'),
@@ -773,8 +773,8 @@
       {
         id: 'tf-2lov', title: 'Termodynamikkens 2. lov',
         intro: [
-          ['2. lov', 'Varme går fra varmt til kaldt', 'Varme går av seg selv bare fra et varmere til et kaldere legeme.', 'b'],
-          ['Entropi', 'Mål for uorden', 'I et isolert system kan entropien ikke avta. Den øker i alle naturlige prosesser.', 'b'],
+          ['2. lov', 'Varme går fra varmt til kaldt', 'Varme går av seg selv bare fra et varmere til et kaldere legeme.', 'b', 'En kopp varm kaffe blir alltid kaldere i et kaldt rom. Den blir aldri varmere av seg selv.'],
+          ['Entropi', 'Mål for uorden', 'I et isolert system kan entropien ikke avta. Den øker i alle naturlige prosesser.', 'b', 'Et rom blir lett rotete av seg selv, men det krever arbeid å rydde det. På samme måte øker entropien av seg selv.'],
         ],
         items: [
           tf('Varme kan av seg selv gå fra et kaldt legeme til et varmere.', false, 'Etter termodynamikkens 2. lov går varme av seg selv bare fra varmt til kaldt. En varmepumpe kan flytte varme den andre veien, men bare ved å bruke energi.'),
@@ -783,9 +783,9 @@
       {
         id: 'tf-trykk', title: 'Trykk',
         intro: [
-          ['p = F/A', 'Trykk', 'Kraft per areal. Enhet: pascal (Pa).', 'f'],
-          ['Pa', 'Pascal', '1 Pa = 1 N/m². Lufttrykket ved havnivå er ca. 101 000 Pa.', 'e'],
-          ['p = ρgh', 'Trykk i en væske', 'Trykket fra væsken øker med dybden h. ρ er tettheten til væsken.', 'f'],
+          ['p = F/A', 'Trykk', 'Kraft per areal. Enhet: pascal (Pa).', 'f', 'Et spisst knivblad skjærer lett, fordi kraften virker på et svært lite areal og gir stort trykk.'],
+          ['Pa', 'Pascal', '1 Pa = 1 N/m². Lufttrykket ved havnivå er ca. 101 000 Pa.', 'e', 'Lufttrykket rundt deg er ca. 101 000 Pa, altså omtrent 10 tonn per kvadratmeter.'],
+          ['p = ρgh', 'Trykk i en væske', 'Trykket fra væsken øker med dybden h. ρ er tettheten til væsken.', 'f', 'For hver 10 m du dykker ned i vann, øker trykket med omtrent 100 000 Pa.'],
         ],
         items: [
           mc('Hvorfor synker du mindre ned i snøen med truger enn med vanlige sko?', ['Tyngden fordeles på et større areal, så trykket blir mindre', 'Tyngden blir mindre når den fordeles på et større areal', 'Trykket blir større, men snøen tåler mer trykk under truger', 'Normalkraften fra snøen blir større enn tyngden din'], 'p = F/A. Kraften (tyngden) er den samme, men arealet er større, så trykket blir mindre.'),
@@ -794,8 +794,8 @@
       {
         id: 'tf-oppdrift', title: 'Oppdrift',
         intro: [
-          ['Arkimedes\' lov', 'Oppdrift', 'Oppdriften er lik tyngden av væsken eller gassen legemet fortrenger.', 'b'],
-          ['O = ρ·V·g', 'Oppdriftskraften', 'ρ er tettheten til væsken, og V er volumet av den fortrengte væsken.', 'f'],
+          ['Arkimedes\' lov', 'Oppdrift', 'Oppdriften er lik tyngden av væsken eller gassen legemet fortrenger.', 'b', 'Et skip av stål flyter fordi det fortrenger så mye vann at oppdriften blir like stor som tyngden.'],
+          ['O = ρ·V·g', 'Oppdriftskraften', 'ρ er tettheten til væsken, og V er volumet av den fortrengte væsken.', 'f', 'En badeball på 10 liter som holdes helt under vann, får oppdriften 1000 · 0,01 · 9,81 ≈ 98 N.'],
         ],
         items: [
           tf('Et legeme flyter når oppdriften kan bli like stor som tyngden av legemet.', true, 'Da er kraftsummen null. Et legeme med lavere tetthet enn væsken flyter.'),
@@ -804,8 +804,8 @@
       {
         id: 'tf-varmepumpe', title: 'Varmepumpe og COP',
         intro: [
-          ['Varmepumpe', 'Flytter varme', 'Henter varme utenfra og leverer mer varme enn strømmen den bruker.', 'b'],
-          ['COP = Q/E', 'Effektfaktor (COP)', 'Levert varme delt på tilført elektrisk energi. Typisk 3 til 4 for en luft-til-luft-varmepumpe.', 'f'],
+          ['Varmepumpe', 'Flytter varme', 'Henter varme utenfra og leverer mer varme enn strømmen den bruker.', 'b', 'Et kjøleskap er en varmepumpe: det flytter varme ut av skapet og bak på kjøleskapet.'],
+          ['COP = Q/E', 'Effektfaktor (COP)', 'Levert varme delt på tilført elektrisk energi. Typisk 3 til 4 for en luft-til-luft-varmepumpe.', 'f', 'En varmepumpe med COP 3 gir 3 kWh varme for hver kWh strøm den bruker.'],
         ],
         items: [
           tf('En varmepumpe kan levere mer varmeenergi til et hus enn den elektriske energien den bruker.', true, 'Den henter i tillegg varme fra uteluft, jord eller sjø. Energien er fortsatt bevart.'),
@@ -814,8 +814,8 @@
       {
         id: 'tf-klima', title: 'Klima og påstander om energi',
         intro: [
-          ['Fornybar energi', 'Fylles på naturlig', 'F.eks. vannkraft, sol og vind.', 'b'],
-          ['Drivhuseffekt', 'Atmosfæren holder på varme', 'Gasser absorberer infrarød stråling fra jorda.', 'b'],
+          ['Fornybar energi', 'Fylles på naturlig', 'F.eks. vannkraft, sol og vind.', 'b', 'Vannkraft fylles på av regn og snø hvert år, mens olje og kull tar millioner av år å danne.'],
+          ['Drivhuseffekt', 'Atmosfæren holder på varme', 'Gasser absorberer infrarød stråling fra jorda.', 'b', 'En bil som står i sola, blir varm inni fordi lyset slipper inn, men varmen slipper dårlig ut. Atmosfæren virker på en liknende måte.'],
         ],
         items: [
           mc('Påstand: «Vi holder på å gå tom for energi.» Hva er den fysisk mest presise kommentaren?', ['Energi er bevart. Vi går tom for energikilder med høy kvalitet', 'Energi er bevart. Vi går tom for varme, fordi den stråler ut i rommet', 'Energi blir brukt opp. Derfor må vi spare på den vi har igjen', 'Energi blir brukt opp. Men sola lager ny energi hver dag'], 'Energien blir ikke borte, men går over til varme med lav kvalitet som er vanskelig å utnytte. Det vi kan gå tom for, er lett tilgjengelige kilder med høy kvalitet, som fossile brensler. Sola lager ikke energi fra ingenting, men omdanner masse til energi.'),
@@ -847,9 +847,9 @@
       {
         id: 'bs-bolger', title: 'Bølgelengde, periode og frekvens',
         intro: [
-          ['λ', 'Bølgelengde', 'Avstanden mellom to bølgetopper.', 's'],
-          ['f', 'Frekvens', 'Svingninger per sekund. Enhet: hertz (Hz).', 's'],
-          ['T', 'Periode', 'Tiden én svingning tar. T = 1/f.', 's'],
+          ['λ', 'Bølgelengde', 'Avstanden mellom to bølgetopper.', 's', 'Synlig lys har bølgelengde rundt 400–700 nm, mens radiobølger kan være flere meter lange.'],
+          ['f', 'Frekvens', 'Svingninger per sekund. Enhet: hertz (Hz).', 's', 'Kammertonen A har frekvens 440 Hz: lufta svinger 440 ganger i sekundet.'],
+          ['T', 'Periode', 'Tiden én svingning tar. T = 1/f.', 's', 'En bølge med frekvens 2 Hz har periode T = 1/2 = 0,5 s.'],
         ],
         items: [
           mc('Hva slags bølge er lyd i luft?', ['Longitudinal', 'Transversal', 'Elektromagnetisk', 'Stående'], 'Luftmolekylene svinger fram og tilbake i samme retning som bølgen går.'),
@@ -859,9 +859,9 @@
       {
         id: 'bs-spekter', title: 'Bølgelikningen og spekteret',
         intro: [
-          ['v = f·λ', 'Bølgelikningen', 'Fart er frekvens ganger bølgelengde.', 'f'],
-          ['c', 'Lysfarten', '3,00 · 10⁸ m/s i vakuum.', 's'],
-          ['Elektromagnetisk spekter', 'Fra radio til gamma', 'Radiobølger, mikrobølger, infrarødt, synlig lys, ultrafiolett, røntgen og gamma, ordnet etter bølgelengde.', 'b'],
+          ['v = f·λ', 'Bølgelikningen', 'Fart er frekvens ganger bølgelengde.', 'f', 'Lyd i luft går 340 m/s. En tone på 340 Hz har derfor bølgelengde 1 m.'],
+          ['c', 'Lysfarten', '3,00 · 10⁸ m/s i vakuum.', 's', 'Lyset fra sola bruker omtrent 8 minutter til jorda.'],
+          ['Elektromagnetisk spekter', 'Fra radio til gamma', 'Radiobølger, mikrobølger, infrarødt, synlig lys, ultrafiolett, røntgen og gamma, ordnet etter bølgelengde.', 'b', 'Mikrobølgeovnen, mobilen, lyset fra lampa og røntgenbildet hos tannlegen bruker alle elektromagnetisk stråling, bare med ulik bølgelengde.'],
         ],
         items: [
           mc('Hvilken type stråling har kortest bølgelengde?', ['Gammastråling', 'Synlig lys', 'Radiobølger', 'Infrarød stråling'], 'Gamma har kortest bølgelengde og høyest fotonenergi.'),
@@ -871,9 +871,9 @@
       {
         id: 'bs-interferens', title: 'Interferens',
         intro: [
-          ['Interferens', 'Bølger som møtes', 'Når bølger møtes, legges utslagene sammen.', 'b'],
-          ['Konstruktiv interferens', 'Topp møter topp', 'Bølgene forsterker hverandre.', 'b'],
-          ['Destruktiv interferens', 'Topp møter bunn', 'Bølgene svekker eller opphever hverandre.', 'b'],
+          ['Interferens', 'Bølger som møtes', 'Når bølger møtes, legges utslagene sammen.', 'b', 'De fargerike mønstrene i en såpeboble skyldes interferens mellom lys som reflekteres fra forsiden og baksiden av hinnen.'],
+          ['Konstruktiv interferens', 'Topp møter topp', 'Bølgene forsterker hverandre.', 'b', 'To bølger på vannet som møtes topp mot topp, lager en ekstra høy bølge.'],
+          ['Destruktiv interferens', 'Topp møter bunn', 'Bølgene svekker eller opphever hverandre.', 'b', 'Støydempende hodetelefoner sender ut lyd som er motsatt av støyen, så de to lydbølgene opphever hverandre.'],
         ],
         items: [
           tf('To bølger som møtes, kan oppheve hverandre helt.', true, 'Ved destruktiv interferens møter toppen i den ene bølgen bunnen i den andre. Har de like stort utslag, blir summen null.'),
@@ -882,8 +882,8 @@
       {
         id: 'bs-intensitet', title: 'Lysintensitet og utstrålingstetthet',
         intro: [
-          ['I = P/A', 'Intensitet', 'Effekt per areal. Enhet: W/m².', 'f'],
-          ['I ∝ 1/r²', 'Avstandskvadratloven', 'Intensiteten fra en punktkilde avtar med kvadratet av avstanden.', 'f'],
+          ['I = P/A', 'Intensitet', 'Effekt per areal. Enhet: W/m².', 'f', 'Sollys på en klar dag gir rundt 1000 W per kvadratmeter.'],
+          ['I ∝ 1/r²', 'Avstandskvadratloven', 'Intensiteten fra en punktkilde avtar med kvadratet av avstanden.', 'f', 'Står du dobbelt så langt fra et bål, kjenner du bare en fjerdedel av varmestrålingen.'],
         ],
         items: [
           mc('Du flytter deg dobbelt så langt fra en lampe. Hva skjer med intensiteten du mottar?', ['Den blir en fjerdedel', 'Den blir halvparten', 'Den blir en åttendedel', 'Den er uendret'], 'Intensiteten avtar med kvadratet av avstanden: dobbel avstand gir 1/2² = 1/4.'),
@@ -892,9 +892,9 @@
       {
         id: 'bs-wien', title: 'Wiens lov',
         intro: [
-          ['λ_maks·T = b', 'Wiens forskyvningslov', 'b = 2,90 · 10⁻³ m·K.', 'f'],
-          ['Svart legeme', 'Perfekt absorbent', 'Absorberer all stråling og stråler perfekt.', 'b'],
-          ['λ_maks', 'Toppbølgelengde', 'Bølgelengden der et legeme stråler mest.', 's'],
+          ['λ_maks·T = b', 'Wiens forskyvningslov', 'b = 2,90 · 10⁻³ m·K.', 'f', 'Kroppen din (ca. 310 K) stråler mest ved rundt 9 μm, i infrarødt. Derfor ser varmekameraer deg.'],
+          ['Svart legeme', 'Perfekt absorbent', 'Absorberer all stråling og stråler perfekt.', 'b', 'Sola og en glødende kokeplate stråler nesten som svarte legemer, selv om de lyser.'],
+          ['λ_maks', 'Toppbølgelengde', 'Bølgelengden der et legeme stråler mest.', 's', 'En kokeplate som går fra rødglødende til gul, blir varmere, og λ_maks flytter seg mot kortere bølgelengder.'],
         ],
         items: [
           tf('Jo varmere et legeme er, jo lengre bølgelengde har toppen i strålingsspekteret.', false, 'λ_maks = b/T, så høyere temperatur gir kortere bølgelengde. Derfor er de varmeste stjernene blå.'),
@@ -906,9 +906,9 @@
       {
         id: 'bs-stefan', title: 'Stefan–Boltzmanns lov',
         intro: [
-          ['I = σT⁴', 'Stefan–Boltzmanns lov', 'Utstrålt intensitet fra et svart legeme.', 'f'],
-          ['σ', 'Stefan–Boltzmanns konstant', '5,67 · 10⁻⁸ W/(m²·K⁴).', 's'],
-          ['e', 'Emissivitet', 'Fra 0 til 1: hvor godt flaten stråler.', 's'],
+          ['I = σT⁴', 'Stefan–Boltzmanns lov', 'Utstrålt intensitet fra et svart legeme.', 'f', 'Dobler du den absolutte temperaturen, stråler et legeme 2⁴ = 16 ganger så mye.'],
+          ['σ', 'Stefan–Boltzmanns konstant', '5,67 · 10⁻⁸ W/(m²·K⁴).', 's', 'Konstanten er liten, men T⁴ blir svært stor: sola (ca. 5800 K) stråler rundt 64 millioner W per kvadratmeter.'],
+          ['e', 'Emissivitet', 'Fra 0 til 1: hvor godt flaten stråler.', 's', 'En matt svart flate har e nær 1, mens blankt aluminium har e nær 0. Derfor er termoser blanke inni.'],
         ],
         items: [
           mc('Den absolutte temperaturen til et svart legeme dobles. Hva skjer med utstrålt intensitet?', ['Den blir 16 ganger så stor', 'Den dobles', 'Den firedobles', 'Den blir 8 ganger så stor'], 'I = σT⁴, og 2⁴ = 16.'),
@@ -919,9 +919,9 @@
       {
         id: 'bs-balanse', title: 'Strålingsbalanse og modell for jordas klima',
         intro: [
-          ['α', 'Albedo', 'Andelen av innstrålingen som reflekteres.', 's'],
-          ['S', 'Solarkonstanten', '≈ 1361 W/m² ved jordas avstand.', 's'],
-          ['(1 − α)S/4', 'Gjennomsnittlig absorbert', 'Det jorda tar opp per m² i snitt.', 'f'],
+          ['α', 'Albedo', 'Andelen av innstrålingen som reflekteres.', 's', 'Nysnø reflekterer omtrent 80–90 % av sollyset, mens hav reflekterer under 10 %.'],
+          ['S', 'Solarkonstanten', '≈ 1361 W/m² ved jordas avstand.', 's', 'Rett utenfor atmosfæren treffer hver kvadratmeter som står vinkelrett på sola, ca. 1361 W.'],
+          ['(1 − α)S/4', 'Gjennomsnittlig absorbert', 'Det jorda tar opp per m² i snitt.', 'f', 'Med α = 0,3 tar jorda i snitt opp (1 − 0,3) · 1361 / 4 ≈ 240 W per kvadratmeter.'],
         ],
         items: [
           mc('Hva er albedo?', ['Andelen av innkommende stråling som reflekteres', 'Andelen av innkommende stråling som absorberes', 'Andelen av utgående stråling som slipper ut i rommet', 'Andelen av utgående stråling som drivhusgassene fanger'], 'Snø og is har høy albedo, mens hav og skog har lav. Andelen som absorberes, er 1 − α.'),
@@ -933,9 +933,9 @@
       {
         id: 'bs-drivhus', title: 'Drivhuseffekten',
         intro: [
-          ['Drivhusgass', 'Absorberer infrarødt', 'Gasser som CO₂, metan og vanndamp absorberer infrarød stråling fra jorda og sender noe tilbake ned.', 'b'],
-          ['Forsterket drivhuseffekt', 'Mer drivhusgass', 'Mer drivhusgasser i atmosfæren gir høyere temperatur ved bakken.', 'b'],
-          ['−18 °C', 'Jorda uten drivhuseffekt', 'Temperaturen den enkle strålingsmodellen gir. Med drivhuseffekt er snittet ca. 15 °C.', 's'],
+          ['Drivhusgass', 'Absorberer infrarødt', 'Gasser som CO₂, metan og vanndamp absorberer infrarød stråling fra jorda og sender noe tilbake ned.', 'b', 'Vanndamp og CO₂ i lufta gjør at en overskyet natt blir mildere enn en klar natt.'],
+          ['Forsterket drivhuseffekt', 'Mer drivhusgass', 'Mer drivhusgasser i atmosfæren gir høyere temperatur ved bakken.', 'b', 'Siden 1800-tallet har CO₂-innholdet i lufta økt med omtrent 50 %, og jordas middeltemperatur har steget rundt 1,2 °C.'],
+          ['−18 °C', 'Jorda uten drivhuseffekt', 'Temperaturen den enkle strålingsmodellen gir. Med drivhuseffekt er snittet ca. 15 °C.', 's', 'Uten drivhuseffekten ville havene på jorda vært frosne. Den gjør at snittet er ca. 15 °C i stedet.'],
         ],
         items: [
           tf('Drivhusgasser slipper gjennom mesteparten av sollyset, men absorberer infrarød stråling fra jorda.', true, 'Sollys har kort bølgelengde, mens jorda stråler infrarødt.'),
@@ -962,9 +962,9 @@
       {
         id: 'at-modeller', title: 'Atommodeller',
         intro: [
-          ['Thomson', 'Rosinbollemodellen', 'Positiv kule med elektroner i.', 'b'],
-          ['Rutherford', 'Kjernemodellen', 'Liten, tett, positiv kjerne.', 'b'],
-          ['Bohr', 'Energinivåmodellen', 'Elektroner i bestemte energinivåer.', 'b'],
+          ['Thomson', 'Rosinbollemodellen', 'Positiv kule med elektroner i.', 'b', 'Tenk på en bolle med rosiner: deigen er den positive ladningen, og rosinene er elektronene.'],
+          ['Rutherford', 'Kjernemodellen', 'Liten, tett, positiv kjerne.', 'b', 'Er atomet like stort som en fotballbane, er kjernen bare som et knappenålshode midt på banen.'],
+          ['Bohr', 'Energinivåmodellen', 'Elektroner i bestemte energinivåer.', 'b', 'Elektronene er som på trinn i en trapp: de kan stå på trinnene, men ikke mellom dem.'],
         ],
         items: [
           mc('Hva viste Rutherfords gullfolieforsøk?', ['At atomet har en liten, tett og positivt ladd kjerne', 'At elektronene har bestemte energinivåer', 'At atomet er en jevn positiv kule med elektroner i', 'At lys består av fotoner'], 'De fleste alfapartiklene gikk rett gjennom, men noen få ble sendt kraftig tilbake.'),
@@ -978,9 +978,9 @@
       {
         id: 'at-straling', title: 'Elektromagnetisk stråling og fotoner',
         intro: [
-          ['E = h·f', 'Fotonenergi', 'Energien til ett foton.', 'f'],
-          ['h', 'Plancks konstant', '6,63 · 10⁻³⁴ J·s.', 's'],
-          ['eV', 'Elektronvolt', '1 eV = 1,60 · 10⁻¹⁹ J.', 'e'],
+          ['E = h·f', 'Fotonenergi', 'Energien til ett foton.', 'f', 'Blått lys har høyere frekvens enn rødt lys, så hvert blått foton har mer energi.'],
+          ['h', 'Plancks konstant', '6,63 · 10⁻³⁴ J·s.', 's', 'Fordi h er så liten, merker vi ikke at lys kommer i små porsjoner i hverdagen.'],
+          ['eV', 'Elektronvolt', '1 eV = 1,60 · 10⁻¹⁹ J.', 'e', 'Et foton av synlig lys har en energi på rundt 2–3 eV.'],
         ],
         items: [
           mc('Hvilket foton har mest energi?', ['Et blått foton', 'Et rødt foton', 'De har like mye', 'Det avhenger av lysstyrken'], 'Blått lys har høyere frekvens (kortere bølgelengde), og E = hf.'),
@@ -991,9 +991,9 @@
       {
         id: 'at-bohr', title: 'Bohrs atomteori',
         intro: [
-          ['E_n = −13,6 eV/n²', 'Energinivåene i hydrogen', 'n = 1, 2, 3, …', 'f'],
-          ['n', 'Kvantetall', 'Nummeret på energinivået.', 's'],
-          ['Grunntilstand', 'Laveste energinivå', 'n = 1. Høyere nivåer kalles eksiterte tilstander.', 'b'],
+          ['E_n = −13,6 eV/n²', 'Energinivåene i hydrogen', 'n = 1, 2, 3, …', 'f', 'Hydrogen i grunntilstanden har E₁ = −13,6 eV. På nivå 2 er E₂ = −13,6/4 = −3,4 eV.'],
+          ['n', 'Kvantetall', 'Nummeret på energinivået.', 's', 'n = 1 er laveste trinn, n = 2 neste trinn, og så videre.'],
+          ['Grunntilstand', 'Laveste energinivå', 'n = 1. Høyere nivåer kalles eksiterte tilstander.', 'b', 'Et atom i ro i rommet er normalt i grunntilstanden. Får det energi, kan elektronet hoppe opp til en eksitert tilstand.'],
         ],
         items: [
           tf('Ifølge Bohrs modell kan et elektron i et atom ha hvilken som helst energi.', false, 'Bare bestemte, kvantiserte energinivåer er tillatt.'),
@@ -1002,9 +1002,9 @@
       {
         id: 'at-spekter', title: 'Emisjons- og absorpsjonsspekter',
         intro: [
-          ['Linjespekter', 'Bestemte bølgelengder', 'Hvert grunnstoff har sitt eget.', 'b'],
-          ['Emisjonsspekter', 'Lyse linjer', 'Lys sendes ut når elektroner faller ned til et lavere energinivå.', 'b'],
-          ['Absorpsjonsspekter', 'Mørke linjer', 'Lys tas opp når elektroner løftes til et høyere energinivå.', 'b'],
+          ['Linjespekter', 'Bestemte bølgelengder', 'Hvert grunnstoff har sitt eget.', 'b', 'Gatelys med natrium lyser gult fordi natrium sender ut lys ved én bestemt gul bølgelengde.'],
+          ['Emisjonsspekter', 'Lyse linjer', 'Lys sendes ut når elektroner faller ned til et lavere energinivå.', 'b', 'Neonrør lyser rødoransje fordi neonatomene sender ut lys ved bestemte bølgelengder.'],
+          ['Absorpsjonsspekter', 'Mørke linjer', 'Lys tas opp når elektroner løftes til et høyere energinivå.', 'b', 'Når sollys går gjennom solatmosfæren, mangler det lys ved bølgelengder som atomene der tar opp.'],
         ],
         items: [
           mc('Hvorfor har hvert grunnstoff sitt eget linjespekter?', ['Hvert grunnstoff har sine egne energinivåer', 'Hvert grunnstoff har sin egen temperatur', 'Hvert grunnstoff har sin egen farge', 'Hvert grunnstoff har sin egen kjernemasse'], 'Linjene tilsvarer energiforskjeller mellom energinivåene til elektronene, og de er unike for hvert grunnstoff. Temperaturen påvirker hvor sterke linjene er, men ikke hvor de ligger.'),
@@ -1015,8 +1015,8 @@
       {
         id: 'at-drivhus', title: 'Drivhuseffekten og atomfysikk',
         intro: [
-          ['Molekylvibrasjon', 'Tar opp infrarødt', 'Molekyler som CO₂ kan vibrere med frekvenser som passer med infrarød stråling, og absorberer den.', 'b'],
-          ['N₂ og O₂', 'Ikke drivhusgasser', 'Molekyler med to like atomer absorberer nesten ikke infrarød stråling.', 'b'],
+          ['Molekylvibrasjon', 'Tar opp infrarødt', 'Molekyler som CO₂ kan vibrere med frekvenser som passer med infrarød stråling, og absorberer den.', 'b', 'CO₂-molekylet kan bøye seg og strekke seg, litt som en fjær. Infrarød stråling med riktig frekvens setter det i sving.'],
+          ['N₂ og O₂', 'Ikke drivhusgasser', 'Molekyler med to like atomer absorberer nesten ikke infrarød stråling.', 'b', 'Lufta er 99 % nitrogen og oksygen, men det er den lille andelen CO₂ og vanndamp som gir drivhuseffekten.'],
         ],
         items: [
           mc('Hvorfor er ikke nitrogen (N₂) en drivhusgass, selv om det er den vanligste gassen i lufta?', ['Molekylet har to like atomer og absorberer nesten ikke infrarød stråling', 'Molekylet har to like atomer og absorberer nesten ikke synlig lys', 'Molekylet er for tungt til å vibrere når det treffes av stråling', 'Molekylet reflekterer infrarød stråling tilbake ut i rommet'], 'Et molekyl med to like atomer får ingen skjev ladningsfordeling når det vibrerer, og tar derfor nesten ikke opp infrarød stråling. CO₂ og vanndamp gjør det.'),
@@ -1042,9 +1042,9 @@
       {
         id: 'kf-kjernen', title: 'Atomkjernen',
         intro: [
-          ['Z', 'Protontall', 'Antall protoner i kjernen.', 's'],
-          ['A', 'Nukleontall', 'Protoner + nøytroner.', 's'],
-          ['N = A − Z', 'Nøytrontall', 'Antall nøytroner.', 'f'],
+          ['Z', 'Protontall', 'Antall protoner i kjernen.', 's', 'Karbon har alltid Z = 6. Har atomet 6 protoner, er det karbon.'],
+          ['A', 'Nukleontall', 'Protoner + nøytroner.', 's', 'Karbon-14 har A = 14: 6 protoner og 8 nøytroner.'],
+          ['N = A − Z', 'Nøytrontall', 'Antall nøytroner.', 'f', 'Uran-238 har Z = 92, så N = 238 − 92 = 146 nøytroner.'],
         ],
         items: [
           mc('Hvilken kraft holder protonene og nøytronene sammen i kjernen?', ['Den sterke kjernekraften', 'Tyngdekraften', 'Den elektriske kraften', 'Friksjon'], 'Den virker over svært korte avstander og er sterkere enn frastøtningen mellom protonene.'),
@@ -1054,8 +1054,8 @@
       {
         id: 'kf-isotop', title: 'Isotoper og sterk kjernekraft',
         intro: [
-          ['Isotop', 'Samme Z, ulik N', 'Samme grunnstoff, ulik masse.', 'b'],
-          ['Sterk kjernekraft', 'Holder kjernen sammen', 'Virker mellom nukleonene på svært korte avstander, og er mye sterkere enn den elektriske frastøtningen.', 'b'],
+          ['Isotop', 'Samme Z, ulik N', 'Samme grunnstoff, ulik masse.', 'b', 'Karbon-12 og karbon-14 er isotoper. Karbon-14 brukes til å datere gamle funn.'],
+          ['Sterk kjernekraft', 'Holder kjernen sammen', 'Virker mellom nukleonene på svært korte avstander, og er mye sterkere enn den elektriske frastøtningen.', 'b', 'I en heliumkjerne frastøter de to protonene hverandre, men den sterke kjernekraften er sterkere og holder kjernen samlet.'],
         ],
         items: [
           tf('Isotoper av et grunnstoff har ulikt antall protoner.', false, 'Isotoper har likt antall protoner, men ulikt antall nøytroner.'),
@@ -1064,9 +1064,9 @@
       {
         id: 'kf-radioaktiv', title: 'Radioaktiv stråling',
         intro: [
-          ['α-stråling', 'Heliumkjerner', 'To protoner og to nøytroner. Stoppes av et ark papir.', 's'],
-          ['β⁻-stråling', 'Elektroner', 'Et nøytron i kjernen blir til et proton, og et elektron sendes ut.', 's'],
-          ['γ-stråling', 'Fotoner med høy energi', 'Elektromagnetisk stråling fra kjernen. Trenger gjennom mye materiale.', 's'],
+          ['α-stråling', 'Heliumkjerner', 'To protoner og to nøytroner. Stoppes av et ark papir.', 's', 'Røykvarslere bruker en svak α-kilde. Strålingen kommer ikke gjennom plasten i varsleren.'],
+          ['β⁻-stråling', 'Elektroner', 'Et nøytron i kjernen blir til et proton, og et elektron sendes ut.', 's', 'Karbon-14 sender ut β⁻-stråling og blir til nitrogen-14.'],
+          ['γ-stråling', 'Fotoner med høy energi', 'Elektromagnetisk stråling fra kjernen. Trenger gjennom mye materiale.', 's', 'På sykehus brukes γ-stråling til å drepe kreftceller og sterilisere utstyr.'],
         ],
         items: [
           mc('Hvilken type stråling stoppes av et ark papir?', ['α-stråling', 'β⁻-stråling', 'γ-stråling', 'Røntgenstråling'], 'α-partikler er store og har dobbel ladning, så de vekselvirker sterkt og stoppes raskt. β-stråling stoppes av noen millimeter aluminium, og γ-stråling trenger bly eller betong.'),
@@ -1075,8 +1075,8 @@
       {
         id: 'kf-bevaring', title: 'Bevaringslover i kjernereaksjoner',
         intro: [
-          ['ΣA før = ΣA etter', 'Nukleontallet er bevart', 'Summen av nukleontallene er den samme før og etter en kjernereaksjon.', 'f'],
-          ['ΣZ før = ΣZ etter', 'Ladningen er bevart', 'Summen av ladningene (protontallene) er den samme før og etter.', 'f'],
+          ['ΣA før = ΣA etter', 'Nukleontallet er bevart', 'Summen av nukleontallene er den samme før og etter en kjernereaksjon.', 'f', 'Uran-238 sender ut en α-partikkel (A = 4) og blir thorium-234: 238 = 234 + 4.'],
+          ['ΣZ før = ΣZ etter', 'Ladningen er bevart', 'Summen av ladningene (protontallene) er den samme før og etter.', 'f', 'Uran (Z = 92) gir α (Z = 2) og thorium (Z = 90): 92 = 90 + 2.'],
         ],
         items: [
           tf('I et β⁻-henfall øker protontallet med 1, mens nukleontallet er uendret.', true, 'Et nøytron blir til et proton og et elektron. Nukleontallet er det samme, og ladningen er bevart fordi elektronet tar med seg −1.'),
@@ -1085,9 +1085,9 @@
       {
         id: 'kf-masse', title: 'Masse og energi',
         intro: [
-          ['E = mc²', 'Masse og energi', 'Masse kan omdannes til energi.', 'f'],
-          ['Massedefekt', 'Δm', 'Kjernen veier mindre enn delene.', 'b'],
-          ['u', 'Atommasseenhet', '1 u tilsvarer 931,5 MeV.', 'e'],
+          ['E = mc²', 'Masse og energi', 'Masse kan omdannes til energi.', 'f', 'Bare 1 gram masse tilsvarer omtrent 9 · 10¹³ J, som er mer enn et stort kraftverk lager på et døgn.'],
+          ['Massedefekt', 'Δm', 'Kjernen veier mindre enn delene.', 'b', 'En heliumkjerne veier litt mindre enn to protoner og to nøytroner hver for seg. Den manglende massen er bindingsenergien.'],
+          ['u', 'Atommasseenhet', '1 u tilsvarer 931,5 MeV.', 'e', 'Et proton og et nøytron veier hver omtrent 1 u.'],
         ],
         items: [
           mc('Hva er massedefekten til en atomkjerne?', ['Summen av massene til nukleonene minus massen til kjernen', 'Massen til kjernen minus summen av massene til nukleonene', 'Summen av massene til elektronene minus massen til kjernen', 'Massen kjernen mister hver gang den sender ut stråling'], 'Kjernen veier mindre enn delene hver for seg. Forskjellen, Δm, tilsvarer bindingsenergien E = Δm·c².'),
@@ -1098,9 +1098,9 @@
       {
         id: 'kf-fusjon', title: 'Fusjon og fisjon',
         intro: [
-          ['Fusjon', 'Lette kjerner smelter sammen', 'Frigjør energi opp til jern.', 'b'],
-          ['Fisjon', 'Tunge kjerner deles', 'Brukes i kjernekraftverk.', 'b'],
-          ['4 ¹H → ⁴He', 'Fusjon i sola', 'Hydrogen blir til helium.', 'f'],
+          ['Fusjon', 'Lette kjerner smelter sammen', 'Frigjør energi opp til jern.', 'b', 'Sola skinner fordi hydrogenkjerner smelter sammen til helium i kjernen dens.'],
+          ['Fisjon', 'Tunge kjerner deles', 'Brukes i kjernekraftverk.', 'b', 'I et kjernekraftverk spaltes urankjerner, og varmen brukes til å lage damp som driver turbiner.'],
+          ['4 ¹H → ⁴He', 'Fusjon i sola', 'Hydrogen blir til helium.', 'f', 'Sola gjør om omtrent 4 millioner tonn masse til energi hvert sekund på denne måten.'],
         ],
         items: [
           mc('Hva er fusjon?', ['Lette atomkjerner smelter sammen til en tyngre kjerne', 'En tung kjerne deles i to', 'Et elektron hopper til et lavere energinivå', 'En kjerne sender ut et alfapartikkel'], 'Fisjon er det motsatte: deling av tunge kjerner.'),
@@ -1114,9 +1114,9 @@
       {
         id: 'kf-kjede', title: 'Kjedereaksjon og anvendelser',
         intro: [
-          ['Kjedereaksjon', 'Nøytroner starter nye fisjoner', 'Hver fisjon sender ut nøytroner som kan spalte nye kjerner.', 'b'],
-          ['Kritisk masse', 'Nok til å holde reaksjonen i gang', 'Den minste massen som gir en kjedereaksjon som holder seg selv i gang.', 'b'],
-          ['Moderator', 'Bremser nøytronene', 'Langsomme nøytroner spalter uran-235 lettere. Vann eller grafitt brukes.', 'b'],
+          ['Kjedereaksjon', 'Nøytroner starter nye fisjoner', 'Hver fisjon sender ut nøytroner som kan spalte nye kjerner.', 'b', 'Som dominobrikker: én fisjon gir nøytroner som starter flere fisjoner, som igjen starter flere.'],
+          ['Kritisk masse', 'Nok til å holde reaksjonen i gang', 'Den minste massen som gir en kjedereaksjon som holder seg selv i gang.', 'b', 'Er uranbiten for liten, slipper for mange nøytroner ut, og kjedereaksjonen dør ut.'],
+          ['Moderator', 'Bremser nøytronene', 'Langsomme nøytroner spalter uran-235 lettere. Vann eller grafitt brukes.', 'b', 'I mange kjernekraftverk er vanlig vann moderator. Nøytronene bremses når de kolliderer med vannmolekylene.'],
         ],
         items: [
           mc('Hva gjør moderatoren i et kjernekraftverk?', ['Bremser nøytronene, så de lettere spalter nye urankjerner', 'Tar opp nøytronene, så kjedereaksjonen stopper helt', 'Øker farten til nøytronene, så de spalter flere kjerner', 'Kjøler ned reaktoren, så vannet ikke begynner å koke'], 'Langsomme nøytroner fanges lettere inn av uran-235. Kontrollstaver, ikke moderatoren, tar opp nøytroner for å regulere reaksjonen.'),
@@ -1143,9 +1143,9 @@
       {
         id: 'as-hr', title: 'HR-diagrammet',
         intro: [
-          ['HR-diagram', 'Luminositet mot temperatur', 'Stjernene plottes etter overflatetemperatur (synkende mot høyre) og luminositet.', 'b'],
-          ['Luminositet', 'Total utstrålt effekt', 'Hvor mye energi stjerna stråler ut per sekund.', 'b'],
-          ['Farge', 'Temperatur', 'Blå stjerner er varme, røde er kalde.', 'b'],
+          ['HR-diagram', 'Luminositet mot temperatur', 'Stjernene plottes etter overflatetemperatur (synkende mot høyre) og luminositet.', 'b', 'Sola ligger midt på hovedserien i HR-diagrammet, mens røde kjemper ligger oppe til høyre.'],
+          ['Luminositet', 'Total utstrålt effekt', 'Hvor mye energi stjerna stråler ut per sekund.', 'b', 'Rigel lyser omtrent 100 000 ganger så sterkt som sola, mens mange små røde stjerner lyser under en hundredel.'],
+          ['Farge', 'Temperatur', 'Blå stjerner er varme, røde er kalde.', 'b', 'Betelgeuse i Orion er rødlig og kald (ca. 3500 K), mens Rigel i samme stjernebilde er blåhvit og varm (ca. 12 000 K).'],
         ],
         items: [
           mc('En stjerne ser blåhvit ut. Hva kan vi si om den?', ['Den har høy overflatetemperatur', 'Den har lav overflatetemperatur', 'Den er nær ved å dø', 'Den er laget av is'], 'Etter Wiens lov ligger toppen ved kort bølgelengde.'),
@@ -1154,8 +1154,8 @@
       {
         id: 'as-liv1', title: 'Livssyklus til stjerner 1',
         intro: [
-          ['Hovedserien', 'H → He i kjernen', 'Den lengste fasen i livet til en stjerne.', 'b'],
-          ['Rød kjempe', 'Oppsvulmet stjerne', 'Fusjon av helium til karbon og oksygen.', 'b'],
+          ['Hovedserien', 'H → He i kjernen', 'Den lengste fasen i livet til en stjerne.', 'b', 'Sola har vært på hovedserien i rundt 4,6 milliarder år og har omtrent like lenge igjen.'],
+          ['Rød kjempe', 'Oppsvulmet stjerne', 'Fusjon av helium til karbon og oksygen.', 'b', 'Når sola blir en rød kjempe, vil den svelle opp så mye at den kanskje når jordas bane.'],
         ],
         items: [
           mc('Hva gir en stjerne på hovedserien energi?', ['Fusjon av hydrogen til helium i kjernen', 'Fusjon av helium til karbon i kjernen', 'Fisjon av tunge grunnstoff i kjernen', 'Sammentrekning som varmer opp kjernen'], 'Hydrogenfusjon i kjernen er den lengste fasen i livet til en stjerne. Heliumfusjon til karbon skjer senere, i røde kjemper.'),
@@ -1166,8 +1166,8 @@
       {
         id: 'as-liv2', title: 'Livssyklus til stjerner 2',
         intro: [
-          ['Supernova', 'Eksplosjon', 'Slutten for en massiv stjerne.', 'b'],
-          ['Hvit dverg', 'Restkjerne', 'Slutten for stjerner som sola.', 'b'],
+          ['Supernova', 'Eksplosjon', 'Slutten for en massiv stjerne.', 'b', 'En supernova kan lyse sterkere enn en hel galakse i noen uker.'],
+          ['Hvit dverg', 'Restkjerne', 'Slutten for stjerner som sola.', 'b', 'En hvit dverg har omtrent like stor masse som sola, men er bare like stor som jorda.'],
         ],
         items: [
           mc('Hvordan vil sola ende livet sitt?', ['Som en hvit dverg etter å ha vært rød kjempe', 'Som et svart hull', 'Som en nøytronstjerne etter en supernova', 'Den lever evig'], 'Sola er ikke massiv nok til å bli supernova.'),
@@ -1178,9 +1178,9 @@
       {
         id: 'as-bigbang', title: 'Big Bang og standardmodellen',
         intro: [
-          ['Big Bang', 'H og He', 'De første grunnstoffene.', 'b'],
-          ['Kosmisk bakgrunnsstråling', 'Ekko fra Big Bang', 'Mikrobølgestråling fra hele himmelen, som viser at universet en gang var varmt og tett.', 'b'],
-          ['Ekspanderende univers', 'Galaksene fjerner seg', 'Lyset fra fjerne galakser er rødforskjøvet: jo lenger unna, jo raskere fjerner de seg.', 'b'],
+          ['Big Bang', 'H og He', 'De første grunnstoffene.', 'b', 'Rundt 13,8 milliarder år siden var hele universet varmt og tett. De første minuttene ble hydrogen og helium dannet.'],
+          ['Kosmisk bakgrunnsstråling', 'Ekko fra Big Bang', 'Mikrobølgestråling fra hele himmelen, som viser at universet en gang var varmt og tett.', 'b', 'Noe av suset på gamle analoge TV-er skyldtes faktisk den kosmiske bakgrunnsstrålingen.'],
+          ['Ekspanderende univers', 'Galaksene fjerner seg', 'Lyset fra fjerne galakser er rødforskjøvet: jo lenger unna, jo raskere fjerner de seg.', 'b', 'Tenk på rosiner i en deig som hever: alle rosinene fjerner seg fra hverandre, og de som er lengst unna, fortest.'],
         ],
         items: [
           mc('Hvilke grunnstoff ble i hovedsak dannet i Big Bang?', ['Hydrogen og helium', 'Hydrogen og karbon', 'Helium og oksygen', 'Karbon og oksygen'], 'Big Bang ga i hovedsak hydrogen og helium, og litt litium. Universet ble for raskt for kaldt og tynt til at tyngre kjerner rakk å dannes. Karbon og oksygen er dannet senere, i stjerner.'),
@@ -1189,9 +1189,9 @@
       {
         id: 'as-nukleo', title: 'Stjerne-nukleosyntesen',
         intro: [
-          ['Trippel-alfa', '3 He → C', 'Dannelse av karbon i røde kjemper.', 'b'],
-          ['r-prosessen', 'Rask nøytroninnfanging', 'Lager gull i nøytronstjernekollisjoner.', 'b'],
-          ['Kilonova', 'Nøytronstjernekollisjon', 'Observert i 2017, dannet tunge grunnstoff.', 'b'],
+          ['Trippel-alfa', '3 He → C', 'Dannelse av karbon i røde kjemper.', 'b', 'Karbonet i kroppen din er laget slik, i stjerner som levde og døde før sola ble til.'],
+          ['r-prosessen', 'Rask nøytroninnfanging', 'Lager gull i nøytronstjernekollisjoner.', 'b', 'Gullet i en ring er trolig laget da to nøytronstjerner kolliderte for milliarder av år siden.'],
+          ['Kilonova', 'Nøytronstjernekollisjon', 'Observert i 2017, dannet tunge grunnstoff.', 'b', 'I 2017 ble både gravitasjonsbølger og lys fra samme nøytronstjernekollisjon målt for første gang.'],
         ],
         items: [
           mc('Hvorfor stopper fusjonen i stjerner ved jern?', ['Jern ligger på toppen av bindingsenergikurven, så videre fusjon frigjør ikke energi', 'Jern ligger på toppen av bindingsenergikurven, så videre fusjon frigjør ekstra mye energi', 'Jern har lavest bindingsenergi per nukleon, så kjernen er for ustabil til å fusjonere', 'Temperaturen i kjernen synker når jern dannes, så fusjonen stopper av seg selv'], 'Bindingsenergien per nukleon øker opp til jern og nikkel og avtar etterpå. Fusjon av lettere kjerner gir energi fordi produktet er sterkere bundet. Fusjon av jern ville gitt svakere bundne kjerner, så den krever energi i stedet for å gi energi. Stjernekjernen slutter da å produsere energi og kollapser.'),
@@ -1205,8 +1205,8 @@
       {
         id: 'as-spekter', title: 'Stjernespektre',
         intro: [
-          ['Absorpsjonslinjer', 'Mørke linjer', 'Viser hvilke grunnstoff stjerna inneholder.', 'b'],
-          ['Rødforskyvning', 'Lengre bølgelengde', 'Lys fra en kilde som fjerner seg fra oss, får lengre bølgelengde.', 'b'],
+          ['Absorpsjonslinjer', 'Mørke linjer', 'Viser hvilke grunnstoff stjerna inneholder.', 'b', 'Helium ble først oppdaget i sola, i 1868, ved hjelp av en ukjent linje i solspekteret.'],
+          ['Rødforskyvning', 'Lengre bølgelengde', 'Lys fra en kilde som fjerner seg fra oss, får lengre bølgelengde.', 'b', 'Lyset fra en fjern galakse kan være forskjøvet så mye at synlig lys kommer fram som infrarødt.'],
         ],
         items: [
           mc('Hvordan vet vi hvilke grunnstoff fjerne stjerner består av?', ['Ved å studere absorpsjonslinjene i spekteret deres', 'Ved å måle temperaturen ut fra fargen på lyset deres', 'Ved å måle massen ut fra hvor sterkt de lyser', 'Ved å måle avstanden ut fra hvor fort lyset deres når oss'], 'Hvert grunnstoff har sine egne linjer i spekteret. Fargen og Wiens lov gir temperaturen, men ikke hva stjernen består av.'),
@@ -1231,9 +1231,9 @@
       {
         id: 'py-euler', title: 'Eulers metode',
         intro: [
-          ['dt', 'Tidssteg', 'Et lite tidsrom i en numerisk beregning.', 's'],
-          ['v = v + a·dt', 'Eulers metode for fart', 'I hvert lite tidssteg øker farten med a·dt.', 'f'],
-          ['s = s + v·dt', 'Eulers metode for posisjon', 'I hvert tidssteg flytter legemet seg v·dt.', 'f'],
+          ['dt', 'Tidssteg', 'Et lite tidsrom i en numerisk beregning.', 's', 'Med dt = 0,1 s regner programmet ut bevegelsen ti ganger per sekund. Med dt = 0,01 s hundre ganger.'],
+          ['v = v + a·dt', 'Eulers metode for fart', 'I hvert lite tidssteg øker farten med a·dt.', 'f', 'Er v = 2 m/s, a = 10 m/s² og dt = 0,1 s, blir ny fart 2 + 10 · 0,1 = 3 m/s.'],
+          ['s = s + v·dt', 'Eulers metode for posisjon', 'I hvert tidssteg flytter legemet seg v·dt.', 'f', 'Er s = 5 m, v = 3 m/s og dt = 0,1 s, blir ny posisjon 5 + 3 · 0,1 = 5,3 m.'],
         ],
         items: [
           mc('Hvorfor trenger vi numeriske metoder for å beregne bevegelse med luftmotstand?', ['Akselerasjonen endrer seg med farten, så bevegelsesformlene gjelder ikke', 'Farten endrer seg med akselerasjonen, så bevegelsesformlene gjelder ikke', 'Tyngdekraften endrer seg med høyden, så bevegelsesformlene gjelder ikke', 'Luftmotstanden er konstant, så bevegelsesformlene gir for store verdier'], 'Luftmotstanden avhenger av farten, så akselerasjonen endrer seg hele tiden. De sju bevegelsesformlene forutsetter konstant akselerasjon. At farten endrer seg, er ikke problemet i seg selv: det gjør den også ved konstant akselerasjon.'),
@@ -1246,9 +1246,9 @@
       {
         id: 'py-lokker', title: 'Løkker og beslutninger',
         intro: [
-          ['for i in range(n)', 'for-løkke', 'Gjentar koden et bestemt antall ganger, her n ganger.', 'b'],
-          ['while t < t_slutt', 'while-løkke', 'Gjentar koden så lenge betingelsen er sann.', 'b'],
-          ['if v < 0', 'if-setning', 'Kjører koden bare når betingelsen er sann.', 'b'],
+          ['for i in range(n)', 'for-løkke', 'Gjentar koden et bestemt antall ganger, her n ganger.', 'b', 'for i in range(3): print(i) skriver ut 0, 1 og 2.'],
+          ['while t < t_slutt', 'while-løkke', 'Gjentar koden så lenge betingelsen er sann.', 'b', 'while h > 0: fortsetter å regne på et fall helt til ballen når bakken.'],
+          ['if v < 0', 'if-setning', 'Kjører koden bare når betingelsen er sann.', 'b', 'if v < 0: print("Ballen er på vei ned") skriver bare ut noe når farten er negativ.'],
         ],
         items: [
           mc('Du vil simulere et fall til ballen treffer bakken, men vet ikke hvor mange steg det tar. Hvilken løkke passer best?', ['En while-løkke med betingelsen s > 0', 'En for-løkke med range(100)', 'En if-setning med betingelsen s > 0', 'En for-løkke med range(s)'], 'En while-løkke fortsetter så lenge betingelsen er sann, så den stopper av seg selv når ballen når bakken.'),
@@ -1257,9 +1257,9 @@
       {
         id: 'py-lister', title: 'Lister og datatyper',
         intro: [
-          ['Liste', 'Samling av verdier', 't = [0, 0.1, 0.2] lagrer flere verdier. append() legger til en ny verdi.', 'b'],
-          ['float', 'Desimaltall', 'Tall med desimaler, som 9.81. Python bruker punktum som desimaltegn.', 'b'],
-          ['**', 'Potens i Python', 'v**2 betyr v². Tegnet ^ betyr noe annet i Python.', 's'],
+          ['Liste', 'Samling av verdier', 't = [0, 0.1, 0.2] lagrer flere verdier. append() legger til en ny verdi.', 'b', 'Lagrer du tid og posisjon i hver sin liste, kan du tegne en s-t-graf av simuleringen etterpå.'],
+          ['float', 'Desimaltall', 'Tall med desimaler, som 9.81. Python bruker punktum som desimaltegn.', 'b', 'g = 9.81 er en float. Skriver du 9,81, tolker Python det som to tall, 9 og 81.'],
+          ['**', 'Potens i Python', 'v**2 betyr v². Tegnet ^ betyr noe annet i Python.', 's', '2**3 gir 8. Skriver du 2^3, får du 1, som er noe helt annet.'],
         ],
         items: [
           tf('I Python skriver du v² som v^2.', false, 'I Python er ** potens: v**2. Tegnet ^ er en annen operasjon (bitvis XOR) og gir feil svar.'),
@@ -1284,9 +1284,9 @@
       {
         id: 'ma-trig', title: 'Sinus, cosinus og tangens',
         intro: [
-          ['sin v = motstående / hypotenus', 'Sinus', 'Gjelder i en rettvinklet trekant.', 'f'],
-          ['cos v = hosliggende / hypotenus', 'Cosinus', 'Gjelder i en rettvinklet trekant.', 'f'],
-          ['tan v = motstående / hosliggende', 'Tangens', 'Gjelder i en rettvinklet trekant.', 'f'],
+          ['sin v = motstående / hypotenus', 'Sinus', 'Gjelder i en rettvinklet trekant.', 'f', 'En stige på 5 m lener mot en vegg med 60° mot bakken. Den når 5 · sin 60° ≈ 4,3 m opp.'],
+          ['cos v = hosliggende / hypotenus', 'Cosinus', 'Gjelder i en rettvinklet trekant.', 'f', 'Samme stige står 5 · cos 60° = 2,5 m ut fra veggen.'],
+          ['tan v = motstående / hosliggende', 'Tangens', 'Gjelder i en rettvinklet trekant.', 'f', 'En bakke som stiger 1 m for hver 10 m bortover, har tan v = 0,1, altså v ≈ 5,7°.'],
         ],
         items: [
           mc('På et skråplan med helningsvinkel α er tyngdekomponenten langs planet G·sin α. Hvorfor brukes sinus?', ['Komponenten langs planet ligger motstående til vinkelen α i krafttrekanten', 'Komponenten langs planet ligger hosliggende til vinkelen α i krafttrekanten', 'Komponenten langs planet er hypotenusen i krafttrekanten', 'Sinus brukes alltid for krefter, og cosinus for strekninger'], 'I krafttrekanten er G hypotenusen. Komponenten langs planet ligger motstående til α, så den er G·sin α, og komponenten inn mot planet er G·cos α.'),
@@ -1295,8 +1295,8 @@
       {
         id: 'ma-pyt', title: 'Pytagoras og vinkler',
         intro: [
-          ['a² + b² = c²', 'Pytagorassetningen', 'c er hypotenusen i en rettvinklet trekant.', 'f'],
-          ['v = sin⁻¹(…)', 'Finne vinkelen', 'sin⁻¹, cos⁻¹ og tan⁻¹ gir vinkelen når verdien til sinus, cosinus eller tangens er kjent.', 'f'],
+          ['a² + b² = c²', 'Pytagorassetningen', 'c er hypotenusen i en rettvinklet trekant.', 'f', 'En trekant med kateter 3 og 4 har hypotenus 5, fordi 9 + 16 = 25.'],
+          ['v = sin⁻¹(…)', 'Finne vinkelen', 'sin⁻¹, cos⁻¹ og tan⁻¹ gir vinkelen når verdien til sinus, cosinus eller tangens er kjent.', 'f', 'Er sin v = 0,5, gir sin⁻¹(0,5) vinkelen v = 30°.'],
         ],
         items: [
           tf('Pytagorassetningen gjelder i alle trekanter.', false, 'Den gjelder bare i rettvinklede trekanter, der c er hypotenusen, siden motstående til den rette vinkelen.'),
@@ -1305,8 +1305,8 @@
       {
         id: 'ma-formler', title: 'Bokstavuttrykk og likninger',
         intro: [
-          ['Snu formelen', 'Løse for en størrelse', 'Gjør det samme på begge sider av likhetstegnet til den ukjente står alene.', 'b'],
-          ['s = v·t ⇔ t = s/v', 'Eksempel på omforming', 'Del på v på begge sider.', 'f'],
+          ['Snu formelen', 'Løse for en størrelse', 'Gjør det samme på begge sider av likhetstegnet til den ukjente står alene.', 'b', 'Fra F = m·a får du a = F/m ved å dele på m på begge sider.'],
+          ['s = v·t ⇔ t = s/v', 'Eksempel på omforming', 'Del på v på begge sider.', 'f', 'Skal du gå 6 km i 5 km/t, tar det t = 6/5 = 1,2 t.'],
         ],
         items: [
           mc('Løs formelen F = m·a for m.', ['m = F/a', 'm = a/F', 'm = F·a', 'm = F − a'], 'Del på a på begge sider: F/a = m.'),

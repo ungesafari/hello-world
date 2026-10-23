@@ -12,8 +12,6 @@
   const REVIEW_LEN = 11;
   const JUMP_LEN = 12;
   const JUMP_LIVES = 3;
-  const MAX_HEARTS = 5;
-  const HEART_MS = 5 * 60 * 1000; // ett nytt hjerte hvert femte minutt
   const BOOST_MS = 15 * 60 * 1000;
   const DAY_MS = 86400000;
   const KEY = 'fysikkling-v1';
@@ -231,7 +229,6 @@
   // ------------------------------------------------------------------
   const I = {
     flame: (on = true) => `<svg viewBox="0 0 24 24" class="ic"><path fill="${on ? '#ff9600' : '#e5e5e5'}" d="M12 2c1 3.5 5 6 5 11a5 5 0 0 1-10 0c0-2.2 1-3.6 2-4.6.2 1.6 1 2.6 2 2.9C10.5 8.5 11 5 12 2z"/><path fill="${on ? '#ffc800' : '#f2f2f2'}" d="M12 12c1 1.4 2.6 2.4 2.6 4.4a2.6 2.6 0 0 1-5.2 0c0-1.4.9-2.4 2.6-4.4z"/></svg>`,
-    heart: (on = true) => `<svg viewBox="0 0 24 24" class="ic"><path fill="${on ? '#ff4b4b' : '#e5e5e5'}" d="M12 21s-7.5-4.6-9.6-9.2C.8 8.3 2.8 4.5 6.4 4.5c2.2 0 3.5 1.2 4.2 2.3h2.8c.7-1.1 2-2.3 4.2-2.3 3.6 0 5.6 3.8 4 7.3C19.5 16.4 12 21 12 21z"/><path fill="#fff" opacity=".45" d="M6 7.5c-1.4.2-2.2 1.6-1.8 3 .3-1.2 1-2 2.2-2.3z"/></svg>`,
     bolt: () => `<svg viewBox="0 0 24 24" class="ic"><path fill="#ffc800" d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.5z"/></svg>`,
     star: () => `<svg viewBox="0 0 24 24" class="nic"><path fill="#fff" d="m12 2.8 2.8 5.8 6.3.8-4.6 4.4 1.2 6.3L12 17l-5.7 3.1 1.2-6.3L2.9 9.4l6.3-.8z"/></svg>`,
     check: () => `<svg viewBox="0 0 24 24" class="nic"><path fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></svg>`,
@@ -267,7 +264,6 @@
     return {
       v: 1, created: Date.now(), xp: 0, xpDays: {}, goal: 20,
       streak: { n: 0, last: null, best: 0 },
-      hearts: { n: MAX_HEARTS, t: Date.now() },
       prog: {}, chests: {}, reviews: {},
       stats: { lessons: 0, perfect: 0, maxCombo: 0, correct: 0, answered: 0, seconds: 0 },
       today: null, quests: null, boost: 0,
@@ -368,7 +364,7 @@
         sk.unit = u;
         sk.items = sk.items.map((it, k) => ({ ...it, id: `${sk.id}#${k}`, skill: sk.id }));
         sk.items.forEach((it) => { if (it.t === 'num') { const g1 = it.gen(), g2 = it.gen(); it.fixed = g1.q === g2.q; } });
-        sk.concepts = (sk.intro || []).map(([term, name, d, kind], k) => ({ term, name, d, kind: kind || 'b', id: `${sk.id}~${k}`, skill: sk.id, unit: u }));
+        sk.concepts = (sk.intro || []).map(([term, name, d, kind, ex], k) => ({ term, name, d, kind: kind || 'b', ex, id: `${sk.id}~${k}`, skill: sk.id, unit: u }));
         c.concepts.push(...sk.concepts);
         // begrepene som er i bruk på dette punktet i enheten (for repetisjon i oppgavenoder)
         sk.active = c.concepts.filter((cc) => cc.unit === u).slice(-6);
@@ -555,7 +551,7 @@
   const weakCount = () => courseSkills().filter((sk) => isWeak(sk.id)).length;
 
   // ------------------------------------------------------------------
-  // Dag, rekke, hjerter, XP
+  // Dag, rekke, XP
   // ------------------------------------------------------------------
   const QPOOL = [
     { s: 'lessons', n: [2, 3], txt: (n) => `Fullfør ${n} leksjoner` },
@@ -595,21 +591,38 @@
     s.best = Math.max(s.best, s.n);
     return true;
   }
-  function hearts() {
-    const hh = S.hearts;
-    if (hh.n >= MAX_HEARTS) { hh.n = MAX_HEARTS; hh.t = Date.now(); return hh.n; }
-    const gain = Math.floor((Date.now() - hh.t) / HEART_MS);
-    if (gain > 0) { hh.n = Math.min(MAX_HEARTS, hh.n + gain); hh.t += gain * HEART_MS; }
-    return hh.n;
-  }
-  function loseHeart() { hearts(); S.hearts.n = Math.max(0, S.hearts.n - 1); }
-  function gainHeart() { hearts(); S.hearts.n = Math.min(MAX_HEARTS, S.hearts.n + 1); }
-  function nextHeartText() {
-    const ms = Math.max(0, S.hearts.t + HEART_MS - Date.now());
-    const hrs = Math.floor(ms / 3600000), mins = Math.ceil((ms % 3600000) / 60000);
-    return hrs > 0 ? `${hrs} t ${mins} min` : `${mins} min`;
-  }
   const boostActive = () => Date.now() < S.boost;
+
+  // ------------------------------------------------------------------
+  // Dagens bål: brenner sterkere og varmere jo mer XP du samler i dag (fullt ved 200 XP)
+  // ------------------------------------------------------------------
+  const FIRE_MAX = 200;
+  function mixColor(stops, t) {
+    let i = 0;
+    while (i < stops.length - 2 && t > stops[i + 1][0]) i++;
+    const [t0, c0] = stops[i], [t1, c1] = stops[i + 1];
+    const k = Math.max(0, Math.min(1, (t - t0) / (t1 - t0 || 1)));
+    const h = (c) => [1, 3, 5].map((j) => parseInt(c.slice(j, j + 2), 16));
+    const a = h(c0), b = h(c1);
+    return '#' + a.map((v, j) => Math.round(v + (b[j] - v) * k).toString(16).padStart(2, '0')).join('');
+  }
+  const fireLevel = (xp) => (xp <= 0 ? 'Kalde glør' : xp < 25 ? 'Glør' : xp < 75 ? 'Lite bål' : xp < 125 ? 'Godt bål' : xp < FIRE_MAX ? 'Stort bål' : 'Flammende bål');
+  function fireIcon(xp, cls = '') {
+    const t = Math.max(0, Math.min(1, xp / FIRE_MAX));
+    const outer = mixColor([[0, '#9a3412'], [0.25, '#dc2626'], [0.5, '#f97316'], [0.75, '#f59e0b'], [1, '#facc15']], t);
+    const inner = mixColor([[0, '#ea580c'], [0.5, '#fbbf24'], [1, '#fef9c3']], t);
+    const sc = (k) => `translate(16 27) scale(${k}) translate(-16 -27)`;
+    const flame = 'M16 3C21 9 25 14 24.5 19.5 24 24.5 20.5 27 16 27S8 24.5 7.5 19.5C7.2 15.5 10 12 12.5 8.5 13 12 14.6 13.4 16 13.6 15.4 10.3 15.3 6.5 16 3Z';
+    const glow = xp > 0 ? `filter:drop-shadow(0 0 ${(1.5 + 5 * t).toFixed(1)}px rgba(255,${Math.round(150 - 60 * t)},0,${(0.25 + 0.6 * t).toFixed(2)}))` : '';
+    const s = 0.38 + 0.62 * t;
+    return `<svg viewBox="0 0 32 32" class="fire ${cls}" style="${glow}" role="img" aria-label="${esc(fireLevel(xp))}: ${xp} XP i dag">
+      <g transform="rotate(-14 16 27.5)"><rect x="6" y="25.5" width="20" height="4" rx="2" fill="#7c4a1e"/></g>
+      <g transform="rotate(14 16 27.5)"><rect x="6" y="25.5" width="20" height="4" rx="2" fill="#9a5b26"/></g>
+      ${xp <= 0
+        ? '<circle cx="13" cy="26.5" r="1.1" fill="#f97316" opacity=".8"/><circle cx="18" cy="27" r="0.9" fill="#dc2626" opacity=".8"/><path class="smoke" d="M16 23c-2-3 2-5 0-8s2-5 0-8" fill="none" stroke="#9ca3af" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>'
+        : `<g class="flame"><path d="${flame}" fill="${outer}" transform="${sc(s)}"/><path d="${flame}" fill="${inner}" transform="${sc(s * 0.62)}"/>${t > 0.5 ? `<path d="${flame}" fill="#fffdf2" opacity="${((t - 0.5) * 2).toFixed(2)}" transform="${sc(s * 0.34)}"/>` : ''}${t > 0.9 ? `<ellipse cx="16" cy="25.6" rx="${(2.6 * s).toFixed(2)}" ry="${(1.1 * s).toFixed(2)}" fill="#60a5fa" opacity="${((t - 0.9) * 8).toFixed(2)}"/>` : ''}</g>`}
+    </svg>`;
+  }
   function addXp(n) {
     if (boostActive()) n *= 2;
     const k = dayKey();
@@ -1107,7 +1120,7 @@
   // først et kort, så en oppgave på akkurat det begrepet, før neste begrep kommer.
   // Hver node har høyst tre nye begreper, og de øves igjen i de neste leksjonene.
   const KIND_LABEL = { f: 'Ny formel', s: 'Nytt symbol', e: 'Ny enhet', b: 'Nytt begrep' };
-  const cardOf = (c) => ({ t: 'card', term: c.term, name: c.name, d: c.d, kind: KIND_LABEL[c.kind] || KIND_LABEL.b, skill: c.skill });
+  const cardOf = (c) => ({ t: 'card', term: c.term, name: c.name, d: c.d, ex: c.ex, kind: KIND_LABEL[c.kind] || KIND_LABEL.b, skill: c.skill });
   const normTxt = (t) => String(t).replace(/\s+/g, '').toLowerCase();
   function uniqueOpts(correct, pool, n = 3) {
     const seen = new Set([normTxt(correct)]);
@@ -1155,7 +1168,7 @@
     else types.push('term');
     types.push('name');
     if (!type || !types.includes(type)) type = pickR(types);
-    const e = `${c.term}\n${c.name}. ${c.d}`;
+    const e = `${c.term}\n${c.name}. ${c.d}${c.ex ? `\nEksempel: ${c.ex}` : ''}`;
     const base = { id: `${c.id}${type[0]}`, skill: c.skill, drill: true };
     if (type === 'fill') {
       const f = formulaSides(c.term);
@@ -1182,7 +1195,7 @@
   const FLASH_KIND = { f: 'Formel', s: 'Symbol', e: 'Enhet', b: 'Begrep' };
   function makeFlash(c, dir) {
     const kind = FLASH_KIND[c.kind] || FLASH_KIND.b;
-    const base = { t: 'flash', id: `${c.id}${dir}`, skill: c.skill, kind, shown: false };
+    const base = { t: 'flash', id: `${c.id}${dir}`, skill: c.skill, kind, shown: false, ex: c.ex };
     if (c.kind === 'e') {
       if (dir === 'a') return { ...base, prompt: 'Hva er denne enheten?', front: c.term, frontBig: true, back: c.name, backBig: false, note: c.d };
       // baksiden skal ikke avsløres: bruk «Enheten for …», eller forklaringen med enheten skjult
@@ -1393,7 +1406,7 @@
     list = list.filter((it) => !it.id || it.t === 'num' && !it.fixed || (seen.has(it.id) ? false : seen.add(it.id)));
     return list.slice(0, LESSON_LEN + 2);
   }
-  // Øving på svake emner (også når du øver for å få hjerter):
+  // Øving på svake emner:
   // de svakeste temaene velges først, og innenfor hvert tema kommer kortene som er
   // mest over forfall. Feilsvar og bokmerker teller ekstra. Oppgavene samles tema for tema.
   function cardPriority(id, skill) {
@@ -1451,7 +1464,7 @@
     window.scrollTo(0, 0);
     render();
   }
-  const usesHearts = (L) => L.kind === 'skill' || L.kind === 'review' || L.kind === 'redo';
+  // Det finnes ingen hjerter: feil svar koster ingenting, og ingen leksjon stopper på grunn av dem.
 
   // Husker hvilke oppgaver og ferdigheter du får til, for repetisjon senere.
   function recordAnswer(x, ok) {
@@ -1486,7 +1499,6 @@
       L.celebrate = true;
     } else {
       L.mistakes++; L.combo = 0;
-      if (usesHearts(L)) loseHeart();
       if (L.kind === 'jump' || L.kind === 'exam') L.lives--;
       sfx.wrong();
     }
@@ -1500,7 +1512,7 @@
     if (!L || L.cur.t !== 'flash' || L.state !== 'idle' || L.cur.shown) return;
     L.cur.shown = true; sfx.tap(); render();
   }
-  // Selvvurdering etter at svaret er vist. «Igjen» koster ikke hjerte, men kortet kommer igjen senere i økten.
+  // Selvvurdering etter at svaret er vist. «Igjen» betyr at kortet kommer igjen senere i økten.
   function rateFlash(g) {
     const L = LESSON, x = L && L.cur;
     if (!x || x.t !== 'flash' || !x.shown || L.state !== 'idle') return;
@@ -1531,8 +1543,6 @@
         if (x.again <= 2) L.queue.splice(Math.min(L.queue.length, 3), 0, x);
       } else L.queue.push(x);
     }
-    // har du svart på alle oppgavene minst én gang, teller leksjonen selv om siste hjerte ryker
-    if (usesHearts(L) && hearts() <= 0) { if (L.answered >= L.total) return finish(); L.screen = 'noHearts'; return render(); }
     if (L.kind === 'jump' && L.lives <= 0) { L.screen = 'jumpFail'; return render(); }
     if (L.kind === 'exam' && L.lives <= 0) { L.screen = 'examFail'; return render(); }
     if (!L.queue.length) return finish();
@@ -1566,7 +1576,6 @@
         if (n.type === 'review') S.reviews[n.unit.id] = true;
       });
     }
-    if (L.kind === 'practice') { L.heartGained = hearts() < MAX_HEARTS; gainHeart(); }
     Object.keys(L.tally).forEach((id) => { const t = L.tally[id]; updateMem(id, t.ok / t.n); });
     const streakUp = extendStreak();
     const goalHit = xpToday() >= S.goal && xpToday() - xp < S.goal;
@@ -1610,9 +1619,9 @@
     const x = L.cur;
     const pct = Math.round((100 * (L.kind === 'exam' ? L.answered : L.correct)) / L.total);
     let top;
-    if (L.kind === 'jump' || L.kind === 'exam') top = `<div class="l-hearts">${Array.from({ length: L.maxLives }, (_, i) => I.heart(i < L.lives)).join('')}</div>`;
-    else if (usesHearts(L)) top = `<div class="l-hearts">${I.heart()}<b class="red">${hearts()}</b></div>`;
-    else top = `<div class="l-hearts"><span class="pill">${L.kind === 'practice' ? 'Styrk' : ''}</span></div>`;
+    // prøver (R1) har fortsatt et antall feil du kan gjøre før du stryker
+    if (L.kind === 'jump' || L.kind === 'exam') top = `<div class="l-hearts"><span class="pill lives">${L.lives - 1} ${L.lives - 1 === 1 ? 'feil' : 'feil'} igjen</span></div>`;
+    else top = `<div class="l-hearts l-fire">${fireIcon(xpToday())}<b class="orange-t">${xpToday()}</b></div>`;
 
     let body = '';
     if (x.t === 'mc') {
@@ -1692,12 +1701,13 @@
           <div class="flash ${x.shown ? 'shown' : ''}">
             <div class="fl-prompt">${esc(x.prompt)}</div>
             <div class="fl-front ${x.frontBig ? 'big' : ''}">${gloss(x.front)}</div>
-            ${x.shown ? `<div class="fl-line"></div><div class="fl-back ${x.backBig ? 'big' : ''}">${gloss(x.back)}</div>${x.note ? `<p class="fl-note">${gloss(x.note)}</p>` : ''}` : ''}
+            ${x.shown ? `<div class="fl-line"></div><div class="fl-back ${x.backBig ? 'big' : ''}">${gloss(x.back)}</div>${x.note ? `<p class="fl-note">${gloss(x.note)}</p>` : ''}${x.ex ? `<div class="ex-box"><b>Eksempel</b>${gloss(x.ex)}</div>` : ''}` : ''}
           </div>
           ${x.shown ? '<p class="fl-help">Hvor sikker var du?</p>' : ''}` : x.t === 'card' ? `<div class="intro-card"><div class="ic-badge">${esc(x.kind)}</div>
           <div class="ic-term ${x.term.length > 18 ? 'long' : ''}">${mathHTML(x.term)}</div>
           <div class="ic-name">${mathHTML(x.name)}</div>
-          <p class="ic-d">${gloss(x.d)}</p></div>` : `
+          <p class="ic-d">${gloss(x.d)}</p>
+          ${x.ex ? `<div class="ex-box"><b>Eksempel</b>${gloss(x.ex)}</div>` : ''}</div>` : `
         <div class="l-type-row"><div class="l-type">${x.t === 'bank' && x.order ? TYPE_LABEL.order : TYPE_LABEL[x.t]}${x.src ? ` · ${/^\d/.test(x.src) ? 'Oppgave ' : ''}${esc(x.src)}` : ''}${x.noCalc ? ' <span class="nocalc">Uten hjelpemidler</span>' : ''}</div>
           ${x.id ? `<button class="mark-btn ${S.marks[x.id] ? 'on' : ''}" data-a="mark" aria-label="Bokmerk oppgaven">${I.bookmark(!!S.marks[x.id])}<span>${S.marks[x.id] ? 'Bokmerket' : 'Bokmerk'}</span></button>` : ''}</div>
         <h2 class="l-q">${gloss(x.q)}</h2>
@@ -1742,7 +1752,8 @@
         ${lv ? `<p class="done-saved">Leksjon ${lv} av ${LEVELS} i «${esc(L.node.title)}» er lagret${lv >= LEVELS ? ', og temaet er fullført' : ''}.</p>` : ''}
         ${L.kind === 'jump' ? '<p>Du hoppet videre! Alle tidligere enheter er låst opp.</p>' : ''}
         ${L.kind === 'exam' ? `<p>Prøven er bestått med ${L.mistakes} ${L.mistakes === 1 ? 'feil' : 'feil'}!</p>` : ''}
-        ${L.heartGained ? `<p>Du tjente ett hjerte ${I.heart()}</p>` : ''}${L.kind === 'practice' ? '<p class="muted">De svake emnene dine er styrket.</p>' : ''}
+        ${L.kind === 'practice' ? '<p class="muted">De svake emnene dine er styrket.</p>' : ''}
+        <div class="done-fire">${fireIcon(xpToday(), 'big')}<span><b>${fireLevel(xpToday())}</b> · ${xpToday()} av ${FIRE_MAX} XP i dag</span></div>
         <div class="stat-cards">
           <div class="sc gold"><div class="sc-h">Total XP</div><div class="sc-b">${I.bolt()} <span data-count="${r.xp}">0</span></div></div>
           <div class="sc green"><div class="sc-h">${r.acc === 100 ? 'Perfekt' : 'Riktig'}</div><div class="sc-b">${I.aim()} <span data-count="${r.acc}" data-suffix=" %">0 %</span></div></div>
@@ -1762,15 +1773,6 @@
       </div>`;
     } else if (L.screen === 'goal') {
       html = `<div class="center-screen">${mascot('happy')}<h1 class="green-t">Dagens mål er nådd!</h1><p>Du har tjent ${xpToday()} av ${S.goal} XP i dag. Godt jobbet!</p></div>`;
-    } else if (L.screen === 'noHearts') {
-      html = `<div class="center-screen">
-        <div class="big-heart">${I.heart(false)}</div>
-        <h1>Du er tom for hjerter</h1>
-        <p>Neste hjerte kommer om ${nextHeartText()}. Du kan også tjene hjerter ved å øve på det du allerede har lært.</p>
-        <button class="btn blue wide" data-a="practice">Øv for å tjene hjerter</button>
-        <button class="btn link wide" data-a="exit">Avslutt</button>
-      </div>`;
-      return (app.innerHTML = `<div class="lesson screen">${html}</div>`);
     } else if (L.screen === 'examFail') {
       html = `<div class="center-screen">${mascot('sad')}<h1>Ikke bestått</h1><p>Du gjorde for mange feil på prøven. Repeter oppgavene og veiledningen, og prøv igjen. Prøven må bestås før du kommer videre.</p></div>`;
       return (app.innerHTML = `<div class="lesson screen">${html}<div class="l-foot"><div class="foot-in end"><button class="btn green" data-a="exit" id="contBtn">Fortsett</button></div></div></div>`);
@@ -1856,7 +1858,7 @@
       <button class="chip course-chip" data-a="courses" title="Bytt kurs">${I[COURSE.icon]()}<span>${esc(COURSE.short || COURSE.title)}</span><i class="caret">▾</i></button>
       <button class="chip" data-a="streakInfo" title="Dagsrekke">${I.flame(st > 0 && S.streak.last === dayKey())}<b class="${st > 0 ? 'orange-t' : 'grey-t'}">${st}</b></button>
       <button class="chip" data-a="tab" data-t="profile" title="Total XP">${I.bolt()}<b class="gold-t">${S.xp}</b></button>
-      <button class="chip" data-a="heartsInfo" title="Hjerter">${I.heart(hearts() > 0)}<b class="red">${hearts()}</b></button>
+      <button class="chip fire-chip" data-a="fireInfo" title="Dagens bål">${fireIcon(xpToday())}<b class="orange-t">${xpToday()}</b></button>
     </div>`;
   }
 
@@ -2292,13 +2294,15 @@
         <p class="muted small">Tips: Trykk på understrekede ord og symboler for en kort forklaring.</p></div>
       </div></div>`;
     }
-    if (m.type === 'hearts') {
-      const n = hearts();
-      return `<div class="modal-bg" data-a="closeModal"><div class="modal" data-stop>
-        <h3>Hjerter</h3><div class="hearts-row">${[0, 1, 2, 3, 4].map((i) => I.heart(i < n)).join('')}</div>
-        <p>${n >= MAX_HEARTS ? 'Du har fulle hjerter. Fortsett å lære!' : `Du får et nytt hjerte om ${nextHeartText()}. Du mister et hjerte for hver feil i en leksjon.`}</p>
-        <button class="btn blue wide" data-a="practice">Øv for å tjene hjerter</button>
-        <button class="btn link wide" data-a="closeModal">Lukk</button></div></div>`;
+    if (m.type === 'fire') {
+      const xp = xpToday(), t = Math.min(1, xp / FIRE_MAX);
+      return `<div class="modal-bg" data-a="closeModal"><div class="modal fire-modal" data-stop>
+        ${fireIcon(xp, 'huge')}
+        <h3>${fireLevel(xp)}</h3>
+        <p><b>${xp} av ${FIRE_MAX} XP</b> i dag</p>
+        <div class="fire-bar"><div style="width:${Math.max(3, Math.round(100 * t))}%"></div></div>
+        <p class="muted">Bålet brenner sterkere og varmere jo mer XP du samler i løpet av dagen. Ved ${FIRE_MAX} XP flammer det for fullt. Det starter som glør igjen ved midnatt.</p>
+        <button class="btn green wide" data-a="closeModal">Fortsett</button></div></div>`;
     }
     if (m.type === 'streak') {
       const n = streakNow();
@@ -2339,7 +2343,6 @@
 
   function renderMain() {
     today();
-    hearts();
     const tabs = [['learn', 'Lær', I.home()], ['rep', 'Repetisjon', I.repeat()], ['league', 'Liga', I.shield()], ['quests', 'Oppdrag', I.target()], ['profile', 'Profil', I.user()]];
     const nav = (cls) => `<nav class="${cls}">${cls === 'side' ? `<div class="logo">${I.atom()}<span>HugoLingo</span></div>` : ''}${tabs.map(([id, label, ic]) => `<button class="nav-i ${UI.tab === id ? 'on' : ''}" data-a="tab" data-t="${id}">${ic}<span>${label}</span></button>`).join('')}</nav>`;
     let content;
@@ -2430,7 +2433,6 @@
     const n = NODES[i];
     const done = nodeDone(n);
     if (n.type === 'exam') return startLesson('exam', n);
-    if ((n.type === 'skill' || n.type === 'review') && hearts() <= 0) { UI.modal = { type: 'hearts' }; UI.open = -1; return render(); }
     if (n.type === 'skill') startLesson(done ? 'redo' : 'skill', n);
     else if (n.type === 'review') startLesson(done ? 'redo' : 'review', done ? { ...n, skill: { items: allItems(n.unit.skills.filter((sk) => !sk.optional)), title: n.unit.title, concepts: n.unit.skills.flatMap((sk) => sk.concepts), active: [] } } : n);
   }
@@ -2464,7 +2466,7 @@
       case 'jumpGo': startLesson('jump', null, { unit: COURSE.units[+el.dataset.u] }); break;
       case 'courses': UI.modal = { type: 'courses' }; UI.open = -1; render(); break;
       case 'setCourse': setCourse(el.dataset.c); save(); UI.lastNode = null; UI.modal = null; UI.tab = 'learn'; UI.open = -1; UI.scrollToCurrent = true; window.scrollTo(0, 0); render(); break;
-      case 'heartsInfo': UI.modal = { type: 'hearts' }; render(); break;
+      case 'fireInfo': UI.modal = { type: 'fire' }; render(); break;
       case 'streakInfo': UI.modal = { type: 'streak' }; render(); break;
       case 'closeModal':
         if (el.classList.contains('modal-bg') && ev.target !== el) return;
@@ -2559,7 +2561,6 @@
     const L = LESSON;
     L.ok = false; L.state = 'wrong'; L.mistakes++; L.combo = 0;
     recordAnswer(L.cur, false);
-    if (usesHearts(L)) loseHeart();
     if (L.kind === 'jump' || L.kind === 'exam') L.lives--;
     S.stats.answered++;
     sfx.wrong(); save(); render();
@@ -2624,7 +2625,7 @@
     if (x.t === 'mc' && /^[1-9]$/.test(ev.key) && +ev.key <= x.opts.length) { x.sel = +ev.key - 1; sfx.tap(); render(); }
   });
 
-  // Oppdater visning (hjertetimer, liga) hvert minutt når appen er åpen.
+  // Oppdater visningen (bål, liga) hvert minutt når appen er åpen.
   setInterval(() => { if (!LESSON && !UI.modal) { const y = window.scrollY; render(); window.scrollTo(0, y); } }, 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { syncFromStorage(); if (!LESSON) render(); } else save(); });
   window.addEventListener('pagehide', () => save());
@@ -2642,7 +2643,7 @@
   }
 
   // Til testing
-  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), fEquiv, mutations, mutateSide, recordAnswerForTest: (x, ok) => recordAnswer(x, ok), nextCard, previewIvl, startForTest: (i) => startLesson('redo', NODES[i]), startItems: (items) => startLesson('practice', null, { items, title: 'Test' }), makeDrill, makeFlash, makeRecall, conceptExercise, review, hearts, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
+  window.__fysikkling = { get state() { return S; }, get lesson() { return LESSON; }, get NODES() { return NODES; }, get COURSES() { return COURSES; }, skillLesson: (i, first) => skillLesson(NODES[i], first), setCourse: (id) => setCourse(id), fEquiv, mutations, mutateSide, recordAnswerForTest: (x, ok) => recordAnswer(x, ok), nextCard, previewIvl, startForTest: (i) => startLesson('redo', NODES[i]), startItems: (items) => startLesson('practice', null, { items, title: 'Test' }), makeDrill, makeFlash, makeRecall, conceptExercise, review, strength, weakest, buildWeakItems, repItems, repPlan, conceptReview, makeDrill };
 
   render();
 })();
