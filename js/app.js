@@ -8,8 +8,8 @@
   let NODES = [];
 
   const LEVELS = 3; // leksjoner per ferdighet
-  const LESSON_LEN = 8;
-  const REVIEW_LEN = 12;
+  const LESSON_LEN = 7; // ca. 10 % kortere leksjoner, uten at noe innhold er fjernet
+  const REVIEW_LEN = 11;
   const JUMP_LEN = 12;
   const JUMP_LIVES = 3;
   const MAX_HEARTS = 5;
@@ -288,7 +288,52 @@
   S.srs = S.srs || {};
   S.cstage = S.cstage || {};
   S.tests = S.tests || [];
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (err) { /* ignorer */ } }
+  // Lagring som tåler at appen er åpen flere steder samtidig (to faner, eller en gammel utgave som
+  // våkner igjen). Hver lagring får et tidsstempel. Har noen andre lagret siden sist, slås tilstandene
+  // sammen i stedet for at den eldste overskriver den nyeste.
+  let syncTs = S.ts || 0;
+  function readStored() { try { const s = JSON.parse(localStorage.getItem(KEY)); return s && s.v === 1 ? s : null; } catch (err) { return null; } }
+  function mergeState(a, b) {
+    const maxMap = (x = {}, y = {}) => { const o = { ...x }; for (const [k, v] of Object.entries(y)) o[k] = Math.max(o[k] || 0, v || 0); return o; };
+    const orMap = (x = {}, y = {}) => { const o = { ...x }; for (const [k, v] of Object.entries(y)) o[k] = o[k] || v; return o; };
+    const newer = (x = {}, y = {}, f) => { const o = { ...x }; for (const [k, v] of Object.entries(y)) if (!o[k] || f(v) > f(o[k])) o[k] = v; return o; };
+    a.prog = maxMap(a.prog, b.prog);
+    a.chests = orMap(a.chests, b.chests);
+    a.reviews = orMap(a.reviews, b.reviews);
+    a.xpDays = maxMap(a.xpDays, b.xpDays);
+    a.xp = Math.max(a.xp || 0, b.xp || 0);
+    a.stats = maxMap(a.stats, b.stats);
+    a.srs = newer(a.srs, b.srs, (c) => c.last || 0);
+    a.mem = newer(a.mem, b.mem, (m) => m.t || 0);
+    a.marks = newer(a.marks, b.marks, (m) => m.t || 0);
+    a.cstage = newer(a.cstage, b.cstage, (c) => c.s * 100 + c.run);
+    a.wrong = maxMap(a.wrong, b.wrong);
+    a.migr = orMap(a.migr, b.migr);
+    const ids = new Set((a.tests || []).map((t) => t.id));
+    a.tests = (a.tests || []).concat((b.tests || []).filter((t) => !ids.has(t.id)));
+    if (b.streak && (!a.streak || (b.streak.last || '') > (a.streak.last || ''))) a.streak = { ...b.streak, best: Math.max(b.streak.best || 0, (a.streak && a.streak.best) || 0) };
+    if (b.today && a.today && b.today.day === a.today.day) a.today = maxMap(a.today, b.today), a.today.day = b.today.day;
+    return a;
+  }
+  function save() {
+    try {
+      const stored = readStored();
+      if (stored && (stored.ts || 0) > syncTs) mergeState(S, stored);
+      S.ts = Date.now();
+      localStorage.setItem(KEY, JSON.stringify(S));
+      syncTs = S.ts;
+    } catch (err) { /* ignorer */ }
+  }
+  // Når appen hentes fram igjen: ta inn det som er lagret andre steder i mellomtiden.
+  function syncFromStorage() {
+    const stored = readStored();
+    if (!stored || (stored.ts || 0) <= syncTs) return;
+    mergeState(S, stored);
+    syncTs = stored.ts;
+    if (!LESSON) render();
+  }
+  window.addEventListener('storage', (ev) => { if (ev.key === KEY) syncFromStorage(); });
+  window.addEventListener('focus', () => syncFromStorage());
 
   // UI-tilstand som ikke lagres
   const UI = { tab: 'learn', open: -1, modal: null, scrollToCurrent: true };
@@ -637,6 +682,58 @@
     done: () => tone([[523, 0.12], [659, 0.12], [784, 0.12], [1047, 0.35]]),
     tap: () => tone([[600, 0.04, 'sine', 0.06]]),
   };
+
+  // ------------------------------------------------------------------
+  // Feiring: partikler ved riktig svar, konfetti når en leksjon er fullført
+  // (skrus av når telefonen har «Reduser bevegelse» på)
+  // ------------------------------------------------------------------
+  const calm = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function fxLayer() {
+    let l = document.getElementById('fx');
+    if (!l) { l = document.createElement('div'); l.id = 'fx'; l.className = 'fx-layer'; document.body.appendChild(l); }
+    return l;
+  }
+  // En liten eksplosjon av prikker og stjerner rundt et punkt på skjermen.
+  function burst(x, y, n = 14, colors = ['#58cc02', '#89e219', '#ffc800', '#1cb0f6']) {
+    if (calm()) return;
+    const l = fxLayer();
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement('i');
+      const a = (Math.PI * 2 * i) / n + Math.random() * 0.5, d = 40 + Math.random() * 60;
+      p.className = 'fx-p' + (i % 4 === 0 ? ' star' : '');
+      p.style.cssText = `left:${x}px;top:${y}px;--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d - 20}px;--c:${colors[i % colors.length]};--r:${Math.random() * 360}deg`;
+      l.appendChild(p);
+      setTimeout(() => p.remove(), 900);
+    }
+  }
+  function burstAt(el, n, colors) {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, n, colors);
+  }
+  // Konfetti som faller over hele skjermen.
+  function confetti(n = 50, colors = ['#58cc02', '#1cb0f6', '#ffc800', '#ff4b4b', '#ce82ff', '#ff9600']) {
+    if (calm()) return;
+    const l = fxLayer();
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement('i');
+      const t = 1.6 + Math.random() * 1.6;
+      p.className = 'fx-c';
+      p.style.cssText = `left:${Math.random() * 100}vw;--c:${colors[i % colors.length]};--t:${t}s;--d:${Math.random() * 0.5}s;--x:${(Math.random() - 0.5) * 160}px;--r:${(Math.random() - 0.5) * 1080}deg;width:${6 + Math.random() * 6}px;height:${8 + Math.random() * 8}px`;
+      l.appendChild(p);
+      setTimeout(() => p.remove(), (t + 0.6) * 1000);
+    }
+  }
+  // Tall som teller opp, for eksempel XP på skjermen etter leksjonen.
+  function countUp(root) {
+    root.querySelectorAll('[data-count]').forEach((el) => {
+      const end = +el.dataset.count, suffix = el.dataset.suffix || '';
+      if (calm() || !end) { el.textContent = end + suffix; return; }
+      const t0 = performance.now(), dur = 900;
+      const step = (t) => { const k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(end * (1 - Math.pow(1 - k, 3))) + suffix; if (k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    });
+  }
 
   // ------------------------------------------------------------------
   // Oppgaver: instansiering og retting
@@ -1224,7 +1321,7 @@
   // ------------------------------------------------------------------
   // Pugg-modus (Fysikk 1): flashkort og pugg-oppgaver, med 10–40 % fra andre temaer
   // ------------------------------------------------------------------
-  const DRILL_LEN = 12;
+  const DRILL_LEN = 11;
   const flashCands = (cs) => cs.flatMap((c) => ['a', 'b'].map((d) => ({ c, d, id: c.id + d })));
   // Velger flashkort: forfalte og svake kort først, deretter nye.
   function pickFlash(cs, n) {
@@ -1386,6 +1483,7 @@
       today().combo = Math.max(today().combo, L.combo);
       L.praise = pickR(['Flott!', 'Riktig!', 'Strålende!', 'Helt rett!', 'Bra jobbet!', 'Supert!']);
       sfx.right();
+      L.celebrate = true;
     } else {
       L.mistakes++; L.combo = 0;
       if (usesHearts(L)) loseHeart();
@@ -1394,6 +1492,7 @@
     }
     save();
     render();
+    if (L.celebrate) { L.celebrate = false; burstAt(document.querySelector('.fb-title'), L.combo >= 5 ? 22 : 14); }
   }
 
   function flipFlash() {
@@ -1405,6 +1504,7 @@
   function rateFlash(g) {
     const L = LESSON, x = L && L.cur;
     if (!x || x.t !== 'flash' || !x.shown || L.state !== 'idle') return;
+    if (g >= 3) burstAt(document.querySelector(`[data-a="rate"][data-g="${g}"]`), g === 4 ? 16 : 10, g === 4 ? ['#1cb0f6', '#84d8ff', '#ffc800'] : undefined);
     const ok = g > 1;
     review(x.id, x.skill, g);
     recordAnswer(x, ok);
@@ -1431,7 +1531,8 @@
         if (x.again <= 2) L.queue.splice(Math.min(L.queue.length, 3), 0, x);
       } else L.queue.push(x);
     }
-    if (usesHearts(L) && hearts() <= 0) { L.screen = 'noHearts'; return render(); }
+    // har du svart på alle oppgavene minst én gang, teller leksjonen selv om siste hjerte ryker
+    if (usesHearts(L) && hearts() <= 0) { if (L.answered >= L.total) return finish(); L.screen = 'noHearts'; return render(); }
     if (L.kind === 'jump' && L.lives <= 0) { L.screen = 'jumpFail'; return render(); }
     if (L.kind === 'exam' && L.lives <= 0) { L.screen = 'examFail'; return render(); }
     if (!L.queue.length) return finish();
@@ -1474,6 +1575,9 @@
     L.result = { xp, acc, secs, streakUp, goalHit };
     sfx.done();
     render();
+    countUp(app);
+    if (L.mistakes === 0) { confetti(90, ['#ffc800', '#ffde59', '#ff9600', '#58cc02', '#1cb0f6']); setTimeout(() => burstAt(document.querySelector('.done-hero'), 24, ['#ffc800', '#ffde59', '#fff']), 250); }
+    else confetti(45);
   }
 
   function afterDone() {
@@ -1628,15 +1732,20 @@
     if (L.screen === 'done') {
       const r = L.result;
       const mm = Math.floor(r.secs / 60), ss = r.secs % 60;
-      html = `<div class="center-screen">
-        ${mascot('happy')}
-        <h1 class="gold-t">${L.mistakes === 0 ? 'Perfekt leksjon!' : 'Leksjon fullført!'}</h1>
+      const perfect = L.mistakes === 0;
+      const firstTry = Math.max(0, L.total - L.mistakes);
+      const lv = L.kind === 'skill' && L.node ? S.prog[L.node.id] || 0 : 0;
+      html = `<div class="center-screen done-screen ${perfect ? 'perfect' : ''}">
+        <div class="done-hero">${perfect ? '<div class="halo"></div>' : ''}${mascot('happy')}</div>
+        <h1 class="gold-t done-title">${perfect ? 'Perfekt leksjon!' : 'Leksjon fullført!'}</h1>
+        <p class="done-score ${perfect ? 'gold' : ''}"><b>${firstTry} av ${L.total}</b> riktige på første forsøk</p>
+        ${lv ? `<p class="done-saved">Leksjon ${lv} av ${LEVELS} i «${esc(L.node.title)}» er lagret${lv >= LEVELS ? ', og temaet er fullført' : ''}.</p>` : ''}
         ${L.kind === 'jump' ? '<p>Du hoppet videre! Alle tidligere enheter er låst opp.</p>' : ''}
         ${L.kind === 'exam' ? `<p>Prøven er bestått med ${L.mistakes} ${L.mistakes === 1 ? 'feil' : 'feil'}!</p>` : ''}
         ${L.heartGained ? `<p>Du tjente ett hjerte ${I.heart()}</p>` : ''}${L.kind === 'practice' ? '<p class="muted">De svake emnene dine er styrket.</p>' : ''}
         <div class="stat-cards">
-          <div class="sc gold"><div class="sc-h">Total XP</div><div class="sc-b">${I.bolt()} ${r.xp}</div></div>
-          <div class="sc green"><div class="sc-h">${r.acc === 100 ? 'Perfekt' : 'Riktig'}</div><div class="sc-b">${I.aim()} ${r.acc} %</div></div>
+          <div class="sc gold"><div class="sc-h">Total XP</div><div class="sc-b">${I.bolt()} <span data-count="${r.xp}">0</span></div></div>
+          <div class="sc green"><div class="sc-h">${r.acc === 100 ? 'Perfekt' : 'Riktig'}</div><div class="sc-b">${I.aim()} <span data-count="${r.acc}" data-suffix=" %">0 %</span></div></div>
           <div class="sc blue"><div class="sc-h">${r.secs < 90 ? 'Lynrask' : 'Tid'}</div><div class="sc-b">${I.clock()} ${mm}:${pad(ss)}</div></div>
         </div>
         ${boostActive() ? '<p class="boost-t">Dobbel XP er aktiv!</p>' : ''}
@@ -2517,7 +2626,8 @@
 
   // Oppdater visning (hjertetimer, liga) hvert minutt når appen er åpen.
   setInterval(() => { if (!LESSON && !UI.modal) { const y = window.scrollY; render(); window.scrollTo(0, y); } }, 60000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && !LESSON) render(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { syncFromStorage(); if (!LESSON) render(); } else save(); });
+  window.addEventListener('pagehide', () => save());
 
   // Ny versjon av appen tas i bruk automatisk, men aldri midt i en leksjon.
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {

@@ -590,3 +590,38 @@ sub { vertical-align: -.25em; }
 .t-grade.g1, .t-grade.g2 { background: var(--red); }
 .t-grade.g3 { background: #ff9600; }
 .t-grade.g4 { background: #1cb0f6; }
+
+/* ---------- feiring ---------- */
+.fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 300; overflow: hidden; }
+.fx-p { position: absolute; width: 9px; height: 9px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--c); animation: fx-burst .8s cubic-bezier(.2, .7, .3, 1) forwards; }
+.fx-p.star { width: 12px; height: 12px; border-radius: 2px; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+@keyframes fx-burst { 0% { transform: translate(0, 0) scale(.4) rotate(0); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--r)); opacity: 0; } }
+.fx-c { position: absolute; top: -20px; border-radius: 2px; background: var(--c); animation: fx-fall var(--t) cubic-bezier(.3, .6, .5, 1) var(--d) forwards; }
+@keyframes fx-fall { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 85% { opacity: 1; } 100% { transform: translate(var(--x), 110vh) rotate(var(--r)); opacity: 0; } }
+/* riktig svar: overskriften spretter inn */
+.l-foot.ok .fb-title { animation: fb-pop .45s cubic-bezier(.3, 1.6, .5, 1); transform-origin: left center; }
+@keyframes fb-pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.l-foot.ok, .l-foot.no { animation: foot-in .25s ease-out; }
+@keyframes foot-in { from { transform: translateY(30px); } to { transform: translateY(0); } }
+.bar .fill { transition: width .45s cubic-bezier(.3, 1.4, .5, 1); }
+.combo { animation: combo-pop .6s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes combo-pop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+/* ferdigskjerm */
+.done-hero { position: relative; display: inline-block; animation: hero-jump .9s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes hero-jump { 0% { transform: translateY(40px) scale(.6); opacity: 0; } 60% { transform: translateY(-14px) scale(1.05); opacity: 1; } 100% { transform: translateY(0) scale(1); } }
+.done-title { animation: fb-pop .6s .15s cubic-bezier(.3, 1.6, .5, 1) both; }
+.done-score { margin: 6px 0 0; font-weight: 800; animation: fade .5s .35s both; }
+.done-score.gold { color: #e5a800; }
+.done-saved { margin: 8px auto 0; max-width: 320px; color: var(--muted); font-weight: 700; animation: fade .5s .45s both; }
+.done-screen .stat-cards .sc { animation: card-up .5s cubic-bezier(.3, 1.4, .5, 1) both; }
+.done-screen .stat-cards .sc:nth-child(1) { animation-delay: .5s; }
+.done-screen .stat-cards .sc:nth-child(2) { animation-delay: .62s; }
+.done-screen .stat-cards .sc:nth-child(3) { animation-delay: .74s; }
+@keyframes card-up { from { transform: translateY(30px) scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+.done-screen.perfect .halo { position: absolute; inset: -18px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 200, 0, .55), rgba(255, 200, 0, 0) 70%); animation: halo 1.8s ease-in-out infinite; }
+@keyframes halo { 0%, 100% { transform: scale(.9); opacity: .7; } 50% { transform: scale(1.12); opacity: 1; } }
+.done-screen.perfect .done-title { text-shadow: 0 0 18px rgba(255, 200, 0, .55); }
+@media (prefers-reduced-motion: reduce) {
+  .fx-layer { display: none; }
+  .l-foot.ok .fb-title, .l-foot.ok, .l-foot.no, .combo, .done-hero, .done-title, .done-score, .done-saved, .done-screen .stat-cards .sc, .done-screen.perfect .halo { animation: none !important; }
+}

@@ -20,7 +20,7 @@ Open the link in Safari, tap the share button, then "Add to Home Screen". On Win
 
 ### Moving progress between devices
 
-Progress is saved locally on each device. Go to Profil, then "Kopier kode" on one device, and "Lim inn kode" on the other.
+Progress is saved locally on each device, and on iPhone the home-screen app and Safari also keep separate copies, so always open the app the same way. If the app is open in several tabs or windows, their saves are merged instead of overwriting each other. Go to Profil, then "Kopier kode" on one device, and "Lim inn kode" on the other.
 
 ### Fysikk 1: pugging med flashkort
 
